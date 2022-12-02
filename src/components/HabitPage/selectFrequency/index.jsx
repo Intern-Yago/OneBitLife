@@ -1,40 +1,31 @@
 import React, { useEffect, useState } from 'react'
-import { Image} from "react-native";
+import { Image, View} from "react-native";
 import { SelectList } from "react-native-dropdown-select-list";
-import HabitsData from '../../../Database/HabitData';
 
-import styles from '../styles'
+import styles from '../styles';
 
-export default function SelectHabit({habit, habitInput}){
+export default function SelectFrequency({ habitFrequency, frequencyInput }){
     const [selected, setSelected] = useState(
-        habit?.habitName ? habit?.habitName : "-"
-    )
-    const [data, setData] = useState();
-
+        habitFrequency ? habitFrequency : "-"
+    );
+    const data = [
+        { key: "Diário", value: "Diário" },
+        { key: "Semanal", value: "Semanal" },
+        { key: "Mensal", value: "Mensal" },
+    ];
     useEffect(() => {
-        if (habit?.habitArea === "Mente") {
-          setData(HabitsData.dataMind);
-        }
-        if (habit?.habitArea === "Financeiro") {
-          setData(HabitsData.dataMoney);
-        }
-        if (habit?.habitArea === "Corpo") {
-          setData(HabitsData.dataBody);
-        }
-        if (habit?.habitArea === "Humor") {
-          setData(HabitsData.dataFun);
-        }
-        habitInput(habit?.habitName ? habit?.habitName : undefined);
-      }, []);
+        frequencyInput(habitFrequency ? habitFrequency : undefined);
+    }, []);
 
     return(
-        <>
+        <View style={{ marginBottom: 20 }}>
             <SelectList
-                setSelected={setSelected}
                 data={data}
                 search={false}
+                setSelected={setSelected}
                 onSelect={() => {
-                    habitInput(selected);
+                    alert(selected);
+                    frequencyInput(selected);
                 }}
                 placeholder={selected}
                 boxStyles={styles.boxStyle}
@@ -49,6 +40,6 @@ export default function SelectHabit({habit, habitInput}){
                     />
                 }
             />
-    </>
-    );  
+        </View>
+  );
 }
