@@ -1,9 +1,10 @@
 import { useNavigation } from '@react-navigation/native';
 import React, {useState} from 'react'
-import { View,StyleSheet, ScrollView, TouchableOpacity, Image} from "react-native";
+import { View,StyleSheet, ScrollView, TouchableOpacity, Image, Text} from "react-native";
 
-export default function HabitPage(){
+export default function HabitPage({route}){
     const navigation = useNavigation()
+    const {create, habit} = route.params
     return(
         <View style={styles.container}>
             <ScrollView>
@@ -18,7 +19,11 @@ export default function HabitPage(){
                         />
                     </TouchableOpacity>
                     <View style={styles.mainContent}>
-
+                        <Text style={styles.title}>Configurações {"\n"} de hábito</Text>
+                        <Text style={styles.inputText}>Área</Text>
+                        <View style={styles.inputContainer}>
+                            <Text style={styles.area}>{habit?.habitArea}</Text>
+                        </View>  
                     </View>
                 </View>
             </ScrollView>
