@@ -5,6 +5,7 @@ import Notification from '../../components/HabitPage/notification';
 import SelectFrequency from '../../components/HabitPage/selectFrequency';
 
 import SelectHabit from '../../components/HabitPage/SelectHabit';
+import TimeDatePicker from '../../components/HabitPage/timeDatePicker';
 
 export default function HabitPage({route}){
     const navigation = useNavigation();
@@ -44,12 +45,23 @@ export default function HabitPage({route}){
                             frequencyInput={setFrequencyInput}
                         />
                         {frequencyInput === "Mensal" ? null : (
-                        <Notification
-                            notificationToggle={notificationToggle}
-                            setNotificationToggle={setNotificationToggle}
-                        />
+                            <Notification
+                                notificationToggle={notificationToggle}
+                                setNotificationToggle={setNotificationToggle}
+                            />
                         )}
 
+                        {notificationToggle ? (
+                            frequencyInput === "Mensal" || frequencyInput === "Horal" ? null : (
+                                <TimeDatePicker
+                                    frequency={frequencyInput}
+                                    dayNotification={dayNotification}
+                                    timeNotification={timeNotification}
+                                    setDayNotification={setDayNotification}
+                                    setTimeNotification={setTimeNotification}
+                                />
+                            )
+                        ) : null}
                     </View>
                 </View>
             </ScrollView>
