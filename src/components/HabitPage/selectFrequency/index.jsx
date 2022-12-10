@@ -9,7 +9,6 @@ export default function SelectFrequency({ habitFrequency, frequencyInput }){
         habitFrequency ? habitFrequency : "-"
     );
     const data = [
-        {key: "Horal", value:"Horal"},
         { key: "Diário", value: "Diário" },
         { key: "Semanal", value: "Semanal" },
         { key: "Mensal", value: "Mensal" },
