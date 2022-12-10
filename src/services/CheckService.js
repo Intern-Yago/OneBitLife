@@ -37,9 +37,11 @@ const removeCheckHabit = (obj) => {
 const removeCheck = (mindHabit, moneyHabit, bodyHabit, funHabit) => {
   const date = new Date();
 
-  const mindLastCheck =
+  var mindLastCheck =
     date.getDate() - (new Date(mindHabit?.lastCheck).getDate() + 1);
+    mindLastCheck = mindLastCheck < 0 ? 0 : mindLastCheck
 
+    console.log(mindLastCheck)
   if (mindHabit?.habitFrequency === "Diário" && mindLastCheck > 0) {
     removeCheckHabit({
       habitIsChecked: 0,
@@ -59,8 +61,9 @@ const removeCheck = (mindHabit, moneyHabit, bodyHabit, funHabit) => {
     });
   }
 
-  const moneyLastCheck =
+  var moneyLastCheck =
     date.getDate() - (new Date(moneyHabit?.lastCheck).getDate() + 1);
+  moneyLastCheck = moneyLastCheck < 0 ? 0 : moneyLastCheck
 
   if (moneyHabit?.habitFrequency === "Diário" && moneyLastCheck > 0) {
     removeCheckHabit({
@@ -80,8 +83,9 @@ const removeCheck = (mindHabit, moneyHabit, bodyHabit, funHabit) => {
       habitArea: moneyHabit?.habitArea,
     });
   }
-  const BodyLastCheck =
+  var BodyLastCheck =
     date.getDate() - (new Date(bodyHabit?.lastCheck).getDate() + 1);
+  BodyLastCheck = BodyLastCheck < 0 ? 0 : BodyLastCheck
 
   if (bodyHabit?.habitFrequency === "Diário" && BodyLastCheck > 0) {
     removeCheckHabit({
@@ -101,8 +105,9 @@ const removeCheck = (mindHabit, moneyHabit, bodyHabit, funHabit) => {
       habitArea: bodyHabit?.habitArea,
     });
   }
-  const FunLastCheck =
+  var FunLastCheck =
     date.getDate() - (new Date(funHabit?.lastCheck).getDate() + 1);
+    FunLastCheck = FunLastCheck < 0 ? 0 : FunLastCheck
   if (funHabit?.habitFrequency === "Diário" && FunLastCheck > 0) {
     removeCheckHabit({
       habitIsChecked: 0,
