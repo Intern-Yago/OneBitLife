@@ -1,9 +1,13 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigation } from "@react-navigation/native";
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function EditHabit({habit, frequency, habitArea, checkColor}){
   const navigation = useNavigation();
+  const [habitCheck, setHabitCheck] = useState()
+  const [checkImage, setCheckImage] = useState(
+    require('../../../assets/icons/Mind.png')
+  )
   function handleEdit() {
     navigation.navigate("HabitPage", {
       create: false,
@@ -12,8 +16,23 @@ export default function EditHabit({habit, frequency, habitArea, checkColor}){
   }
 
   function handleCheck(){
-    console.log(`Botão de  check clicado ${habit?.habitArea}`);
+    if(habitCheck === 0){
+      setHabitCheck(1)
+    }
   }
+
+  useEffect(() => {
+    setHabitCheck(habit?.habitIsChecked);
+    if (habit?.habitArea === "Financeiro") {
+      setCheckImage(require("../../../assets/icons/Money.png"));
+    }
+    if (habit?.habitArea === "Corpo") {
+      setCheckImage(require("../../../assets/icons/Body.png"));
+    }
+    if (habit?.habitArea === "Humor") {
+      setCheckImage(require("../../../assets/icons/Fun.png"));
+    }
+  }, []);
 
   const textNotification = 
     habit?.habitNotificationTime == null
@@ -34,10 +53,17 @@ export default function EditHabit({habit, frequency, habitArea, checkColor}){
           {textNotification}
         </Text>
       </View>
-      <TouchableOpacity
-        style={[styles.check, {borderColor: checkColor}]}
-        onPress={handleCheck}
-      />
+      {
+        habitCheck===0?(
+        <TouchableOpacity
+          style={[styles.check, {borderColor: checkColor}]}
+          onPress={handleCheck}
+        />)
+        :
+        <TouchableOpacity onPress={handleCheck}>
+          <Image source={checkImage} style={styles.checked}/>
+        </TouchableOpacity>
+      }
 
     </TouchableOpacity>
     
@@ -69,5 +95,9 @@ const styles = StyleSheet.create({
     height: 20,
     borderWidth: 1,
     borderRadius: 10,
+  },
+  checked: {
+    width: 25,
+    height: 25,
   },
 });
