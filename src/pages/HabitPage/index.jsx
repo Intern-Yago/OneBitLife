@@ -1,5 +1,6 @@
-import React, {useState} from 'react'
+import React, {useEffect, useState} from 'react'
 import { useNavigation } from '@react-navigation/native';
+import * as Notifications from 'expo-notifications'
 import { View,StyleSheet, ScrollView, TouchableOpacity, Image, Text, Alert} from "react-native";
 
 import SelectHabit from '../../components/HabitPage/SelectHabit';
@@ -10,6 +11,14 @@ import UpdateExcludeButtons from '../../components/HabitPage/UpdateExcludeButton
 
 import DefaultButton from '../../components/Common/DefaultButton';
 import HabitsService from '../../services/HabitsService';
+
+Notifications.setNotificationHandler({
+    handleNotification: async()=>({
+        shouldShowAlert: true,
+        shouldPlaySound: false,
+        shouldSetBadge: false
+    })
+})
 
 export default function HabitPage({route}){
     const navigation = useNavigation();
@@ -65,6 +74,10 @@ export default function HabitPage({route}){
 
     }
 
+    const [ notification, setNotification] = useState(false)
+    const notificationListener = useRef()
+    const responseListener = useRef()
+
     function handleUpdateHabit() {
         if (notificationToggle === true && !dayNotification && !timeNotification) {
             Alert.alert("OneBitLife","Você precisa colocar a frequência e horário da notificação");
@@ -85,6 +98,40 @@ export default function HabitPage({route}){
             })
         }
     }
+
+    useEffect(()=>{
+        if(habit?.habitHasNotification === 1){
+            setNotification(true)
+            setDayNotification(habit?.habitNotificationFrequency)
+            setTimeNotification(habit?.habitNotificationTime)
+        }
+    },[])
+
+    useEffect(() => {
+        if (notificationToggle === false) {
+          setTimeNotification(null);
+          setDayNotification(null);
+        }
+    }, [notificationToggle]);
+
+    useEffect(() => {
+        notificationListener.current =
+          Notifications.addNotificationReceivedListener((notification) => {
+            setNotification(notification);
+          });
+    
+        responseListener.current =
+          Notifications.addNotificationResponseReceivedListener((response) => {
+            console.log(response);
+          });
+    
+        return () => {
+          Notifications.removeNotificationSubscription(
+            notificationListener.current
+          );
+          Notifications.removeNotificationSubscription(responseListener.current);
+        };
+    }, []);
 
     return(
         <View style={styles.container}>
@@ -122,7 +169,7 @@ export default function HabitPage({route}){
                         )}
 
                         {notificationToggle ? (
-                            frequencyInput === "Mensal" || frequencyInput === "Horal" ? null : (
+                            frequencyInput === "Mensal" ? null : (
                                 <TimeDatePicker
                                     frequency={frequencyInput}
                                     dayNotification={dayNotification}

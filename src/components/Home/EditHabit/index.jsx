@@ -15,7 +15,7 @@ export default function EditHabit({habit, frequency, habitArea, checkColor}){
     console.log(`Botão de  check clicado ${habit?.habitArea}`);
   }
 
-  const textNotification =
+  const textNotification = 
     habit?.habitNotificationTime == null
       ? `Sem notificação - ${habit?.habitFrequency}`
       : `${habit?.habitNotificationTime} - ${habit?.habitFrequency}`;
