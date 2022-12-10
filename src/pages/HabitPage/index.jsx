@@ -1,11 +1,14 @@
-import { useNavigation } from '@react-navigation/native';
 import React, {useState} from 'react'
-import { View,StyleSheet, ScrollView, TouchableOpacity, Image, Text} from "react-native";
-import Notification from '../../components/HabitPage/notification';
-import SelectFrequency from '../../components/HabitPage/selectFrequency';
+import { useNavigation } from '@react-navigation/native';
+import { View,StyleSheet, ScrollView, TouchableOpacity, Image, Text, Alert} from "react-native";
 
 import SelectHabit from '../../components/HabitPage/SelectHabit';
+import Notification from '../../components/HabitPage/notification';
 import TimeDatePicker from '../../components/HabitPage/timeDatePicker';
+import SelectFrequency from '../../components/HabitPage/selectFrequency';
+import UpdateExcludeButtons from '../../components/HabitPage/UpdateExcludeButtons';
+
+import DefaultButton from '../../components/Common/DefaultButton';
 
 export default function HabitPage({route}){
     const navigation = useNavigation();
@@ -16,6 +19,42 @@ export default function HabitPage({route}){
     const [timeNotification, setTimeNotification] = useState();
 
     const {create, habit} = route.params
+
+    function handleCreateHabit() {
+        if (habitInput === undefined || frequencyInput === undefined) {
+            Alert.alert("OneBitLife","Você precisa selecionar um hábito e/ou frequência para continuar");
+        } else if (
+          notificationToggle === true &&
+          frequencyInput === "Diário" &&
+          timeNotification === undefined
+        ) {
+            
+          Alert.alert("OneBitLife","Você precisa dizer o horário da notificação!");
+        } else if (
+            notificationToggle === true &&
+            frequencyInput === "Diário" &&
+            dayNotification === undefined &&
+            timeNotification === undefined
+          ) {
+            Alert.alert("OneBitLife","Você precisa dizer a frequência e o horário da notificação!");
+        } else{
+            navigation.navigate("Home", {
+                createdHabit: `Created in ${habit?.habitArea}`,
+            });
+        }
+
+    }
+
+    function handleUpdateHabit() {
+        if (notificationToggle === true && !dayNotification && !timeNotification) {
+            Alert.alert("OneBitLife","Você precisa colocar a frequência e horário da notificação");
+        } else {
+            navigation.navigate("Home", {
+                updatedHabit: `Updated in ${habit?.habitArea}`,
+            });
+        }
+    }
+
     return(
         <View style={styles.container}>
             <ScrollView>
@@ -62,6 +101,22 @@ export default function HabitPage({route}){
                                 />
                             )
                         ) : null}
+                        {create === false ? (
+                            <UpdateExcludeButtons
+                                handleUpdate={handleUpdateHabit}
+                                habitArea={habit?.habitArea}
+                                habitInput={habitInput}
+                            />
+                        ) : (
+                            <View style={styles.configButton}>
+                                <DefaultButton
+                                buttonText={"Criar"}
+                                handlePress={handleCreateHabit}
+                                width={250}
+                                height={50}
+                                />
+                            </View>
+                        )}
                     </View>
                 </View>
             </ScrollView>

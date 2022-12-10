@@ -3,9 +3,39 @@
     "name": "OneBitLife",
     "slug": "OneBitLife",
     "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./src/assets/icons/logo1.png",
+    "platforms": [
+      "android",
+      "ios"
+    ],
     "assetBundlePatterns": [
       "**/*"
     ],
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "ios": {
+      "bundleIdentifier": "com.internyago.OneBitLife",
+      "buildNumber": "1.0.0",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.internyago.OneBitLife",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./src/assets/icons/logo1.png",
+        "backgroundColor": "rgba(21, 21, 21, 0.98)"
+      }
+    },
+    "splash": {
+      "image": "./src/assets/splash.png",
+      "resizeMode": "cover",
+      "backgroundColor": "rgba(21, 21, 21, 0.98)"
+    },
+    "web": {
+      "favicon": "./src/assets/icons/logo1.png"
+    },
     "extra": {
       "eas": {
         "projectId": "99890263-1e92-4450-b0fe-9a389d50e0a0"
