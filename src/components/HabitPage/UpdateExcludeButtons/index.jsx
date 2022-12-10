@@ -9,17 +9,20 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import HabitsService from "../../../services/HabitsService";
+import NotificationService from "../../../services/NotificationService";
 
 export default function UpdateExcludeButtons({
     habitInput,
     handleUpdate,
     habitArea,
+    habitName
   }){
     const navigation = useNavigation();
     function HandleDeleteHabit(){
         HabitsService.deleteByName(habitArea)
         .then(()=>{
             Alert.alert("OneBitLife","Exclusão feita com sucesso");
+            NotificationService.deleteNotification(habitName)
             navigation.navigate("Home", {
               excludeArea: `${habitArea}`,
             });
