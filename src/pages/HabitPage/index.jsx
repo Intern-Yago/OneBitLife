@@ -11,6 +11,7 @@ import UpdateExcludeButtons from '../../components/HabitPage/UpdateExcludeButton
 
 import DefaultButton from '../../components/Common/DefaultButton';
 import HabitsService from '../../services/HabitsService';
+import NotificationService from '../../services/NotificationService';
 
 Notifications.setNotificationHandler({
     handleNotification: async()=>({
@@ -51,6 +52,15 @@ export default function HabitPage({route}){
           ) {
             Alert.alert("OneBitLife","Você precisa dizer a frequência e o horário da notificação!");
         } else{
+            console.log("teste");
+            if(notificationToggle){
+                NotificationService.createNotification(
+                    habitInput,
+                    frequencyInput,
+                    dayNotification,
+                    timeNotification
+                )
+            }
             HabitsService.createHabit({
                 habitArea: habit?.habitArea,
                 habitName: habitInput,
@@ -114,24 +124,39 @@ export default function HabitPage({route}){
         }
     }, [notificationToggle]);
 
-    useEffect(() => {
-        notificationListener.current =
-          Notifications.addNotificationReceivedListener((notification) => {
-            setNotification(notification);
-          });
-    
-        responseListener.current =
-          Notifications.addNotificationResponseReceivedListener((response) => {
-            console.log(response);
-          });
-    
-        return () => {
-          Notifications.removeNotificationSubscription(
-            notificationListener.current
-          );
-          Notifications.removeNotificationSubscription(responseListener.current);
-        };
-    }, []);
+   useEffect(() => {
+    if (habit?.habitHasNotification == 1) {
+      setNotificationToggle(true);
+      setDayNotification(habit?.habitNotificationFrequency);
+      setTimeNotification(habit?.habitNotificationTime);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (notificationToggle === false) {
+      setTimeNotification(null);
+      setDayNotification(null);
+    }
+  }, [notificationToggle]);
+
+  useEffect(() => {
+    notificationListener.current =
+      Notifications.addNotificationReceivedListener((notification) => {
+        setNotification(notification);
+      });
+
+    responseListener.current =
+      Notifications.addNotificationResponseReceivedListener((response) => {
+        console.log(response);
+      });
+
+    return () => {
+      Notifications.removeNotificationSubscription(
+        notificationListener.current
+      );
+      Notifications.removeNotificationSubscription(responseListener.current);
+    };
+  }, []);
 
     return(
         <View style={styles.container}>
