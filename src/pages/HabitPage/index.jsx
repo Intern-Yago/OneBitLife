@@ -69,9 +69,20 @@ export default function HabitPage({route}){
         if (notificationToggle === true && !dayNotification && !timeNotification) {
             Alert.alert("OneBitLife","Você precisa colocar a frequência e horário da notificação");
         } else {
-            navigation.navigate("Home", {
-                updatedHabit: `Updated in ${habit?.habitArea}`,
-            });
+            HabitsService.updateHabit({
+                habitArea: habit?.habitArea,
+                habitName: habitInput,
+                habitFrequency: frequencyInput,
+                habitHasNotification: notificationToggle,
+                habitNotificationFrequency: dayNotification,
+                habitNotificationTime: timeNotification,
+                habitNotificationId: notificationToggle ? habitInput : null,
+              }).then(() => {
+                Alert.alert("Sucesso na atualização do hábito");
+                navigation.navigate("Home", {
+                    updatedHabit: `Updated in ${habit?.habitArea}`,
+                })
+            })
         }
     }
 

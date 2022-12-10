@@ -28,7 +28,7 @@ export default function UpdateExcludeButtons({
                 style={styles.updateButton}
                 activeOpacity={0.8}
                 onPress={() => {
-                    alert(
+                    Alert.alert(
                         "Ao prosseguir você vai atualizar o hábito, tem certeza?",
                         "Ao fazer isso você pode mudar o hábito, frequência e notificação.",
                         [
@@ -49,7 +49,7 @@ export default function UpdateExcludeButtons({
                 style={styles.trashButton}
                 activeOpacity={0.8}
                 onPress={() => {
-                    alert(
+                    Alert.alert(
                         `Você tem certeza que quer excluir o hábito?`,
                         "Ao fazer isso perderá todo o progresso ou falha do hábito.",
                         [
