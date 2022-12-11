@@ -127,8 +127,8 @@ const removeCheck = (mindHabit, moneyHabit, bodyHabit, funHabit) => {
 };
 
 const checkStatus = (mindHabit, moneyHabit, bodyHabit, funHabit) => {
-  const date = new Date();
-
+  var date = new Date();
+  date.setMonth(date.getMonth()-1)
   const mindLastCheck = date - new Date(mindHabit?.lastCheck);
 
   const mindDiff = parseInt(mindLastCheck / (1000 * 3600 * 24));

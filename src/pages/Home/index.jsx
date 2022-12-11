@@ -72,6 +72,8 @@ export default function Home({route}){
 
   useEffect(() => {
     CheckService.removeCheck(mindHabit, moneyHabit, bodyHabit, funHabit);
+    CheckService.checkStatus(mindHabit, moneyHabit, bodyHabit, funHabit)
+    
     
   }, [mindHabit, moneyHabit, bodyHabit, funHabit]);
 
