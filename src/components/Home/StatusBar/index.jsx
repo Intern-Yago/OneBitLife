@@ -8,6 +8,7 @@ export default function StatusBar({
   bodyHabit,
   funHabit
 }){
+  console.log(mindHabit);
   return(
     <View style={styles.container}>
       <View style={styles.statusBarContainer}>

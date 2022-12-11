@@ -59,8 +59,13 @@ export default function Home({route}){
         const month = `${today.getMonth() + 1}`.padStart(2, "0");
         const day = `${today.getDate()}`.padStart(2, "0");
         const formDate = `${today.getFullYear()}-${month}-${day}`;
-        const checkDays = new Date(formDate) - new Date(showHome.appStartData) + 1;
-        setRobotDaysLife(checkDays.toString().padStart(2, "0"));
+        const checkDays =
+          new Date(formDate) - new Date(showHome.appStartData) + 1;
+        if (checkDays === 0) {
+          setRobotDaysLife(checkDays.toString().padStart(2, "0"));
+        } else {
+          setRobotDaysLife(parseInt(checkDays / (1000 * 3600 * 24)));
+        }
       })
       .catch((err) => console.log(err));
   }, [route.params]);
@@ -76,10 +81,15 @@ export default function Home({route}){
         <View style={{alignItems: 'center'}}>
           <Text style={styles.dailyChecks}>
             {" "}
-            ❤️ {robotDaysLife} {robotDaysLife === '01' ? 'dia':'dias'} - 
+            ❤️ {robotDaysLife} {robotDaysLife === 1 ? 'dia':'dias'} - 
             ✔️ 80 checks
           </Text>
-          <LifeStatus/>
+          <LifeStatus
+            mindHabit={mindHabit}
+            moneyHabit={moneyHabit}
+            bodyHabit={bodyHabit}
+            funHabit={funHabit}
+          />
           <StatusBar
             mindHabit={mindHabit?.progressBar}
             moneyHabit={moneyHabit?.progressBar}
