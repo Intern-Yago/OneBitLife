@@ -25,13 +25,13 @@
       "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/icons/logo1.png",
-        "backgroundColor": "rgba(21, 21, 21, 0.98)"
+        "backgroundColor": "#1a1a1a"
       }
     },
     "splash": {
       "image": "./src/assets/splash.png",
       "resizeMode": "cover",
-      "backgroundColor": "rgba(21, 21, 21, 0.98)"
+      "backgroundColor": "#1a1a1a"
     },
     "web": {
       "favicon": "./src/assets/icons/logo1.png"
