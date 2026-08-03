@@ -127,9 +127,7 @@ export default function Home({route}){
         {!gameOver ? (
             <View style={{ alignItems: "center" }}>
               <Text style={styles.dailyChecks}>
-                ❤️ {robotDaysLife} {robotDaysLife === "01" ? "dia" : "dias"} -
-                ✔️{" "}
-                {checks} {checks === 1 ? "Check" : "Checks"}
+                HP {robotDaysLife} {robotDaysLife === "01" ? "dia" : "dias"}  |  [ {checks} {checks === 1 ? "Check" : "Checks"} ]
               </Text>
               <View style={[styles.levelBadge, { borderColor: playerLevel.badgeColor }]}>
                 <Text style={[styles.levelText, { color: playerLevel.badgeColor }]}>
