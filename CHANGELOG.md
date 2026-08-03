@@ -1,5 +1,12 @@
 # Changelog
 
+## [v1.0.3] - 2026-08-03
+
+### Alterações nesta versão:
+- fix(ci): use eas build:download to fetch APK artifact from EAS Cloud (fd224d1)
+
+---
+
 ## [v1.0.2] - 2026-08-03
 
 ### Alterações nesta versão:

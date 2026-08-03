@@ -2,7 +2,7 @@
   "expo": {
     "name": "OneBitLife",
     "slug": "OneBitLife",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./src/assets/icons/logo1.png",
     "platforms": [
@@ -17,12 +17,12 @@
     },
     "ios": {
       "bundleIdentifier": "com.internyago.OneBitLife",
-      "buildNumber": "1.0.2",
+      "buildNumber": "1.0.3",
       "supportsTablet": true
     },
     "android": {
       "package": "com.internyago.OneBitLife",
-      "versionCode": 3,
+      "versionCode": 4,
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/icons/logo1.png",
         "backgroundColor": "#1a1a1a"
