@@ -1,7 +1,7 @@
 {
   "cli": {
     "version": ">= 2.8.0",
-    "appVersionSource": "remote"
+    "appVersionSource": "local"
   },
   "build": {
     "development": {
@@ -13,12 +13,14 @@
     },
     "production": {},
     "androidApk": {
+      "node": "20.x",
       "android": {
         "buildType": "apk"
       },
       "env": {
         "REACT_NATIVE_BOOST_URL": "https://archives.boost.io/release/1.76.0/source/boost_1_76_0.tar.gz",
-        "BOOST_URL": "https://archives.boost.io/release/1.76.0/source/boost_1_76_0.tar.gz"
+        "BOOST_URL": "https://archives.boost.io/release/1.76.0/source/boost_1_76_0.tar.gz",
+        "GRADLE_OPTS": "-Dorg.gradle.jvmargs=-Xmx2048m -Dorg.gradle.parallel=false -Dorg.gradle.daemon=false"
       }
     }
   },
