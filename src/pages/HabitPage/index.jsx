@@ -32,7 +32,9 @@ export default function HabitPage({route}){
     const {create, habit} = route.params
 
     const habitCreated = new Date();
-    const formatDate = `${habitCreated.getFullYear()}-${habitCreated.getMonth()}-${habitCreated.getDate()}`;
+    const month = `${habitCreated.getMonth() + 1}`.padStart(2, "0");
+    const day = `${habitCreated.getDate()}`.padStart(2, "0");
+    const formatDate = `${habitCreated.getFullYear()}-${month}-${day}`;
 
     function handleCreateHabit() {
         if (habitInput === undefined || frequencyInput === undefined) {

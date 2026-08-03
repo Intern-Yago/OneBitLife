@@ -13,7 +13,7 @@ const dataMind = [
     },
     {
       key: "Ler um livro por 30 minutos",
-      value: "Ler um livro por 30 minutos3",
+      value: "Ler um livro por 30 minutos",
     },
     {
       key: "Trabalhar 30 minutos em um projeto pessoal",

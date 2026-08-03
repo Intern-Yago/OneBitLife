@@ -11,7 +11,9 @@ export default function EditHabit({habit, frequency, habitArea, checkColor}){
   )
 
   const checkData = new Date();
-  const formatDate = `${checkData.getFullYear()}-${checkData.getMonth()}-${checkData.getDate()}`;
+  const month = `${checkData.getMonth() + 1}`.padStart(2, "0");
+  const day = `${checkData.getDate()}`.padStart(2, "0");
+  const formatDate = `${checkData.getFullYear()}-${month}-${day}`;
 
   function handleEdit() {
     navigation.navigate("HabitPage", {

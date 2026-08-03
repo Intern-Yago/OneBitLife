@@ -45,7 +45,7 @@ const findByArea = (habitArea) => {
         "SELECT * FROM habits WHERE habitArea LIKE ?;",
         [habitArea],
         (_, { rows }) => {
-          if (rows.length > 0) resolve(rows._array);
+          resolve(rows._array || []);
         },
         (_, error) => reject(error)
       );

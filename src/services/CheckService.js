@@ -34,338 +34,73 @@ const removeCheckHabit = (obj) => {
   });
 };
 
+const getDiffDays = (lastCheckDateStr) => {
+  if (!lastCheckDateStr) return 0;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const parts = lastCheckDateStr.split("-");
+  if (parts.length < 3) return 0;
+  const lastCheckDate = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+  lastCheckDate.setHours(0, 0, 0, 0);
+
+  const diffTime = today.getTime() - lastCheckDate.getTime();
+  return Math.floor(diffTime / (1000 * 3600 * 24));
+};
+
 const removeCheck = (mindHabit, moneyHabit, bodyHabit, funHabit) => {
-  const date = new Date();
+  const habits = [mindHabit, moneyHabit, bodyHabit, funHabit];
 
-  var mindLastCheck =
-    date.getDate() - (new Date(mindHabit?.lastCheck).getDate() + 1);
-    mindLastCheck = mindLastCheck < 0 ? 0 : mindLastCheck
+  habits.forEach((habit) => {
+    if (!habit || !habit.lastCheck) return;
+    const diffDays = getDiffDays(habit.lastCheck);
 
-  if (mindHabit?.habitFrequency === "Diário" && mindLastCheck > 0) {
-    removeCheckHabit({
-      habitIsChecked: 0,
-      habitArea: mindHabit?.habitArea,
-    });
-  }
-  if (mindHabit?.habitFrequency === "Semanal" && mindLastCheck > 7) {
-    removeCheckHabit({
-      habitIsChecked: 0,
-      habitArea: mindHabit?.habitArea,
-    });
-  }
-  if (mindHabit?.habitFrequency === "Mensal" && mindLastCheck > 30) {
-    removeCheckHabit({
-      habitIsChecked: 0,
-      habitArea: mindHabit?.habitArea,
-    });
-  }
-
-  var moneyLastCheck =
-    date.getDate() - (new Date(moneyHabit?.lastCheck).getDate() + 1);
-  moneyLastCheck = moneyLastCheck < 0 ? 0 : moneyLastCheck
-
-  if (moneyHabit?.habitFrequency === "Diário" && moneyLastCheck > 0) {
-    removeCheckHabit({
-      habitIsChecked: 0,
-      habitArea: moneyHabit?.habitArea,
-    });
-  }
-  if (moneyHabit?.habitFrequency === "Semanal" && moneyLastCheck > 7) {
-    removeCheckHabit({
-      habitIsChecked: 0,
-      habitArea: moneyHabit?.habitArea,
-    });
-  }
-  if (moneyHabit?.habitFrequency === "Mensal" && moneyLastCheck > 30) {
-    removeCheckHabit({
-      habitIsChecked: 0,
-      habitArea: moneyHabit?.habitArea,
-    });
-  }
-  var BodyLastCheck =
-    date.getDate() - (new Date(bodyHabit?.lastCheck).getDate() + 1);
-  BodyLastCheck = BodyLastCheck < 0 ? 0 : BodyLastCheck
-  if (bodyHabit?.habitFrequency === "Diário" && BodyLastCheck > 0) {
-    removeCheckHabit({
-      habitIsChecked: 0,
-      habitArea: bodyHabit?.habitArea,
-    });
-  }
-  if (bodyHabit?.habitFrequency === "Semanal" && BodyLastCheck > 7) {
-    removeCheckHabit({
-      habitIsChecked: 0,
-      habitArea: bodyHabit?.habitArea,
-    });
-  }
-  if (bodyHabit?.habitFrequency === "Mensal" && BodyLastCheck > 30) {
-    removeCheckHabit({
-      habitIsChecked: 0,
-      habitArea: bodyHabit?.habitArea,
-    });
-  }
-  var FunLastCheck =
-    date.getDate() - (new Date(funHabit?.lastCheck).getDate() + 1);
-    FunLastCheck = FunLastCheck < 0 ? 0 : FunLastCheck
-  if (funHabit?.habitFrequency === "Diário" && FunLastCheck > 0) {
-    removeCheckHabit({
-      habitIsChecked: 0,
-      habitArea: funHabit?.habitArea,
-    });
-  }
-  if (funHabit?.habitFrequency === "Semanal" && FunLastCheck > 7) {
-    removeCheckHabit({
-      habitIsChecked: 0,
-      habitArea: funHabit?.habitArea,
-    });
-  }
-  if (funHabit?.habitFrequency === "Mensal" && FunLastCheck > 30) {
-    removeCheckHabit({
-      habitIsChecked: 0,
-      habitArea: funHabit?.habitArea,
-    });
-  }
+    if (
+      (habit.habitFrequency === "Diário" && diffDays > 0) ||
+      (habit.habitFrequency === "Semanal" && diffDays > 7) ||
+      (habit.habitFrequency === "Mensal" && diffDays > 30)
+    ) {
+      removeCheckHabit({
+        habitIsChecked: 0,
+        habitArea: habit.habitArea,
+      });
+    }
+  });
 };
 
 const checkStatus = (mindHabit, moneyHabit, bodyHabit, funHabit) => {
-  var date = new Date();
-  date.setMonth(date.getMonth()-1)
-  const mindLastCheck = date - new Date(mindHabit?.lastCheck);
+  const habits = [mindHabit, moneyHabit, bodyHabit, funHabit];
 
-  const mindDiff = parseInt(mindLastCheck / (1000 * 3600 * 24));
+  habits.forEach((habit) => {
+    if (!habit || !habit.lastCheck) return;
+    const diffDays = getDiffDays(habit.lastCheck);
 
-  // Verificação da mente
-  if (mindHabit?.habitFrequency === "Diário") {
-    if (mindDiff === 1) {
-      HabitsService.changeProgress({
-        progressBar: 0.5,
-        habitArea: mindHabit?.habitArea,
-      });
-    } else if (mindDiff === 2) {
-      HabitsService.changeProgress({
-        progressBar: 0.25,
-        habitArea: mindHabit?.habitArea,
-      });
-    } else if (mindDiff >= 3) {
-      HabitsService.changeProgress({
-        progressBar: 0,
-        habitArea: mindHabit?.habitArea,
-      });
+    if (habit.habitFrequency === "Diário") {
+      if (diffDays === 1) {
+        HabitsService.changeProgress({ progressBar: 0.5, habitArea: habit.habitArea });
+      } else if (diffDays === 2) {
+        HabitsService.changeProgress({ progressBar: 0.25, habitArea: habit.habitArea });
+      } else if (diffDays >= 3) {
+        HabitsService.changeProgress({ progressBar: 0, habitArea: habit.habitArea });
+      }
+    } else if (habit.habitFrequency === "Semanal") {
+      if (diffDays === 7 || diffDays === 8) {
+        HabitsService.changeProgress({ progressBar: 0.5, habitArea: habit.habitArea });
+      } else if (diffDays === 9) {
+        HabitsService.changeProgress({ progressBar: 0.25, habitArea: habit.habitArea });
+      } else if (diffDays >= 10) {
+        HabitsService.changeProgress({ progressBar: 0, habitArea: habit.habitArea });
+      }
+    } else if (habit.habitFrequency === "Mensal") {
+      if (diffDays === 31) {
+        HabitsService.changeProgress({ progressBar: 0.5, habitArea: habit.habitArea });
+      } else if (diffDays === 32) {
+        HabitsService.changeProgress({ progressBar: 0.25, habitArea: habit.habitArea });
+      } else if (diffDays >= 33) {
+        HabitsService.changeProgress({ progressBar: 0, habitArea: habit.habitArea });
+      }
     }
-  }
-  if (mindHabit?.habitFrequency === "Semanal") {
-    if (mindDiff === 8) {
-      HabitsService.changeProgress({
-        progressBar: 0.5,
-        habitArea: mindHabit?.habitArea,
-      });
-    } else if (mindDiff === 9) {
-      HabitsService.changeProgress({
-        progressBar: 0.25,
-        habitArea: mindHabit?.habitArea,
-      });
-    } else if (mindDiff >= 10) {
-      HabitsService.changeProgress({
-        progressBar: 0,
-        habitArea: mindHabit?.habitArea,
-      });
-    }
-  }
-  if (mindHabit?.habitFrequency === "Mensal") {
-    if (mindDiff === 31) {
-      HabitsService.changeProgress({
-        progressBar: 0.5,
-        habitArea: mindHabit?.habitArea,
-      });
-    } else if (mindDiff === 32) {
-      HabitsService.changeProgress({
-        progressBar: 0.25,
-        habitArea: mindHabit?.habitArea,
-      });
-    } else if (mindDiff >= 33) {
-      HabitsService.changeProgress({
-        progressBar: 0,
-        habitArea: mindHabit?.habitArea,
-      });
-    }
-  }
-
-  //Verificação do Financeiro
-
-  const moneyLastCheck = date - new Date(moneyHabit?.lastCheck);
-
-  const moneyDiff = parseInt(moneyLastCheck / (1000 * 3600 * 24));
-
-  if (moneyHabit?.habitFrequency === "Diário") {
-    if (moneyDiff === 1) {
-      HabitsService.changeProgress({
-        progressBar: 0.5,
-        habitArea: moneyHabit?.habitArea,
-      });
-    } else if (moneyDiff === 2) {
-      HabitsService.changeProgress({
-        progressBar: 0.25,
-        habitArea: moneyHabit?.habitArea,
-      });
-    } else if (moneyDiff >= 3) {
-      HabitsService.changeProgress({
-        progressBar: 0,
-        habitArea: moneyHabit?.habitArea,
-      });
-    }
-  }
-  if (moneyHabit?.habitFrequency === "Semanal") {
-    if (moneyDiff === 7) {
-      HabitsService.changeProgress({
-        progressBar: 0.5,
-        habitArea: moneyHabit?.habitArea,
-      });
-    } else if (moneyDiff === 8) {
-      HabitsService.changeProgress({
-        progressBar: 0.25,
-        habitArea: moneyHabit?.habitArea,
-      });
-    } else if (moneyDiff >= 9) {
-      HabitsService.changeProgress({
-        progressBar: 0,
-        habitArea: moneyHabit?.habitArea,
-      });
-    }
-  }
-  if (moneyHabit?.habitFrequency === "Mensal") {
-    if (moneyDiff === 31) {
-      HabitsService.changeProgress({
-        progressBar: 0.5,
-        habitArea: moneyHabit?.habitArea,
-      });
-    } else if (moneyDiff === 32) {
-      HabitsService.changeProgress({
-        progressBar: 0.25,
-        habitArea: moneyHabit?.habitArea,
-      });
-    } else if (moneyDiff >= 33) {
-      HabitsService.changeProgress({
-        progressBar: 0,
-        habitArea: moneyHabit?.habitArea,
-      });
-    }
-  }
-  // Verificação do corpo
-  const bodyLastCheck = date - new Date(bodyHabit?.lastCheck);
-
-  const bodyDiff = parseInt(bodyLastCheck / (1000 * 3600 * 24));
-  if (bodyHabit?.habitFrequency === "Diário") {
-    if (bodyDiff === 1) {
-      HabitsService.changeProgress({
-        progressBar: 0.5,
-        habitArea: bodyHabit?.habitArea,
-      });
-    } else if (bodyDiff === 2) {
-      HabitsService.changeProgress({
-        progressBar: 0.25,
-        habitArea: bodyHabit?.habitArea,
-      });
-    } else if (bodyDiff >= 3) {
-      HabitsService.changeProgress({
-        progressBar: 0,
-        habitArea: bodyHabit?.habitArea,
-      });
-    }
-  }
-  if (bodyHabit?.habitFrequency === "Semanal") {
-    if (bodyDiff === 7) {
-      HabitsService.changeProgress({
-        progressBar: 0.5,
-        habitArea: bodyHabit?.habitArea,
-      });
-    } else if (bodyDiff === 8) {
-      HabitsService.changeProgress({
-        progressBar: 0.25,
-        habitArea: bodyHabit?.habitArea,
-      });
-    } else if (bodyDiff >= 9) {
-      HabitsService.changeProgress({
-        progressBar: 0,
-        habitArea: bodyHabit?.habitArea,
-      });
-    }
-  }
-
-  if (bodyHabit?.habitFrequency === "Mensal") {
-    if (bodyDiff === 31) {
-      HabitsService.changeProgress({
-        progressBar: 0.5,
-        habitArea: bodyHabit?.habitArea,
-      });
-    } else if (bodyDiff === 32) {
-      HabitsService.changeProgress({
-        progressBar: 0.25,
-        habitArea: bodyHabit?.habitArea,
-      });
-    } else if (bodyDiff >= 33) {
-      HabitsService.changeProgress({
-        progressBar: 0,
-        habitArea: bodyHabit?.habitArea,
-      });
-    }
-  }
-  // Verificação da diversão
-  const funLastCheck = date - new Date(funHabit?.lastCheck);
-
-  const funDiff = parseInt(funLastCheck / (1000 * 3600 * 24));
-  if (funHabit?.habitFrequency === "Diário") {
-    if (funDiff === 1) {
-      HabitsService.changeProgress({
-        progressBar: 0.5,
-        habitArea: funHabit?.habitArea,
-      });
-    } else if (funDiff === 2) {
-      HabitsService.changeProgress({
-        progressBar: 0.25,
-        habitArea: funHabit?.habitArea,
-      });
-    } else if (funDiff >= 3) {
-      HabitsService.changeProgress({
-        progressBar: 0,
-        habitArea: funHabit?.habitArea,
-      });
-    }
-  }
-  if (funHabit?.habitFrequency === "Semanal") {
-    if (funDiff === 7) {
-      HabitsService.changeProgress({
-        progressBar: 0.5,
-        habitArea: funHabit?.habitArea,
-      });
-    } else if (funDiff === 8) {
-      HabitsService.changeProgress({
-        progressBar: 0.25,
-        habitArea: funHabit?.habitArea,
-      });
-    } else if (funDiff >= 9) {
-      HabitsService.changeProgress({
-        progressBar: 0,
-        habitArea: funHabit?.habitArea,
-      });
-    }
-  }
-  if (funHabit?.habitFrequency === "Mensal") {
-    if (funDiff === 31) {
-      HabitsService.changeProgress({
-        progressBar: 0.5,
-        habitArea: funHabit?.habitArea,
-      });
-    } else if (funDiff === 32) {
-      HabitsService.changeProgress({
-        progressBar: 0.25,
-        habitArea: funHabit?.habitArea,
-      });
-    } else if (funDiff >= 33) {
-      HabitsService.changeProgress({
-        progressBar: 0,
-        habitArea: funHabit?.habitArea,
-      });
-    }
-  }
+  });
 };
 
 export default {

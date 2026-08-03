@@ -1,6 +1,6 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
-import React, { useState } from "react";
-import { StyleSheet, View, TouchableOpacity, Text, Image } from "react-native";
+import React, { useEffect, useState } from "react";
+import { StyleSheet, View, TouchableOpacity, Text, Image, Platform } from "react-native";
 import { SelectList } from "react-native-dropdown-select-list";
 
 export default function TimeDataPicker({
@@ -13,33 +13,41 @@ export default function TimeDataPicker({
   const [date, setDate] = useState(new Date());
   const [mode, setMode] = useState("date");
   const [show, setShow] = useState(false);
-  const [selected, setSelected] = useState("-");
-  const [notificationDate, setNotificationDate] = useState();
-  const [notificationTime, setNotificationTime] = useState();
+  const [selected, setSelected] = useState(dayNotification || "-");
+  const [notificationDate, setNotificationDate] = useState(dayNotification);
+  const [notificationTime, setNotificationTime] = useState(timeNotification);
 
-  const onChange = (_, selectDate) => {
-    const currentDate = selectDate || date;
+  useEffect(() => {
+    if (dayNotification) {
+      setSelected(dayNotification);
+      setNotificationDate(dayNotification);
+    }
+    if (timeNotification) {
+      setNotificationTime(timeNotification);
+    }
+  }, [dayNotification, timeNotification]);
+
+  const onChange = (event, selectDate) => {
     setShow(Platform.OS === "ios");
+    if (event.type === "dismissed") {
+      return;
+    }
+    const currentDate = selectDate || date;
     setDate(currentDate);
     let tempDate = new Date(currentDate);
     const notficationHour = tempDate.getHours().toString().padStart(2, "0");
     const notficationMin = tempDate.getMinutes().toString().padStart(2, "0");
-    let dateNotification;
+    const formattedTime = `${notficationHour}:${notficationMin}`;
 
-    if (frequency === "Semanal") {
-      dateNotification = selected;
-    }
-    const timeNotification = `${notficationHour}:${notficationMin}`;
-
-    setNotificationDate(dateNotification);
-    setNotificationTime(timeNotification);
+    setNotificationTime(formattedTime);
+    setTimeNotification(formattedTime);
 
     if (frequency === "Diário") {
       setDayNotification("Diário");
-    } else {
-      setDayNotification(dateNotification);
+    } else if (frequency === "Semanal") {
+      setNotificationDate(selected);
+      setDayNotification(selected);
     }
-    setTimeNotification(timeNotification);
   };
   const showMode = (currentMode) => {
     setShow(true);

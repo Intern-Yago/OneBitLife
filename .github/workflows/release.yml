@@ -1,0 +1,76 @@
+name: Release & Build Expo APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Tipo de incremento de versão (patch, minor, major)'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+
+jobs:
+  release-and-build:
+    name: Release, Build APK and Publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Checkout do Repositório
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 2. Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: 3. Instalar Dependências
+        run: npm ci || npm install
+
+      - name: 4. Configurar Usuário do Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: 5. Atualizar Versão, app.json e CHANGELOG.md
+        id: versioning
+        run: node .github/scripts/bump-version.js ${{ github.event.inputs.release_type }}
+
+      - name: 6. Commit, Tag e Push das Alterações
+        run: |
+          VERSION="${{ steps.versioning.outputs.version }}"
+          git add package.json app.json CHANGELOG.md RELEASE_NOTES.md
+          if [ -f package-lock.json ]; then git add package-lock.json; fi
+          git commit -m "chore(release): v${VERSION} [skip ci]"
+          git tag "v${VERSION}"
+          git push origin HEAD:${{ github.ref_name }} --tags
+
+      - name: 7. Configurar Expo CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 8. Gerar Build do APK via EAS Cloud
+        run: |
+          eas build --platform android --profile androidApk --non-interactive --output=./OneBitLife.apk
+
+      - name: 9. Criar GitHub Release e Anexar o APK nos Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ steps.versioning.outputs.version }}"
+          name: "Release v${{ steps.versioning.outputs.version }}"
+          body_path: RELEASE_NOTES.md
+          files: ./OneBitLife.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

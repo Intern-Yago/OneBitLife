@@ -22,10 +22,9 @@ export default function SelectFrequency({ habitFrequency, frequencyInput }){
             <SelectList
                 data={data}
                 search={false}
-                setSelected={setSelected}
-                onSelect={() => {
-                    alert(selected);
-                    frequencyInput(selected);
+                setSelected={(val) => {
+                    setSelected(val);
+                    frequencyInput(val);
                 }}
                 placeholder={selected}
                 boxStyles={styles.boxStyle}

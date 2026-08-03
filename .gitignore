@@ -54,3 +54,8 @@ buck-out/
 .expo/
 web-build/
 dist/
+
+# Release artifacts
+RELEASE_NOTES.md
+*.apk
+

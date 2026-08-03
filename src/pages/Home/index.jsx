@@ -67,15 +67,19 @@ export default function Home({route}){
 
     ChangeNavigationService.checkShowHome(1)
       .then((showHome) => {
-        const month = `${today.getMonth() + 1}`.padStart(2, "0");
-        const day = `${today.getDate()}`.padStart(2, "0");
-        const formDate = `${today.getFullYear()}-${month}-${day}`;
-        const checkDays =
-          new Date(formDate) - new Date(showHome.appStartData) + 1;
-        if (checkDays === 0) {
-          setRobotDaysLife(checkDays.toString().padStart(2, "0"));
-        } else {
-          setRobotDaysLife(parseInt(checkDays / (1000 * 3600 * 24)));
+        if (showHome && showHome.appStartData) {
+          const parts = showHome.appStartData.split("-");
+          const startDate = new Date(
+            Number(parts[0]),
+            Number(parts[1]) - 1,
+            Number(parts[2])
+          );
+          startDate.setHours(0, 0, 0, 0);
+          const todayDate = new Date();
+          todayDate.setHours(0, 0, 0, 0);
+          const diffTime = todayDate.getTime() - startDate.getTime();
+          const diffDays = Math.max(1, Math.floor(diffTime / (1000 * 3600 * 24)) + 1);
+          setRobotDaysLife(diffDays.toString().padStart(2, "0"));
         }
       })
       .catch((err) => console.log(err));
