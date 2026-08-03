@@ -32,7 +32,20 @@ if (bumpType === 'major') {
   patch += 1;
 }
 
-const newVersion = `${major}.${minor}.${patch}`;
+let newVersion = `${major}.${minor}.${patch}`;
+
+// Garantir que a versão não colida com uma tag existente no git
+try {
+  const existingTags = execSync('git tag -l', { stdio: ['pipe', 'pipe', 'ignore'] })
+    .toString()
+    .split(/\r?\n/)
+    .map(t => t.trim());
+  while (existingTags.includes(`v${newVersion}`)) {
+    patch += 1;
+    newVersion = `${major}.${minor}.${patch}`;
+  }
+} catch (e) {}
+
 console.log(`Bumping version: ${currentVersion} -> ${newVersion} (${bumpType})`);
 
 // 3. Atualizar package.json

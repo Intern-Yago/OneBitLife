@@ -54,9 +54,9 @@ jobs:
           VERSION="${{ steps.versioning.outputs.version }}"
           git add package.json app.json CHANGELOG.md
           if [ -f package-lock.json ]; then git add package-lock.json; fi
-          git commit -m "chore(release): v${VERSION} [skip ci]"
-          git tag "v${VERSION}"
-          git push origin HEAD:${{ github.ref_name }} --tags
+          git commit -m "chore(release): v${VERSION} [skip ci]" || true
+          git tag -f "v${VERSION}"
+          git push origin HEAD:${{ github.ref_name }} --tags -f
 
       - name: 8. Configurar Expo CLI
         uses: expo/expo-github-action@v8
