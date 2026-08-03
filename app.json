@@ -2,6 +2,7 @@
   "expo": {
     "name": "OneBitLife",
     "slug": "OneBitLife",
+    "owner": "syri_cotocs",
     "version": "1.0.6",
     "orientation": "portrait",
     "icon": "./src/assets/icons/logo1.png",
