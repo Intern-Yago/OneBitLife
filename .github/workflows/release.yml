@@ -67,7 +67,9 @@ jobs:
       - name: 9. Gerar e Baixar Build do APK via EAS Cloud
         run: |
           eas build --platform android --profile androidApk --non-interactive
-          eas build:download --platform android --latest --output ./OneBitLife.apk
+          URL=$(eas build:list --platform android --limit 1 --json | node -e "const data = JSON.parse(require('fs').readFileSync(0, 'utf-8')); console.log(data[0].artifacts.buildUrl);")
+          echo "Baixando APK de: $URL"
+          curl -L "$URL" -o ./OneBitLife.apk
 
       - name: 10. Criar GitHub Release e Anexar o APK nos Assets
         uses: softprops/action-gh-release@v2
