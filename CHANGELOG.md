@@ -1,5 +1,15 @@
 # Changelog
 
+## [v1.0.4] - 2026-08-03
+
+### Alterações nesta versão:
+- fix(eas): add Boost mirror URL to fix android gradle build Not in GZIP format error (834891b)
+- refactor: restore instant hardcore Game Over reset mechanic (afbd97e)
+- feat: add RPG player leveling system, haptic vibration feedback and reset confirmation (6ab4bb9)
+- docs: add technical README documentation and web landing page (73713c8)
+
+---
+
 ## [v1.0.3] - 2026-08-03
 
 ### Alterações nesta versão:
