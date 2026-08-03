@@ -1,5 +1,12 @@
 # Changelog
 
+## [v1.0.8] - 2026-08-03
+
+### Alterações nesta versão:
+- fix(eas): remove invalid node property in eas.json (f100c81)
+
+---
+
 ## [v1.0.7] - 2026-08-03
 
 ### Alterações nesta versão:
