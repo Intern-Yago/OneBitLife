@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OneBitLife — Gamifique sua Vida e Construa Hábitos</title>
+  <meta name="description" content="Transforme sua rotina em um jogo RPG real. Acompanhe hábitos de Mente, Financeiro, Corpo e Humor com o OneBitLife!">
+  <meta name="theme-color" content="#151515">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="./src/assets/icons/logo1.png">
+
+  <style>
+    :root {
+      --bg-dark: #0b0d12;
+      --bg-card: rgba(22, 27, 38, 0.7);
+      --bg-card-hover: rgba(30, 37, 52, 0.85);
+      --border-color: rgba(255, 255, 255, 0.1);
+      
+      --color-mind: #90B7F3;
+      --color-money: #85BB65;
+      --color-body: #FF0044;
+      --color-fun: #FE7F23;
+      
+      --text-main: #FFFFFF;
+      --text-muted: #94A3B8;
+      --accent-glow: rgba(144, 183, 243, 0.25);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    h1, h2, h3, h4, .brand-font {
+      font-family: 'Outfit', sans-serif;
+    }
+
+    /* Ambient Background Glows */
+    .glow-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .orb-1 {
+      top: -100px;
+      left: -100px;
+      width: 450px;
+      height: 450px;
+      background: radial-gradient(circle, rgba(144, 183, 243, 0.25), transparent 70%);
+    }
+
+    .orb-2 {
+      top: 400px;
+      right: -100px;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(254, 127, 35, 0.2), transparent 70%);
+    }
+
+    .orb-3 {
+      bottom: 200px;
+      left: 15%;
+      width: 550px;
+      height: 550px;
+      background: radial-gradient(circle, rgba(255, 0, 68, 0.15), transparent 70%);
+    }
+
+    /* Header Nav */
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 100;
+      backdrop-filter: blur(16px);
+      background: rgba(11, 13, 18, 0.8);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+    }
+
+    .logo-box {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      color: #fff;
+    }
+
+    .logo-box img {
+      height: 38px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95rem;
+      transition: color 0.3s;
+    }
+
+    .nav-links a:hover {
+      color: #fff;
+    }
+
+    .btn-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: linear-gradient(135deg, #3b82f6, #6366f1);
+      color: #fff;
+      padding: 0.7rem 1.5rem;
+      border-radius: 99px;
+      font-weight: 700;
+      text-decoration: none;
+      font-size: 0.95rem;
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+      transition: all 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 30px rgba(59, 130, 246, 0.6);
+      background: linear-gradient(135deg, #2563eb, #4f46e5);
+    }
+
+    /* Hero Section */
+    .hero {
+      position: relative;
+      padding: 10rem 2rem 5rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 1rem;
+      border-radius: 99px;
+      background: rgba(144, 183, 243, 0.12);
+      border: 1px solid rgba(144, 183, 243, 0.3);
+      color: var(--color-mind);
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      letter-spacing: 0.5px;
+    }
+
+    .hero-title {
+      font-size: 3.5rem;
+      font-weight: 900;
+      line-height: 1.15;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(180deg, #FFFFFF 0%, #CBD5E1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-title span {
+      background: linear-gradient(135deg, var(--color-mind), var(--color-money));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      margin-bottom: 2.5rem;
+      max-width: 540px;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      color: #fff;
+      padding: 0.7rem 1.5rem;
+      border-radius: 99px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    /* App Simulator Mockup */
+    .simulator-card {
+      background: rgba(18, 22, 32, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 36px;
+      padding: 2rem;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(144, 183, 243, 0.15);
+      backdrop-filter: blur(20px);
+      position: relative;
+      max-width: 380px;
+      margin: 0 auto;
+    }
+
+    .sim-header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .sim-streak {
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .sim-character {
+      width: 130px;
+      height: 130px;
+      margin: 1rem auto;
+      background: radial-gradient(circle, rgba(144, 183, 243, 0.2), transparent 70%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 4rem;
+      animation: float 3s ease-in-out infinite;
+      box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.1);
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .status-bars {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .status-label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      width: 80px;
+      text-align: right;
+    }
+
+    .bar-bg {
+      flex: 1;
+      height: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 99px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .habit-item {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 0.8rem 1rem;
+      margin-bottom: 0.6rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: transform 0.2s;
+    }
+
+    .habit-item:hover {
+      transform: scale(1.02);
+    }
+
+    .habit-info h5 {
+      font-size: 0.95rem;
+      color: #fff;
+    }
+
+    .habit-info p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .btn-check {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--border-color);
+      color: #fff;
+      border-radius: 10px;
+      padding: 0.4rem 0.8rem;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+
+    .btn-check:active {
+      transform: scale(0.95);
+    }
+
+    /* Pillars Grid */
+    .section {
+      padding: 6rem 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .section-header {
+      text-align: center;
+      max-width: 650px;
+      margin: 0 auto 4rem;
+    }
+
+    .section-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+    }
+
+    .section-desc {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+
+    .pillars-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .pillar-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      padding: 2rem;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pillar-card:hover {
+      background: var(--bg-card-hover);
+      transform: translateY(-6px);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .pillar-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card-mind .pillar-icon { background: rgba(144, 183, 243, 0.15); color: var(--color-mind); }
+    .card-money .pillar-icon { background: rgba(133, 187, 101, 0.15); color: var(--color-money); }
+    .card-body .pillar-icon { background: rgba(255, 0, 68, 0.15); color: var(--color-body); }
+    .card-fun .pillar-icon { background: rgba(254, 127, 35, 0.15); color: var(--color-fun); }
+
+    .pillar-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .pillar-desc {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+    }
+
+    /* Features Grid */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 2rem;
+    }
+
+    .feature-box {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 2rem;
+      display: flex;
+      gap: 1.25rem;
+    }
+
+    .feature-icon {
+      font-size: 2rem;
+      line-height: 1;
+    }
+
+    .feature-content h4 {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .feature-content p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    /* Banner CTA */
+    .banner-cta {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(99, 102, 241, 0.1));
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: 32px;
+      padding: 4rem 2rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .banner-cta h2 {
+      font-size: 2.8rem;
+      margin-bottom: 1rem;
+    }
+
+    .banner-cta p {
+      max-width: 600px;
+      margin: 0 auto 2rem;
+      color: var(--text-muted);
+      font-size: 1.1rem;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border-color);
+      padding: 3rem 2rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    footer a {
+      color: #fff;
+      text-decoration: none;
+    }
+
+    @media (max-width: 900px) {
+      .hero {
+        grid-template-columns: 1fr;
+        padding-top: 8rem;
+        text-align: center;
+      }
+
+      .hero-title {
+        font-size: 2.6rem;
+      }
+
+      .hero-subtitle {
+        margin: 0 auto 2rem;
+      }
+
+      .hero-buttons {
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Glow Background Orbs -->
+  <div class="glow-orb orb-1"></div>
+  <div class="glow-orb orb-2"></div>
+  <div class="glow-orb orb-3"></div>
+
+  <!-- Header Navigation -->
+  <header>
+    <div class="nav-container">
+      <a href="#" class="logo-box">
+        <img src="./src/assets/icons/logo3.png" alt="OneBitLife Logo">
+      </a>
+      <ul class="nav-links">
+        <li><a href="#pilares">Pilares</a></li>
+        <li><a href="#simulador">Simulador</a></li>
+        <li><a href="#recursos">Recursos</a></li>
+        <li><a href="https://github.com/Intern-Yago/OneBitLife" target="_blank">GitHub</a></li>
+      </ul>
+      <a href="https://github.com/Intern-Yago/OneBitLife/releases" target="_blank" class="btn-cta">
+        ⚡ Baixar APK
+      </a>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div>
+      <div class="badge-pill">
+        🎮 APLICATIVO MOBILE DE GAMIFICAÇÃO
+      </div>
+      <h1 class="hero-title">
+        Transforme sua vida em um <span>RPG real</span>.
+      </h1>
+      <p class="hero-subtitle">
+        Crie hábitos diários, acompanhe Mente, Finanças, Corpo e Humor. Mantenha suas barras no máximo e não deixe seu personagem dar Game Over!
+      </p>
+      <div class="hero-buttons">
+        <a href="https://github.com/Intern-Yago/OneBitLife/releases" target="_blank" class="btn-cta" style="padding: 0.9rem 2rem; font-size: 1.05rem;">
+          📥 Baixar APK Grátis
+        </a>
+        <a href="https://github.com/Intern-Yago/OneBitLife" target="_blank" class="btn-secondary">
+          🐙 Código Fonte no GitHub
+        </a>
+      </div>
+    </div>
+
+    <!-- Simulator Mockup -->
+    <div class="simulator-card" id="simulador">
+      <div class="sim-header">
+        <div class="sim-streak">
+          ❤️ <span id="daysCount">05</span> dias - ✔️ <span id="checksCount">14</span> Checks
+        </div>
+        <div class="sim-character" id="mascot">
+          🤖
+        </div>
+      </div>
+
+      <div class="status-bars">
+        <div class="status-row">
+          <span class="status-label" style="color: var(--color-mind)">Mente</span>
+          <div class="bar-bg">
+            <div class="bar-fill" id="mindBar" style="width: 80%; background: var(--color-mind);"></div>
+          </div>
+        </div>
+
+        <div class="status-row">
+          <span class="status-label" style="color: var(--color-money)">Finanças</span>
+          <div class="bar-bg">
+            <div class="bar-fill" id="moneyBar" style="width: 65%; background: var(--color-money);"></div>
+          </div>
+        </div>
+
+        <div class="status-row">
+          <span class="status-label" style="color: var(--color-body)">Corpo</span>
+          <div class="bar-bg">
+            <div class="bar-fill" id="bodyBar" style="width: 90%; background: var(--color-body);"></div>
+          </div>
+        </div>
+
+        <div class="status-row">
+          <span class="status-label" style="color: var(--color-fun)">Humor</span>
+          <div class="bar-bg">
+            <div class="bar-fill" id="funBar" style="width: 50%; background: var(--color-fun);"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Habit List -->
+      <div class="habit-item">
+        <div class="habit-info">
+          <h5>📚 Ler 15 páginas</h5>
+          <p>Mente • Diário</p>
+        </div>
+        <button class="btn-check" onclick="doCheck('mind')">Check ✔️</button>
+      </div>
+
+      <div class="habit-item">
+        <div class="habit-info">
+          <h5>💰 Economizar R$ 20</h5>
+          <p>Financeiro • Diário</p>
+        </div>
+        <button class="btn-check" onclick="doCheck('money')">Check ✔️</button>
+      </div>
+
+      <div class="habit-item">
+        <div class="habit-info">
+          <h5>💪 Treino de 45 min</h5>
+          <p>Corpo • Diário</p>
+        </div>
+        <button class="btn-check" onclick="doCheck('body')">Check ✔️</button>
+      </div>
+
+      <div class="habit-item">
+        <div class="habit-info">
+          <h5>🎮 Ver um filme / Hobbies</h5>
+          <p>Humor • Semanal</p>
+        </div>
+        <button class="btn-check" onclick="doCheck('fun')">Check ✔️</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 Pillars Section -->
+  <section class="section" id="pilares">
+    <div class="section-header">
+      <h2 class="section-title">Os 4 Pilares da sua Jornada</h2>
+      <p class="section-desc">Equilibre todas as áreas essenciais para manter seu personagem (e sua vida) no melhor nível possível.</p>
+    </div>
+
+    <div class="pillars-grid">
+      <div class="pillar-card card-mind">
+        <div class="pillar-icon">🧠</div>
+        <h3 class="pillar-title">Mente</h3>
+        <p class="pillar-desc">Foco em leitura, estudos, novos aprendizados e meditação diária. Fortaleça sua inteligência.</p>
+      </div>
+
+      <div class="pillar-card card-money">
+        <div class="pillar-icon">💰</div>
+        <h3 class="pillar-title">Financeiro</h3>
+        <p class="pillar-desc">Controle de hábitos financeiros, investimentos, economia de gastos e reserva de emergência.</p>
+      </div>
+
+      <div class="pillar-card card-body">
+        <div class="pillar-icon">💪</div>
+        <h3 class="pillar-title">Corpo</h3>
+        <p class="pillar-desc">Prática regular de exercícios físicos, hidratação adequada, alimentação saudável e sono reparador.</p>
+      </div>
+
+      <div class="pillar-card card-fun">
+        <div class="pillar-icon">🥳</div>
+        <h3 class="pillar-title">Humor</h3>
+        <p class="pillar-desc">Saúde mental, momentos com a família, hobbies, lazer e descanso para renovar as energias.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Grid -->
+  <section class="section" id="recursos">
+    <div class="section-header">
+      <h2 class="section-title">Por que o OneBitLife funciona?</h2>
+      <p class="section-desc">Diferente de listas de tarefas comuns, a gamificação cria um compromisso diário divertido com os seus objetivos.</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-box">
+        <div class="feature-icon">👾</div>
+        <div class="feature-content">
+          <h4>Mascote em Tempo Real</h4>
+          <p>O estado emocional e visual do robô varia instantaneamente de acordo com os checks concluídos.</p>
+        </div>
+      </div>
+
+      <div class="feature-box">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-content">
+          <h4>Mecânica de Game Over</h4>
+          <p>Se você ignorar seus hábitos por muito tempo, a barra zera e o jogo reinicia. Mantenha a disciplina!</p>
+        </div>
+      </div>
+
+      <div class="feature-box">
+        <div class="feature-icon">🔒</div>
+        <div class="feature-content">
+          <h4>100% Offline & Privado</h4>
+          <p>Seus dados ficam armazenados exclusivamente no seu dispositivo através do banco SQLite integrado.</p>
+        </div>
+      </div>
+
+      <div class="feature-box">
+        <div class="feature-icon">🔔</div>
+        <div class="feature-content">
+          <h4>Lembretes Inteligentes</h4>
+          <p>Notificações locais agendadas para te lembrar de realizar seus hábitos no momento certo do dia.</p>
+        </div>
+      </div>
+
+      <div class="feature-box">
+        <div class="feature-icon">🚀</div>
+        <div class="feature-content">
+          <h4>Builds Automatizadas</h4>
+          <p>Integração com GitHub Actions e Expo EAS Cloud para geração automática do APK Android a cada versão.</p>
+        </div>
+      </div>
+
+      <div class="feature-box">
+        <div class="feature-icon">💎</div>
+        <div class="feature-content">
+          <h4>100% Gratuito & Open Source</h4>
+          <p>Sem anúncios invasivos nem assinaturas. Código fonte aberto para a comunidade no GitHub.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Banner CTA -->
+  <section class="section">
+    <div class="banner-cta">
+      <h2>Pronto para subir de nível?</h2>
+      <p>Baixe o aplicativo para Android agora mesmo e comece a transformar sua rotina hoje!</p>
+      <a href="https://github.com/Intern-Yago/OneBitLife/releases" target="_blank" class="btn-cta" style="padding: 1rem 2.5rem; font-size: 1.1rem;">
+        🚀 Baixar APK no GitHub Releases
+      </a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>© 2026 <strong>OneBitLife</strong> — Desenvolvido por <a href="https://github.com/Intern-Yago" target="_blank">Intern-Yago</a>.</p>
+    <p style="margin-top: 0.5rem; opacity: 0.7;">Distribuído sob a Licença MIT.</p>
+  </footer>
+
+  <script>
+    let checks = 14;
+    const bars = {
+      mind: 80,
+      money: 65,
+      body: 90,
+      fun: 50
+    };
+
+    function doCheck(type) {
+      if (bars[type] < 100) {
+        bars[type] = Math.min(100, bars[type] + 20);
+        checks++;
+        document.getElementById('checksCount').innerText = checks;
+        
+        const barElem = document.getElementById(type + 'Bar');
+        barElem.style.width = bars[type] + '%';
+
+        // Animate mascot face
+        const mascot = document.getElementById('mascot');
+        mascot.innerText = '😎';
+        setTimeout(() => {
+          mascot.innerText = '🤖';
+        }, 1200);
+      }
+    }
+  </script>
+
+</body>
+</html>
