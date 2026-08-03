@@ -1,5 +1,13 @@
 # Changelog
 
+## [v1.0.7] - 2026-08-03
+
+### Alterações nesta versão:
+- fix(ci): use build-output.json and jq pattern in release workflow and add owner to app.json (55163e4)
+- fix(eas): limit Gradle JVM memory usage and specify Node 20.x in androidApk build profile (a6a822c)
+
+---
+
 ## [v1.0.6] - 2026-08-03
 
 ### Alterações nesta versão:
