@@ -49,7 +49,7 @@ jobs:
       - name: 6. Commit, Tag e Push das Alterações
         run: |
           VERSION="${{ steps.versioning.outputs.version }}"
-          git add package.json app.json CHANGELOG.md RELEASE_NOTES.md
+          git add package.json app.json CHANGELOG.md
           if [ -f package-lock.json ]; then git add package-lock.json; fi
           git commit -m "chore(release): v${VERSION} [skip ci]"
           git tag "v${VERSION}"
