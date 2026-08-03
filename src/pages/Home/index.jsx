@@ -44,24 +44,11 @@ export default function Home({route}){
     navigation.navigate("AppExplanation")
   }
   function handleGameOver() {
-    Alert.alert(
-      "Resetar o Game",
-      "Tem certeza que deseja resetar todo o seu progresso e reiniciar sua jornada?",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Resetar",
-          style: "destructive",
-          onPress: () => {
-            navigation.navigate("Start");
-            db.transaction((tx) => {
-              tx.executeSql("DROP TABLE habits;");
-              tx.executeSql("DROP TABLE change_navigation;");
-            });
-          },
-        },
-      ]
-    );
+    navigation.navigate("Start");
+    db.transaction((tx) => {
+      tx.executeSql("DROP TABLE habits;");
+      tx.executeSql("DROP TABLE change_navigation;");
+    });
   }
 
   const excludeArea = route.params?.excludeArea
