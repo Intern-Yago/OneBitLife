@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react'
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import DefaultButton from '../../components/Common/DefaultButton';
 import LifeStatus from '../../components/Common/LifeStatus';
 import CreateHabit from '../../components/Home/CreateHabit';
@@ -19,19 +19,49 @@ export default function Home({route}){
   const [funHabit, setFunHabit] = useState()
 
   const [ robotDaysLife, setRobotDaysLife] = useState()
-  const [checks, setChecks] = useState()
+  const [checks, setChecks] = useState(0)
   const [gameOver, setGameOver] = useState()
   const today = new Date()
+
+  const getPlayerLevel = (totalChecks) => {
+    const count = Number(totalChecks) || 0;
+    if (count < 10) {
+      return { level: 1, title: "Aprendiz 🐣", badgeColor: "#90B7F3" };
+    } else if (count < 25) {
+      return { level: 2, title: "Aventureiro ⚔️", badgeColor: "#85BB65" };
+    } else if (count < 50) {
+      return { level: 3, title: "Guardião 🛡️", badgeColor: "#FE7F23" };
+    } else if (count < 100) {
+      return { level: 4, title: "Mestre 🧙‍♂️", badgeColor: "#9b59b6" };
+    } else {
+      return { level: 5, title: "Lenda Viva 👑", badgeColor: "#FFD700" };
+    }
+  };
+
+  const playerLevel = getPlayerLevel(checks);
 
   function handleNavExplanation(){
     navigation.navigate("AppExplanation")
   }
   function handleGameOver() {
-    navigation.navigate("Start");
-    db.transaction((tx) => {
-      tx.executeSql("DROP TABLE habits;");
-      tx.executeSql("DROP TABLE change_navigation;");
-    });
+    Alert.alert(
+      "Resetar o Game",
+      "Tem certeza que deseja resetar todo o seu progresso e reiniciar sua jornada?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Resetar",
+          style: "destructive",
+          onPress: () => {
+            navigation.navigate("Start");
+            db.transaction((tx) => {
+              tx.executeSql("DROP TABLE habits;");
+              tx.executeSql("DROP TABLE change_navigation;");
+            });
+          },
+        },
+      ]
+    );
   }
 
   const excludeArea = route.params?.excludeArea
@@ -108,11 +138,18 @@ export default function Home({route}){
       <ScrollView>
         <View style={{alignItems: 'center'}}>
         {!gameOver ? (
-            <Text style={styles.dailyChecks}>
-              ❤️ {robotDaysLife} {robotDaysLife === "01" ? "dia" : "dias"} -
-              ✔️{" "}
-              {checks} {checks === 1 ? "Check" : "Checks"}
-            </Text>
+            <View style={{ alignItems: "center" }}>
+              <Text style={styles.dailyChecks}>
+                ❤️ {robotDaysLife} {robotDaysLife === "01" ? "dia" : "dias"} -
+                ✔️{" "}
+                {checks} {checks === 1 ? "Check" : "Checks"}
+              </Text>
+              <View style={[styles.levelBadge, { borderColor: playerLevel.badgeColor }]}>
+                <Text style={[styles.levelText, { color: playerLevel.badgeColor }]}>
+                  Nível {playerLevel.level} • {playerLevel.title}
+                </Text>
+              </View>
+            </View>
           ) : (
             <Text style={styles.gameOverTitle}>Game Over</Text>
           )}
@@ -203,5 +240,18 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     color: "white",
+  },
+  levelBadge: {
+    borderWidth: 1.5,
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 5,
+    marginTop: 10,
+    marginBottom: 5,
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+  },
+  levelText: {
+    fontWeight: "bold",
+    fontSize: 14,
   },
 })

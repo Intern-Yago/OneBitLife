@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigation } from "@react-navigation/native";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View, Vibration } from 'react-native';
 import CheckService from '../../../services/CheckService';
 
 export default function EditHabit({habit, frequency, habitArea, checkColor}){
@@ -24,6 +24,11 @@ export default function EditHabit({habit, frequency, habitArea, checkColor}){
 
   function handleCheck(){
     if(habitCheck === 0){
+      try {
+        Vibration.vibrate([0, 50, 30, 50]);
+      } catch (e) {
+        console.log(e);
+      }
       CheckService.checkHabit({
         lastCheck: formatDate,
         habitIsChecked: 1,
