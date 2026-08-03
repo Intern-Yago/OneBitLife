@@ -26,15 +26,15 @@ export default function Home({route}){
   const getPlayerLevel = (totalChecks) => {
     const count = Number(totalChecks) || 0;
     if (count < 10) {
-      return { level: 1, title: "Aprendiz 🐣", badgeColor: "#90B7F3" };
+      return { level: 1, title: "Cyber Recruta", badgeColor: "#90B7F3" };
     } else if (count < 25) {
-      return { level: 2, title: "Aventureiro ⚔️", badgeColor: "#85BB65" };
+      return { level: 2, title: "Operador Neon", badgeColor: "#85BB65" };
     } else if (count < 50) {
-      return { level: 3, title: "Guardião 🛡️", badgeColor: "#FE7F23" };
+      return { level: 3, title: "Guardião do Core", badgeColor: "#FE7F23" };
     } else if (count < 100) {
-      return { level: 4, title: "Mestre 🧙‍♂️", badgeColor: "#9b59b6" };
+      return { level: 4, title: "Mestre dos Hábitos", badgeColor: "#9b59b6" };
     } else {
-      return { level: 5, title: "Lenda Viva 👑", badgeColor: "#FFD700" };
+      return { level: 5, title: "Lenda Cyberpunk", badgeColor: "#FFD700" };
     }
   };
 

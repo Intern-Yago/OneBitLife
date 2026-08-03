@@ -570,10 +570,10 @@
     <div class="simulator-card" id="simulador">
       <div class="sim-header">
         <div class="sim-streak">
-          ❤️ <span id="daysCount">05</span> dias - ✔️ <span id="checksCount">14</span> Checks
+          ❤️ <span id="daysCount">05</span> dias - ✔️ <span id="checksCount">19</span> Checks
         </div>
         <div class="sim-character" id="mascot">
-          🤖
+          <img id="mascotImg" src="./src/assets/icons/logo1.png" alt="Mascote OneBitLife" style="width: 90px; height: 90px; object-fit: contain; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); filter: drop-shadow(0 0 12px rgba(144, 183, 243, 0.6));">
         </div>
       </div>
 
@@ -610,34 +610,34 @@
       <!-- Habit List -->
       <div class="habit-item">
         <div class="habit-info">
-          <h5>📚 Ler 15 páginas</h5>
-          <p>Mente • Diário</p>
+          <h5>Ler 15 páginas</h5>
+          <p><span style="color: var(--color-mind); font-weight: bold;">[ MENTE ]</span> • Diário</p>
         </div>
-        <button class="btn-check" onclick="doCheck('mind')">Check ✔️</button>
+        <button class="btn-check" onclick="doCheck('mind')">[ CHECK ]</button>
       </div>
 
       <div class="habit-item">
         <div class="habit-info">
-          <h5>💰 Economizar R$ 20</h5>
-          <p>Financeiro • Diário</p>
+          <h5>Economizar R$ 20</h5>
+          <p><span style="color: var(--color-money); font-weight: bold;">[ FINANÇAS ]</span> • Diário</p>
         </div>
-        <button class="btn-check" onclick="doCheck('money')">Check ✔️</button>
+        <button class="btn-check" onclick="doCheck('money')">[ CHECK ]</button>
       </div>
 
       <div class="habit-item">
         <div class="habit-info">
-          <h5>💪 Treino de 45 min</h5>
-          <p>Corpo • Diário</p>
+          <h5>Treino de 45 min</h5>
+          <p><span style="color: var(--color-body); font-weight: bold;">[ CORPO ]</span> • Diário</p>
         </div>
-        <button class="btn-check" onclick="doCheck('body')">Check ✔️</button>
+        <button class="btn-check" onclick="doCheck('body')">[ CHECK ]</button>
       </div>
 
       <div class="habit-item">
         <div class="habit-info">
-          <h5>🎮 Ver um filme / Hobbies</h5>
-          <p>Humor • Semanal</p>
+          <h5>Hobbies & Lazer</h5>
+          <p><span style="color: var(--color-fun); font-weight: bold;">[ HUMOR ]</span> • Semanal</p>
         </div>
-        <button class="btn-check" onclick="doCheck('fun')">Check ✔️</button>
+        <button class="btn-check" onclick="doCheck('fun')">[ CHECK ]</button>
       </div>
     </div>
   </section>
@@ -645,33 +645,42 @@
   <!-- 4 Pillars Section -->
   <section class="section" id="pilares">
     <div class="section-header">
+      <div class="badge-pill">[ SYSTEM PILLARS ]</div>
       <h2 class="section-title">Os 4 Pilares da sua Jornada</h2>
-      <p class="section-desc">Equilibre todas as áreas essenciais para manter seu personagem (e sua vida) no melhor nível possível.</p>
+      <p class="section-desc">Equilibre todas as áreas essenciais para manter os sistemas vitais do seu personagem no nível máximo.</p>
     </div>
 
     <div class="pillars-grid">
       <div class="pillar-card card-mind">
-        <div class="pillar-icon">🧠</div>
+        <div class="pillar-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a9 9 0 0 1 9 9c0 3.5-2 6.5-5 8l-1 3H9l-1-3C5 17.5 3 14.5 3 11a9 9 0 0 1 9-9z"/><path d="M9 10h6M12 7v6"/></svg>
+        </div>
         <h3 class="pillar-title">Mente</h3>
-        <p class="pillar-desc">Foco em leitura, estudos, novos aprendizados e meditação diária. Fortaleça sua inteligência.</p>
+        <p class="pillar-desc">Foco em leitura, estudos, novos aprendizados e meditação diária. Fortaleça seu poder de processamento mental.</p>
       </div>
 
       <div class="pillar-card card-money">
-        <div class="pillar-icon">💰</div>
+        <div class="pillar-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
         <h3 class="pillar-title">Financeiro</h3>
-        <p class="pillar-desc">Controle de hábitos financeiros, investimentos, economia de gastos e reserva de emergência.</p>
+        <p class="pillar-desc">Controle de hábitos financeiros, investimentos, economia de recursos e reserva de emergência.</p>
       </div>
 
       <div class="pillar-card card-body">
-        <div class="pillar-icon">💪</div>
+        <div class="pillar-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zM12 8v8M8 12h8"/></svg>
+        </div>
         <h3 class="pillar-title">Corpo</h3>
-        <p class="pillar-desc">Prática regular de exercícios físicos, hidratação adequada, alimentação saudável e sono reparador.</p>
+        <p class="pillar-desc">Prática de exercícios físicos, hidratação adequada, nutrição e descanso de alta performance.</p>
       </div>
 
       <div class="pillar-card card-fun">
-        <div class="pillar-icon">🥳</div>
+        <div class="pillar-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
         <h3 class="pillar-title">Humor</h3>
-        <p class="pillar-desc">Saúde mental, momentos com a família, hobbies, lazer e descanso para renovar as energias.</p>
+        <p class="pillar-desc">Saúde mental, conexão com pessoas, hobbies, lazer e regeneração de energia emocional.</p>
       </div>
     </div>
   </section>
@@ -679,56 +688,69 @@
   <!-- Features Grid -->
   <section class="section" id="recursos">
     <div class="section-header">
+      <div class="badge-pill">[ CORE FEATURES ]</div>
       <h2 class="section-title">Por que o OneBitLife funciona?</h2>
-      <p class="section-desc">Diferente de listas de tarefas comuns, a gamificação cria um compromisso diário divertido com os seus objetivos.</p>
+      <p class="section-desc">Uma mecânica de gamificação de alto impacto para manter o compromisso diário com a sua evolução.</p>
     </div>
 
     <div class="features-grid">
       <div class="feature-box">
-        <div class="feature-icon">👾</div>
+        <div class="feature-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-mind)" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </div>
         <div class="feature-content">
-          <h4>Mascote em Tempo Real</h4>
-          <p>O estado emocional e visual do robô varia instantaneamente de acordo com os checks concluídos.</p>
+          <h4>Avatar Reativo em Tempo Real</h4>
+          <p>O estado visual do personagem varia instantaneamente de acordo com os checks concluídos nos 4 pilares.</p>
         </div>
       </div>
 
       <div class="feature-box">
-        <div class="feature-icon">⚡</div>
+        <div class="feature-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-body)" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        </div>
         <div class="feature-content">
-          <h4>Mecânica de Game Over</h4>
-          <p>Se você ignorar seus hábitos por muito tempo, a barra zera e o jogo reinicia. Mantenha a disciplina!</p>
+          <h4>Mecânica Hardcore Game Over</h4>
+          <p>Se você negligenciar seus hábitos por muito tempo, a barra zera e a jornada reinicia na hora sem choro!</p>
         </div>
       </div>
 
       <div class="feature-box">
-        <div class="feature-icon">🔒</div>
+        <div class="feature-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-money)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
         <div class="feature-content">
           <h4>100% Offline & Privado</h4>
-          <p>Seus dados ficam armazenados exclusivamente no seu dispositivo através do banco SQLite integrado.</p>
+          <p>Seus dados ficam armazenados exclusivamente no seu dispositivo através do banco relacional SQLite local.</p>
         </div>
       </div>
 
       <div class="feature-box">
-        <div class="feature-icon">🔔</div>
+        <div class="feature-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-fun)" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </div>
         <div class="feature-content">
-          <h4>Lembretes Inteligentes</h4>
-          <p>Notificações locais agendadas para te lembrar de realizar seus hábitos no momento certo do dia.</p>
+          <h4>Lembretes do Sistema</h4>
+          <p>Notificações locais agendadas para te alertar sobre a execução dos seus hábitos no horário exato.</p>
         </div>
       </div>
 
       <div class="feature-box">
-        <div class="feature-icon">🚀</div>
+        <div class="feature-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-mind)" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        </div>
         <div class="feature-content">
-          <h4>Builds Automatizadas</h4>
-          <p>Integração com GitHub Actions e Expo EAS Cloud para geração automática do APK Android a cada versão.</p>
+          <h4>Builds de APK Automatizadas</h4>
+          <p>Integração com GitHub Actions e Expo EAS Cloud para compilação automática a cada release lançada.</p>
         </div>
       </div>
 
       <div class="feature-box">
-        <div class="feature-icon">💎</div>
+        <div class="feature-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-money)" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        </div>
         <div class="feature-content">
           <h4>100% Gratuito & Open Source</h4>
-          <p>Sem anúncios invasivos nem assinaturas. Código fonte aberto para a comunidade no GitHub.</p>
+          <p>Sem anúncios, anúncios invasivos nem assinaturas. Código-fonte aberto e livre no GitHub.</p>
         </div>
       </div>
     </div>
@@ -737,7 +759,7 @@
   <!-- Banner CTA -->
   <section class="section">
     <div class="banner-cta">
-      <h2>Pronto para subir de nível?</h2>
+      <h2>Pronto para iniciar a jornada?</h2>
       <p>Baixe o aplicativo para Android agora mesmo e comece a transformar sua rotina hoje!</p>
       <a href="https://github.com/Intern-Yago/OneBitLife/releases" target="_blank" class="btn-cta" style="padding: 1rem 2.5rem; font-size: 1.1rem;">
         🚀 Baixar APK no GitHub Releases
@@ -752,7 +774,7 @@
   </footer>
 
   <script>
-    let checks = 14;
+    let checks = 19;
     const bars = {
       mind: 80,
       money: 65,
@@ -769,12 +791,14 @@
         const barElem = document.getElementById(type + 'Bar');
         barElem.style.width = bars[type] + '%';
 
-        // Animate mascot face
-        const mascot = document.getElementById('mascot');
-        mascot.innerText = '😎';
-        setTimeout(() => {
-          mascot.innerText = '🤖';
-        }, 1200);
+        // Animação tátil da imagem do mascote oficial
+        const mascotImg = document.getElementById('mascotImg');
+        if (mascotImg) {
+          mascotImg.style.transform = 'scale(1.25) rotate(6deg)';
+          setTimeout(() => {
+            mascotImg.style.transform = 'scale(1) rotate(0deg)';
+          }, 350);
+        }
       }
     }
   </script>

@@ -2,7 +2,7 @@
 
   <img src="./src/assets/icons/logo3.png" alt="OneBitLife Logo" width="360" />
 
-  ### 🎮 Transforme sua vida em um jogo, buscando sempre o seu melhor nível.
+  ### [ CYBER GAMIFICATION SYSTEM ] Transforme sua vida em um RPG real.
 
   [![React Native](https://img.shields.io/badge/React_Native-0.70.8-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactnative.dev/)
   [![Expo](https://img.shields.io/badge/Expo-SDK_47-000000?style=for-the-badge&logo=expo&logoColor=white)](https://expo.dev/)
@@ -12,17 +12,18 @@
 
   <br />
 
-  [🌐 Ver Página Web (Landing Page)](./index.html) • [📱 Baixar APK (Releases)](https://github.com/Intern-Yago/OneBitLife/releases) • [📖 Documentação](#-sumário)
+  [ [ 🌐 LANDING PAGE ] ](./index.html) • [ [ 📱 BAIXAR APK ] ](https://github.com/Intern-Yago/OneBitLife/releases) • [ [ 📖 DOCUMENTAÇÃO ] ](#-sumário)
 
 </div>
 
 ---
 
-## 📋 Sumário
+## [ SUMÁRIO ]
 
 - [Sobre o Projeto](#-sobre-o-projeto)
 - [Funcionalidades Principais](#-funcionalidades-principais)
 - [Os 4 Pilares da Vida](#-os-4-pilares-da-vida)
+- [Sistema de Níveis & XP](#-sistema-de-níveis--xp)
 - [Tecnologias Utilizadas](#-tecnologias-utilizadas)
 - [Arquitetura de Pastas](#-arquitetura-de-pastas)
 - [Como Executar o Projeto](#-como-executar-o-projeto)
@@ -31,76 +32,84 @@
 
 ---
 
-## 🧠 Sobre o Projeto
+## [ SOBRE O PROJETO ]
 
-O **OneBitLife** é um aplicativo mobile desenvolvido com React Native e Expo que aplica os princípios de **gamificação na construção de hábitos**. 
+O **OneBitLife** é um aplicativo mobile desenvolvido com React Native e Expo que aplica os princípios de **gamificação avançada na construção de hábitos**.
 
-Assim como em um jogo RPG, o usuário possui um mascote virtual cujos níveis de energia, humor e saúde variam de acordo com o cumprimento das suas tarefas diárias. Caso o usuário negligencie seus hábitos e suas barras de vida cheguem a zero, o jogo entra em **Game Over**, incentivando a disciplina diária e a consistência pessoal de forma leve e divertida.
-
----
-
-## ⚡ Funcionalidades Principais
-
-- 🎯 **Gestão de Hábitos Personalizados**: Criação, edição e exclusão de hábitos em 4 categorias vitais.
-- 🔁 **Frequências Customizadas**: Definição de hábitos Diários, Semanais ou Mensais.
-- 📊 **Barras de Status Dinâmicas**: Acompanhamento visual da saúde de cada pilar da vida.
-- 🤖 **Mascote Reativo (LifeStatus)**: Animações em tempo real via Lottie que reagem ao desempenho do usuário.
-- 💀 **Mecânica de Game Over**: Sistema de risco onde zerar uma barra resulta no reinício da jornada.
-- 🔥 **Contador de Checks & Sequência (Streak)**: Rastreamento de dias consecutivos vivo e total de checks concluídos.
-- 💾 **Persistência Offline (SQLite)**: Banco de dados relacional local embarcado no dispositivo.
-- 🔔 **Notificações Locais**: Lembretes para não esquecer de realizar os checks do dia.
+Como em um RPG hardcore, o usuário gerencia um avatar cujos sistemas vitais dependem diretamente do cumprimento de hábitos em tempo real. Se o usuário negligenciar seus compromissos e suas barras de status chegarem a zero, o jogo entra em **Game Over** instantâneo, forçando a disciplina e consistência de forma intensa.
 
 ---
 
-## 🎨 Os 4 Pilares da Vida
+## [ FUNCIONALIDADES PRINCIPAIS ]
 
-O aplicativo divide os hábitos em quatro pilares fundamentais, cada um representado por uma identidade visual distinta:
+- **[ CORE ] Gestão de Hábitos**: Criação, edição e exclusão de hábitos em 4 categorias vitais.
+- **[ FREQUENCY ] Frequências Customizadas**: Definição de hábitos Diários, Semanais ou Mensais.
+- **[ HUD ] Barras de Status Dinâmicas**: Acompanhamento dos sistemas vitais em tempo real.
+- **[ HAPTIC ] Feedback Tátil**: Resposta tátil por vibração ao concluir metas.
+- **[ HARDCORE ] Game Over Instantâneo**: Mecânica sem tolerância para barras zeradas.
+- **[ LEVEL ] Sistema de XP**: Progressão de patentes de acordo com o total de checks efetuados.
+- **[ DB ] Persistência Offline**: Banco de dados relacional SQLite local embarcado.
+- **[ PUSH ] Notificações Locais**: Agendamento de alertas em horários personalizados.
 
-| Pilar | Cor | Descrição |
+---
+
+## [ OS 4 PILARES DA VIDA ]
+
+O aplicativo divide os hábitos em quatro módulos fundamentais:
+
+| Módulo | Cor | Descrição |
 | :--- | :---: | :--- |
-| 🧠 **Mente** | `#90B7F3` | Leitura, estudos, meditação e foco mental. |
-| 💰 **Financeiro** | `#85BB65` | Controle de gastos, investimentos e reserva financeira. |
-| 💪 **Corpo** | `#FF0044` | Exercícios físicos, hidratação e alimentação saudável. |
-| 🥳 **Humor** | `#FE7F23` | Lazer, momentos em família e saúde emocional. |
+| **[ MENTE ]** | `#90B7F3` | Leitura, estudos, aprendizado contínuo e foco mental. |
+| **[ FINANCEIRO ]** | `#85BB65` | Gestão de recursos, economia, investimentos e reserva. |
+| **[ CORPO ]** | `#FF0044` | Exercícios físicos, hidratação, nutrição e descanso. |
+| **[ HUMOR ]** | `#FE7F23` | Saúde mental, conexões pessoais, lazer e renovação. |
 
 ---
 
-## 🛠 Tecnologias Utilizadas
+## [ SISTEMA DE NÍVEIS & XP ]
+
+Progressão de patente calculada com base no acumulado de checks efetuados:
+
+- **0 a 9 Checks** → `Nível 1 • Cyber Recruta`
+- **10 a 24 Checks** → `Nível 2 • Operador Neon`
+- **25 a 49 Checks** → `Nível 3 • Guardião do Core`
+- **50 a 99 Checks** → `Nível 4 • Mestre dos Hábitos`
+- **100+ Checks** → `Nível 5 • Lenda Cyberpunk`
+
+---
+
+## [ TECNOLOGIAS UTILIZADAS ]
 
 ### Core & UI
 - **React Native** (v0.70.8) - Framework multiplataforma.
-- **Expo SDK** (v47) - Ecossistema de desenvolvimento mobile.
-- **React Navigation** (v6) - Navegação entre telas (Native Stack).
+- **Expo SDK** (v47) - Ecossistema mobile.
+- **React Navigation** (v6) - Navegação Native Stack.
 - **React Native Paper** - Componentes de interface.
-- **Lottie React Native** - Animações vetoriais interativas.
+- **Lottie React Native** - Animações de estado.
 
 ### Banco de Dados & Serviços
-- **Expo SQLite** - Armazenamento de dados local e offline-first.
-- **Expo Notifications** - Agendamento de notificações push locais.
-- **Expo File System & Asset** - Gestão de recursos locais.
+- **Expo SQLite** - Armazenamento de dados offline-first.
+- **Expo Notifications** - Notificações locais.
 
 ### Automação & CI/CD
-- **GitHub Actions** - Workflows de integração e entrega contínua.
-- **Expo EAS Build** - Geração automatizada de APKs Android na nuvem.
-- **Node.js (v20)** - Runtime do ambiente de automação.
+- **GitHub Actions** - Workflows automatizados de release.
+- **Expo EAS Build** - Compilação na nuvem do APK Android.
 
 ---
 
-## 📁 Arquitetura de Pastas
+## [ ARQUITETURA DE PASTAS ]
 
 ```text
 OneBitLife/
 ├── .github/
 │   ├── scripts/
-│   │   └── bump-version.js       # Script de versionamento semântico e Changelog
+│   │   ├── bump-version.js       # Script de versionamento semântico e Changelog
+│   │   └── patch-boost.js        # Patch de compilação da dependência Boost C++
 │   └── workflows/
 │       └── release.yml           # Workflow do GitHub Actions para Build e Release
 ├── src/
-│   ├── assets/                   # Ícones, imagens e animações Lottie do robô
+│   ├── assets/                   # Ícones e animações do avatar
 │   ├── components/               # Componentes reutilizáveis de UI
-│   │   ├── Common/               # Botões, Mascote LifeStatus, etc.
-│   │   ├── Explanation/          # Cards explicativos
-│   │   └── Home/                 # Barras de progresso e edição de hábitos
 │   ├── Database/                 # Inicialização e SQL do Expo SQLite
 │   ├── pages/                    # Telas da aplicação (Start, Explanation, Home, HabitPage)
 │   ├── routes/                   # Configuração das rotas de navegação
@@ -114,12 +123,12 @@ OneBitLife/
 
 ---
 
-## 🚀 Como Executar o Projeto
+## [ COMO EXECUTAR O PROJETO ]
 
 ### Pré-requisitos
-- **Node.js** (versão 20.x recomendada)
+- **Node.js** (v20.x)
 - **Expo CLI** (`npm install -g expo-cli`)
-- Aplicativo **Expo Go** (disponível no Google Play / App Store) ou Emulador Android/iOS.
+- Aplicativo **Expo Go** ou Emulador Android/iOS.
 
 ### Passo a Passo
 
@@ -129,51 +138,24 @@ OneBitLife/
    cd OneBitLife
    ```
 
-2. **Instalar as dependências:**
+2. **Instalar dependências:**
    ```bash
    npm install
    ```
 
-3. **Iniciar o servidor de desenvolvimento:**
+3. **Iniciar o servidor:**
    ```bash
    npm start
    ```
 
-4. **Executar no dispositivo ou emulador:**
-   - Abra o **Expo Go** no celular e escaneie o QR Code exibido no terminal.
-   - Ou pressione `a` no terminal para abrir no emulador Android.
-
 ---
 
-## ⚙️ Pipeline de CI/CD & Automação de Release
-
-O repositório possui uma esteira automatizada configurada via **GitHub Actions** (`.github/workflows/release.yml`).
-
-### Como disparar uma nova Release:
-
-1. Acesse a aba **Actions** no repositório do GitHub.
-2. Selecione o workflow **Release & Build Expo APK**.
-3. Clique em **Run workflow** e escolha o tipo de incremento:
-   - `patch` (ex: 1.0.0 -> 1.0.1)
-   - `minor` (ex: 1.0.0 -> 1.1.0)
-   - `major` (ex: 1.0.0 -> 2.0.0)
-
-### O que o Workflow realiza automaticamente:
-1. 🔢 Atualiza a versão no `package.json` e `app.json` (incrementando o `versionCode` do Android).
-2. 📝 Coleta o histórico dos commits e atualiza o `CHANGELOG.md`.
-3. 🏷️ Cria o commit de release, gera a Tag Git e faz o push para o repositório.
-4. 🩺 Executa a verificação do `npx expo-doctor`.
-5. ☁️ Realiza a compilação do APK via **Expo EAS Cloud**.
-6. 📦 Baixa o `.apk` gerado e cria automaticamente a **Release no GitHub** com o APK anexado nos assets.
-
----
-
-## 📄 Licença
+## [ LICENÇA ]
 
 Este projeto está sob a licença **MIT**. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
 
 ---
 
 <div align="center">
-  Desenvolvido com ❤️ por <a href="https://github.com/Intern-Yago">Intern-Yago</a>
+  Desenvolvido por <a href="https://github.com/Intern-Yago">Intern-Yago</a>
 </div>
