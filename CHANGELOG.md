@@ -1,5 +1,12 @@
 # Changelog
 
+## [v1.0.5] - 2026-08-03
+
+### Alterações nesta versão:
+- fix(build): add postinstall patch for expo-modules-core boost download URL (a80ed3a)
+
+---
+
 ## [v1.0.4] - 2026-08-03
 
 ### Alterações nesta versão:
