@@ -1,5 +1,12 @@
 # Changelog
 
+## [v1.0.2] - 2026-08-03
+
+### Alterações nesta versão:
+- fix(ci): update Node version to 20, fix expo dependencies and add expo doctor step (b258d57)
+
+---
+
 ## [v1.0.1] - 2026-08-03
 
 ### Alterações nesta versão:
