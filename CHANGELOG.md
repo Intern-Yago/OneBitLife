@@ -1,5 +1,16 @@
 # Changelog
 
+## [v1.0.6] - 2026-08-03
+
+### Alterações nesta versão:
+- fix(ci): avoid tag collision and force-update tags on re-run (d7816f3)
+- fix(ci): update build artifact download logic in release workflow (55b01c2)
+- style: enlarge navbar logo to 56px and remove all remaining emojis from buttons (76a0001)
+- style: update dailyChecks text to futuristic HUD style without emojis (9008aa3)
+- style: replace emojis with futuristic SVG HUD icons and Cyberpunk RPG tags (0e7c86c)
+
+---
+
 ## [v1.0.5] - 2026-08-03
 
 ### Alterações nesta versão:
