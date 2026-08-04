@@ -2,6 +2,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import React, { useEffect, useState } from "react";
 import { StyleSheet, View, TouchableOpacity, Text, Image, Platform } from "react-native";
 import { SelectList } from "react-native-dropdown-select-list";
+import NotificationService from "../../../services/NotificationService";
 
 export default function TimeDataPicker({
   frequency,
@@ -9,34 +10,40 @@ export default function TimeDataPicker({
   timeNotification,
   setDayNotification,
   setTimeNotification,
+  habitInput,
 }) {
   const [date, setDate] = useState(new Date());
-  const [mode, setMode] = useState("date");
+  const [mode, setMode] = useState("time");
   const [show, setShow] = useState(false);
-  const [selected, setSelected] = useState(dayNotification || "-");
-  const [notificationDate, setNotificationDate] = useState(dayNotification);
-  const [notificationTime, setNotificationTime] = useState(timeNotification);
+  const [selected, setSelected] = useState(dayNotification || "Segunda");
+  const [notificationDate, setNotificationDate] = useState(dayNotification || (frequency === "Diário" ? "Diário" : "Segunda"));
+  const [notificationTime, setNotificationTime] = useState(timeNotification || "12:00");
 
   useEffect(() => {
     if (dayNotification) {
       setSelected(dayNotification);
       setNotificationDate(dayNotification);
+    } else if (frequency === "Diário") {
+      setDayNotification("Diário");
+      setNotificationDate("Diário");
     }
+
     if (timeNotification) {
       setNotificationTime(timeNotification);
+    } else {
+      setTimeNotification("12:00");
     }
-  }, [dayNotification, timeNotification]);
+  }, [dayNotification, timeNotification, frequency]);
 
-  const onChange = (event, selectDate) => {
+  const onChangeTime = (event, selectDate) => {
     setShow(Platform.OS === "ios");
-    if (event.type === "dismissed") {
+    if (event?.type === "dismissed") {
       return;
     }
     const currentDate = selectDate || date;
     setDate(currentDate);
-    let tempDate = new Date(currentDate);
-    const notficationHour = tempDate.getHours().toString().padStart(2, "0");
-    const notficationMin = tempDate.getMinutes().toString().padStart(2, "0");
+    const notficationHour = currentDate.getHours().toString().padStart(2, "0");
+    const notficationMin = currentDate.getMinutes().toString().padStart(2, "0");
     const formattedTime = `${notficationHour}:${notficationMin}`;
 
     setNotificationTime(formattedTime);
@@ -44,68 +51,84 @@ export default function TimeDataPicker({
 
     if (frequency === "Diário") {
       setDayNotification("Diário");
-    } else if (frequency === "Semanal") {
-      setNotificationDate(selected);
-      setDayNotification(selected);
+      setNotificationDate("Diário");
     }
   };
+
   const showMode = (currentMode) => {
     setShow(true);
     setMode(currentMode);
   };
 
   const data = [
-    { key: "Domingo", value: "Dom" },
-    { key: "Segunda", value: "Seg" },
-    { key: "Terça", value: "Ter" },
-    { key: "Quarta", value: "Qua" },
-    { key: "Quinta", value: "Qui" },
-    { key: "Sexta", value: "Sex" },
-    { key: "Sábado", value: "Sab" },
+    { key: "Domingo", value: "Domingo" },
+    { key: "Segunda", value: "Segunda" },
+    { key: "Terça", value: "Terça" },
+    { key: "Quarta", value: "Quarta" },
+    { key: "Quinta", value: "Quinta" },
+    { key: "Sexta", value: "Sexta" },
+    { key: "Sábado", value: "Sábado" },
   ];
 
+  const handleSelectDay = (val) => {
+    setSelected(val);
+    setNotificationDate(val);
+    setDayNotification(val);
+  };
+
   return (
-    <View>
+    <View style={styles.container}>
       <TouchableOpacity style={styles.button} onPress={() => showMode("time")}>
-        <Text style={styles.buttonText}>Selecione a hora</Text>
+        <Text style={styles.buttonText}>⏰ Selecionar Horário ({notificationTime || "12:00"})</Text>
       </TouchableOpacity>
 
       <View style={styles.textContainer}>
         {frequency === "Diário" ? (
-          <Text style={styles.notificationText}>Dia do hábito: Diário</Text>
-        ) : null}
-        {frequency === "Semanal" ? (
-          <SelectList
-            data={data}
-            search={false}
-            setSelected={setSelected}
-            onSelect={() => {
-              onChange();
-            }}
-            placeholder={selected}
-            boxStyles={styles.boxStyle}
-            inputStyles={styles.inputStyle}
-            dropdownStyles={styles.dropdownStyle}
-            dropdownItemStyles={styles.dropdownItemStyle}
-            dropdownTextStyles={styles.dropdownTextStyle}
-            arrowicon={
-              <Image
-                source={require("../../../assets/icons/arrowDropdown.png")}
-                style={styles.arrow}
-              />
-            }
-          />
+          <Text style={styles.notificationText}>Dia: <Text style={styles.highlightText}>Diário</Text></Text>
         ) : null}
 
         {frequency === "Semanal" ? (
-          <Text style={styles.notificationText}>
-            Dia do hábito: {notificationDate}
-          </Text>
+          <View style={styles.selectWrapper}>
+            <Text style={styles.labelText}>Selecione o dia da semana:</Text>
+            <SelectList
+              data={data}
+              search={false}
+              setSelected={handleSelectDay}
+              placeholder={selected}
+              boxStyles={styles.boxStyle}
+              inputStyles={styles.inputStyle}
+              dropdownStyles={styles.dropdownStyle}
+              dropdownItemStyles={styles.dropdownItemStyle}
+              dropdownTextStyles={styles.dropdownTextStyle}
+              arrowicon={
+                <Image
+                  source={require("../../../assets/icons/arrowDropdown.png")}
+                  style={styles.arrow}
+                />
+              }
+            />
+          </View>
         ) : null}
-        <Text style={styles.notificationText}>
-          Horário do hábito: {notificationTime}
-        </Text>
+
+        <View style={styles.infoBadge}>
+          <Text style={styles.notificationText}>
+            🔔 Horário definido: <Text style={styles.highlightText}>{notificationTime || "Não definido"}</Text>
+          </Text>
+          {frequency === "Semanal" && (
+            <Text style={styles.notificationText}>
+              📅 Dia definido: <Text style={styles.highlightText}>{notificationDate || "Não definido"}</Text>
+            </Text>
+          )}
+        </View>
+
+        <TouchableOpacity
+          style={styles.testBtn}
+          onPress={() => NotificationService.sendTestNotification(habitInput)}
+        >
+          <Text style={styles.testBtnText}>⚡ Testar Notificação Agora</Text>
+        </TouchableOpacity>
       </View>
+
       {show && (
         <DateTimePicker
           testID="DateTimePicker"
@@ -113,7 +136,7 @@ export default function TimeDataPicker({
           mode={mode}
           is24Hour={true}
           display="default"
-          onChange={onChange}
+          onChange={onChangeTime}
         />
       )}
     </View>
@@ -121,52 +144,92 @@ export default function TimeDataPicker({
 }
 
 const styles = StyleSheet.create({
+  container: {
+    marginVertical: 10,
+  },
   button: {
-    borderWidth: 1,
-    borderColor: "white",
+    borderWidth: 1.5,
+    borderColor: "#90B7F3",
+    backgroundColor: "rgba(144, 183, 243, 0.1)",
     paddingVertical: 15,
     paddingHorizontal: 20,
-    borderRadius: 5,
+    borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
     marginTop: 15,
   },
   buttonText: {
-    color: "white",
-    fontSize: 18,
+    color: "#FFFFFF",
+    fontSize: 16,
     fontWeight: "bold",
   },
   textContainer: {
-    marginVertical: 20,
+    marginVertical: 15,
+  },
+  labelText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    marginBottom: 8,
+  },
+  selectWrapper: {
+    marginBottom: 15,
+  },
+  infoBadge: {
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    borderRadius: 10,
+    padding: 12,
+    borderLeftWidth: 3,
+    borderLeftColor: "#90B7F3",
+    marginVertical: 10,
   },
   notificationText: {
-    fontSize: 18,
-    color: "white",
+    fontSize: 15,
+    color: "#E0E0E0",
+    marginVertical: 2,
+  },
+  highlightText: {
+    color: "#90B7F3",
+    fontWeight: "bold",
   },
   boxStyle: {
     borderWidth: 1,
-    borderColor: "white",
-    paddingHorizontal: 20,
-    paddingVertical: 15,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
   },
   inputStyle: {
-    color: "white",
+    color: "#FFFFFF",
   },
   dropdownStyle: {
-    borderWidth: 0,
-    maxHeight: 100,
+    backgroundColor: "#1E1E1E",
+    borderColor: "rgba(255, 255, 255, 0.2)",
+    borderRadius: 8,
   },
   dropdownItemStyle: {
-    borderWidth: 1,
-    borderColor: "#BBBB",
-    borderRadius: 10,
-    marginBottom: 15,
+    paddingVertical: 10,
   },
   dropdownTextStyle: {
-    color: "#BBBBBB",
+    color: "#FFFFFF",
   },
   arrow: {
-    width: 20,
-    height: 20,
+    width: 18,
+    height: 18,
+    tintColor: "#FFFFFF",
+  },
+  testBtn: {
+    marginTop: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+    backgroundColor: "rgba(255, 215, 0, 0.15)",
+    borderWidth: 1,
+    borderColor: "#FFD700",
+    alignItems: "center",
+  },
+  testBtnText: {
+    color: "#FFD700",
+    fontWeight: "bold",
+    fontSize: 14,
   },
 });
