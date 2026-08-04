@@ -1,5 +1,15 @@
 # Changelog
 
+## [v1.0.9] - 2026-08-04
+
+### Alterações nesta versão:
+- feat(gameover): add non-destructive avatar recovery mode preserving custom habits on game over (0110754)
+- fix(checks): bind habit checks to individual habit ID to guarantee accurate check calculation (01dcef7)
+- feat(habits): allow typing custom habit names and creating multiple habits per area (b9a3aef)
+- fix(notifications): resolve notification crashes, add safe area transparent bars, and implement achievements panel (3013bcf)
+
+---
+
 ## [v1.0.8] - 2026-08-03
 
 ### Alterações nesta versão:
