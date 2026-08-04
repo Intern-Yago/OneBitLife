@@ -53,6 +53,21 @@ const findByArea = (habitArea) => {
   });
 };
 
+const getAllHabits = () => {
+  return new Promise((resolve, reject) => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        "SELECT * FROM habits ORDER BY id ASC;",
+        [],
+        (_, { rows }) => {
+          resolve(rows._array || []);
+        },
+        (_, error) => reject(error)
+      );
+    });
+  });
+};
+
 const updateHabit = (obj) => {
   return new Promise((resolve, reject) => {
     db.transaction((tx) => {
@@ -151,10 +166,25 @@ const changeProgress = (obj) => {
   });
 };
 
+const resetAllProgress = () => {
+  return new Promise((resolve, reject) => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        "UPDATE habits SET progressBar=1, habitIsChecked=0, daysWithoutChecks=0;",
+        [],
+        (_, { rowsAffected }) => resolve(rowsAffected),
+        (_, error) => reject(error)
+      );
+    });
+  });
+};
+
 export default {
   createHabit,
   findByArea,
+  getAllHabits,
   updateHabit,
   deleteByName,
   changeProgress,
+  resetAllProgress,
 };

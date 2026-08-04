@@ -18,7 +18,6 @@ import StatusBar from "../../components/Home/StatusBar";
 import ChangeNavigationService from "../../services/ChangeNavigationService";
 import CheckService from "../../services/CheckService";
 import HabitsService from "../../services/HabitsService";
-import db from "../../Database";
 
 export default function Home({ route }) {
   const navigation = useNavigation();
@@ -60,7 +59,7 @@ export default function Home({ route }) {
     {
       id: "first_check",
       title: "🎯 Primeiro Hack",
-      description: "Complete 1 check em qualquer hábito",
+      description: "Complete 1 check em qualquer meta",
       unlocked: checks >= 1,
     },
     {
@@ -100,11 +99,25 @@ export default function Home({ route }) {
   }
 
   function handleGameOver() {
-    navigation.navigate("Start");
-    db.transaction((tx) => {
-      tx.executeSql("DROP TABLE habits;");
-      tx.executeSql("DROP TABLE change_navigation;");
-    });
+    Alert.alert(
+      "⚡ Reiniciar Saúde do Avatar (Recovery)",
+      "Sua energia esgotou! Deseja restaurar a barra de vida mantendo suas metas personalizadas salvas?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Restaurar Vida",
+          onPress: () => {
+            HabitsService.resetAllProgress()
+              .then(() => {
+                setGameOver(false);
+                loadAllHabits();
+                Alert.alert("OneBitLife", "Saúde do avatar restaurada! Mantenha a disciplina!");
+              })
+              .catch((err) => console.log(err));
+          },
+        },
+      ]
+    );
   }
 
   const loadAllHabits = () => {
@@ -182,7 +195,10 @@ export default function Home({ route }) {
               </TouchableOpacity>
             </View>
           ) : (
-            <Text style={styles.gameOverTitle}>⚠️ Game Over ⚠️</Text>
+            <View style={{ alignItems: "center", marginVertical: 15 }}>
+              <Text style={styles.gameOverTitle}>⚠️ Energia Esgotada ⚠️</Text>
+              <Text style={styles.gameOverDesc}>Uma de suas metas expirou. Restaure a saúde do avatar para continuar!</Text>
+            </View>
           )}
 
           <LifeStatus
@@ -254,11 +270,11 @@ export default function Home({ route }) {
               </View>
             </View>
           ) : (
-            <View style={{ marginVertical: 40 }}>
+            <View style={{ marginVertical: 30, alignItems: "center" }}>
               <DefaultButton
-                buttonText={"Resetar o Game"}
+                buttonText={"⚡ Restaurar Vida do Avatar"}
                 handlePress={handleGameOver}
-                width={250}
+                width={260}
                 height={50}
               />
             </View>
@@ -364,10 +380,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   gameOverTitle: {
-    marginVertical: 25,
     fontSize: 22,
     fontWeight: "bold",
     color: "#FF0044",
+    textAlign: "center",
+  },
+  gameOverDesc: {
+    color: "#CCCCCC",
+    fontSize: 14,
+    textAlign: "center",
+    marginTop: 6,
+    paddingHorizontal: 20,
   },
   levelBadge: {
     borderWidth: 1.5,
