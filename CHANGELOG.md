@@ -1,5 +1,12 @@
 # Changelog
 
+## [v1.0.10] - 2026-08-04
+
+### Alterações nesta versão:
+- Atualizações e melhorias gerais no aplicativo.
+
+---
+
 ## [v1.0.9] - 2026-08-04
 
 ### Alterações nesta versão:
