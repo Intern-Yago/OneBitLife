@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
-import { Image, StyleSheet, Text, TouchableOpacity, View, Vibration } from 'react-native';
-import CheckService from '../../../services/CheckService';
+import { Image, StyleSheet, Text, TouchableOpacity, View, Vibration } from "react-native";
+import CheckService from "../../../services/CheckService";
 
-export default function EditHabit({habit, frequency, habitArea, checkColor}){
+export default function EditHabit({ habit, frequency, habitArea, checkColor }) {
   const navigation = useNavigation();
-  const [habitCheck, setHabitCheck] = useState()
+  const [habitCheck, setHabitCheck] = useState(habit?.habitIsChecked || 0);
   const [checkImage, setCheckImage] = useState(
-    require('../../../assets/icons/Mind.png')
-  )
+    require("../../../assets/icons/Mind.png")
+  );
 
   const checkData = new Date();
   const month = `${checkData.getMonth() + 1}`.padStart(2, "0");
@@ -22,25 +22,27 @@ export default function EditHabit({habit, frequency, habitArea, checkColor}){
     });
   }
 
-  function handleCheck(){
-    if(habitCheck === 0){
+  function handleCheck() {
+    if (habitCheck === 0) {
       try {
         Vibration.vibrate([0, 50, 30, 50]);
       } catch (e) {
         console.log(e);
       }
       CheckService.checkHabit({
+        id: habit?.id,
+        habitArea: habit?.habitArea,
+        habitName: habit?.habitName,
         lastCheck: formatDate,
         habitIsChecked: 1,
-        habitChecks: habit?.habitChecks + 1,
-        habitArea: habit?.habitArea,
+        habitChecks: (habit?.habitChecks || 0) + 1,
       });
-      setHabitCheck(1)
+      setHabitCheck(1);
     }
   }
 
   useEffect(() => {
-    setHabitCheck(habit?.habitIsChecked);
+    setHabitCheck(habit?.habitIsChecked || 0);
     if (habit?.habitArea === "Financeiro") {
       setCheckImage(require("../../../assets/icons/Money.png"));
     }
@@ -50,72 +52,73 @@ export default function EditHabit({habit, frequency, habitArea, checkColor}){
     if (habit?.habitArea === "Humor") {
       setCheckImage(require("../../../assets/icons/Fun.png"));
     }
-  }, []);
+  }, [habit]);
 
-  const textNotification = 
+  const textNotification =
     habit?.habitNotificationTime == null
       ? `Sem notificação - ${habit?.habitFrequency}`
       : `${habit?.habitNotificationTime} - ${habit?.habitFrequency}`;
 
-  return(
+  return (
     <TouchableOpacity
       activeOpacity={0.9}
       style={styles.button}
       onPress={handleEdit}
     >
       <View style={styles.habitText}>
-        <Text style={styles.habitTitle}>
-          {habit?.habitName}
-        </Text>
-        <Text style={styles.habitFrequency}>
-          {textNotification}
-        </Text>
+        <Text style={styles.habitTitle}>{habit?.habitName}</Text>
+        <Text style={styles.habitFrequency}>{textNotification}</Text>
       </View>
-      {
-        habitCheck===0?(
+      {habitCheck === 0 ? (
         <TouchableOpacity
-          style={[styles.check, {borderColor: checkColor}]}
+          style={[styles.check, { borderColor: checkColor }]}
           onPress={handleCheck}
-        />)
-        :
+        />
+      ) : (
         <TouchableOpacity onPress={handleCheck}>
-          <Image source={checkImage} style={styles.checked}/>
+          <Image source={checkImage} style={styles.checked} />
         </TouchableOpacity>
-      }
-
+      )}
     </TouchableOpacity>
-    
   );
 }
 
 const styles = StyleSheet.create({
   button: {
     backgroundColor: "#151515",
-    borderRadius: 5,
+    borderRadius: 8,
     width: 320,
-    marginVertical: 10,
-    paddingVertical: 10,
+    marginVertical: 6,
+    paddingVertical: 12,
     paddingHorizontal: 20,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.08)",
+  },
+  habitText: {
+    flex: 1,
+    paddingRight: 10,
   },
   habitTitle: {
     color: "white",
     fontWeight: "bold",
+    fontSize: 15,
   },
-
   habitFrequency: {
-    color: "white",
+    color: "#AAAAAA",
+    fontSize: 12,
+    marginTop: 2,
   },
   check: {
-    width: 20,
-    height: 20,
-    borderWidth: 1,
-    borderRadius: 10,
+    width: 24,
+    height: 24,
+    borderWidth: 2,
+    borderRadius: 12,
   },
   checked: {
-    width: 25,
-    height: 25,
+    width: 26,
+    height: 26,
   },
 });

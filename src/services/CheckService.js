@@ -1,19 +1,24 @@
 import db from "../Database";
-
 import HabitsService from "./HabitsService";
 
 const checkHabit = (obj) => {
   return new Promise((resolve, reject) => {
     db.transaction((tx) => {
-      tx.executeSql(
-        "UPDATE habits SET lastCheck=?, habitIsChecked=?, habitChecks=? WHERE habitArea=?;",
-        [obj.lastCheck, obj.habitIsChecked, obj.habitChecks, obj.habitArea],
-        (_, { rowsAffected }) => {
-          if (rowsAffected > 0) resolve(rowsAffected);
-          else reject("Error updating obj");
-        },
-        (_, error) => reject(error)
-      );
+      if (obj.id) {
+        tx.executeSql(
+          "UPDATE habits SET lastCheck=?, habitIsChecked=?, habitChecks=?, progressBar=1 WHERE id=?;",
+          [obj.lastCheck, obj.habitIsChecked, obj.habitChecks, obj.id],
+          (_, { rowsAffected }) => resolve(rowsAffected),
+          (_, error) => reject(error)
+        );
+      } else {
+        tx.executeSql(
+          "UPDATE habits SET lastCheck=?, habitIsChecked=?, habitChecks=?, progressBar=1 WHERE habitArea=? AND habitName=?;",
+          [obj.lastCheck, obj.habitIsChecked, obj.habitChecks, obj.habitArea, obj.habitName],
+          (_, { rowsAffected }) => resolve(rowsAffected),
+          (_, error) => reject(error)
+        );
+      }
     });
   });
 };
@@ -21,15 +26,21 @@ const checkHabit = (obj) => {
 const removeCheckHabit = (obj) => {
   return new Promise((resolve, reject) => {
     db.transaction((tx) => {
-      tx.executeSql(
-        "UPDATE habits SET habitIsChecked=? WHERE habitArea=?;",
-        [obj.habitIsChecked, obj.habitArea],
-        (_, { rowsAffected }) => {
-          if (rowsAffected > 0) resolve(rowsAffected);
-          else reject("Error updating obj");
-        },
-        (_, error) => reject(error)
-      );
+      if (obj.id) {
+        tx.executeSql(
+          "UPDATE habits SET habitIsChecked=? WHERE id=?;",
+          [obj.habitIsChecked, obj.id],
+          (_, { rowsAffected }) => resolve(rowsAffected),
+          (_, error) => reject(error)
+        );
+      } else {
+        tx.executeSql(
+          "UPDATE habits SET habitIsChecked=? WHERE habitArea=? AND habitName=?;",
+          [obj.habitIsChecked, obj.habitArea, obj.habitName],
+          (_, { rowsAffected }) => resolve(rowsAffected),
+          (_, error) => reject(error)
+        );
+      }
     });
   });
 };
@@ -48,59 +59,53 @@ const getDiffDays = (lastCheckDateStr) => {
   return Math.floor(diffTime / (1000 * 3600 * 24));
 };
 
-const removeCheck = (mindHabit, moneyHabit, bodyHabit, funHabit) => {
-  const habits = [mindHabit, moneyHabit, bodyHabit, funHabit];
+const removeCheck = (habit) => {
+  if (!habit || !habit.lastCheck) return;
+  const diffDays = getDiffDays(habit.lastCheck);
 
-  habits.forEach((habit) => {
-    if (!habit || !habit.lastCheck) return;
-    const diffDays = getDiffDays(habit.lastCheck);
-
-    if (
-      (habit.habitFrequency === "Diário" && diffDays > 0) ||
-      (habit.habitFrequency === "Semanal" && diffDays > 7) ||
-      (habit.habitFrequency === "Mensal" && diffDays > 30)
-    ) {
-      removeCheckHabit({
-        habitIsChecked: 0,
-        habitArea: habit.habitArea,
-      });
-    }
-  });
+  if (
+    (habit.habitFrequency === "Diário" && diffDays > 0) ||
+    (habit.habitFrequency === "Semanal" && diffDays > 7) ||
+    (habit.habitFrequency === "Mensal" && diffDays > 30)
+  ) {
+    removeCheckHabit({
+      id: habit.id,
+      habitIsChecked: 0,
+      habitArea: habit.habitArea,
+      habitName: habit.habitName,
+    });
+  }
 };
 
-const checkStatus = (mindHabit, moneyHabit, bodyHabit, funHabit) => {
-  const habits = [mindHabit, moneyHabit, bodyHabit, funHabit];
+const checkStatus = (habit) => {
+  if (!habit || !habit.lastCheck) return;
+  const diffDays = getDiffDays(habit.lastCheck);
 
-  habits.forEach((habit) => {
-    if (!habit || !habit.lastCheck) return;
-    const diffDays = getDiffDays(habit.lastCheck);
-
-    if (habit.habitFrequency === "Diário") {
-      if (diffDays === 1) {
-        HabitsService.changeProgress({ progressBar: 0.5, habitArea: habit.habitArea });
-      } else if (diffDays === 2) {
-        HabitsService.changeProgress({ progressBar: 0.25, habitArea: habit.habitArea });
-      } else if (diffDays >= 3) {
-        HabitsService.changeProgress({ progressBar: 0, habitArea: habit.habitArea });
-      }
-    } else if (habit.habitFrequency === "Semanal") {
-      if (diffDays === 7 || diffDays === 8) {
-        HabitsService.changeProgress({ progressBar: 0.5, habitArea: habit.habitArea });
-      } else if (diffDays === 9) {
-        HabitsService.changeProgress({ progressBar: 0.25, habitArea: habit.habitArea });
-      } else if (diffDays >= 10) {
-        HabitsService.changeProgress({ progressBar: 0, habitArea: habit.habitArea });
-      }
-    } else if (habit.habitFrequency === "Mensal") {
-      if (diffDays === 31) {
-        HabitsService.changeProgress({ progressBar: 0.5, habitArea: habit.habitArea });
-      } else if (diffDays === 32) {
-        HabitsService.changeProgress({ progressBar: 0.25, habitArea: habit.habitArea });
-      } else if (diffDays >= 33) {
-        HabitsService.changeProgress({ progressBar: 0, habitArea: habit.habitArea });
-      }
+  if (habit.habitFrequency === "Diário") {
+    if (diffDays === 1) {
+      HabitsService.changeProgress({ id: habit.id, progressBar: 0.5, habitArea: habit.habitArea });
+    } else if (diffDays === 2) {
+      HabitsService.changeProgress({ id: habit.id, progressBar: 0.25, habitArea: habit.habitArea });
+    } else if (diffDays >= 3) {
+      HabitsService.changeProgress({ id: habit.id, progressBar: 0, habitArea: habit.habitArea });
     }
-  });
+  } else if (habit.habitFrequency === "Semanal") {
+    if (diffDays === 7 || diffDays === 8) {
+      HabitsService.changeProgress({ id: habit.id, progressBar: 0.5, habitArea: habit.habitArea });
+    } else if (diffDays === 9) {
+      HabitsService.changeProgress({ id: habit.id, progressBar: 0.25, habitArea: habit.habitArea });
+    } else if (diffDays >= 10) {
+      HabitsService.changeProgress({ id: habit.id, progressBar: 0, habitArea: habit.habitArea });
+    }
+  } else if (habit.habitFrequency === "Mensal") {
+    if (diffDays === 31) {
+      HabitsService.changeProgress({ id: habit.id, progressBar: 0.5, habitArea: habit.habitArea });
+    } else if (diffDays === 32) {
+      HabitsService.changeProgress({ id: habit.id, progressBar: 0.25, habitArea: habit.habitArea });
+    } else if (diffDays >= 33) {
+      HabitsService.changeProgress({ id: habit.id, progressBar: 0, habitArea: habit.habitArea });
+    }
+  }
 };
 
 export default {
