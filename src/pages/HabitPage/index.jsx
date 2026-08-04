@@ -26,13 +26,13 @@ export default function HabitPage({ route }) {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
 
-  const [habitInput, setHabitInput] = useState();
-  const [frequencyInput, setFrequencyInput] = useState();
-  const [notificationToggle, setNotificationToggle] = useState(false);
-  const [dayNotification, setDayNotification] = useState();
-  const [timeNotification, setTimeNotification] = useState("12:00");
-
   const { create, habit } = route.params || {};
+
+  const [habitInput, setHabitInput] = useState(habit?.habitName || "");
+  const [frequencyInput, setFrequencyInput] = useState(habit?.habitFrequency || "");
+  const [notificationToggle, setNotificationToggle] = useState(false);
+  const [dayNotification, setDayNotification] = useState(habit?.habitNotificationFrequency || "");
+  const [timeNotification, setTimeNotification] = useState(habit?.habitNotificationTime || "12:00");
 
   const habitCreated = new Date();
   const month = `${habitCreated.getMonth() + 1}`.padStart(2, "0");
@@ -40,10 +40,18 @@ export default function HabitPage({ route }) {
   const formatDate = `${habitCreated.getFullYear()}-${month}-${day}`;
 
   async function handleCreateHabit() {
-    if (!habitInput || !frequencyInput) {
+    if (!habitInput || !habitInput.trim()) {
       Alert.alert(
         "OneBitLife",
-        "Você precisa selecionar um hábito e a frequência para continuar."
+        "Por favor, digite um nome para a sua meta personalizada."
+      );
+      return;
+    }
+
+    if (!frequencyInput) {
+      Alert.alert(
+        "OneBitLife",
+        "Você precisa selecionar a frequência da meta (Diário, Semanal ou Mensal)."
       );
       return;
     }
@@ -71,7 +79,7 @@ export default function HabitPage({ route }) {
     try {
       if (notificationToggle) {
         await NotificationService.createNotification(
-          habitInput,
+          habitInput.trim(),
           frequencyInput,
           dayNotification || "Diário",
           timeNotification || "12:00"
@@ -79,8 +87,8 @@ export default function HabitPage({ route }) {
       }
 
       await HabitsService.createHabit({
-        habitArea: habit?.habitArea,
-        habitName: habitInput,
+        habitArea: habit?.habitArea || "Mente",
+        habitName: habitInput.trim(),
         habitFrequency: frequencyInput,
         habitHasNotification: notificationToggle ? 1 : 0,
         habitNotificationFrequency: dayNotification || "Diário",
@@ -92,17 +100,22 @@ export default function HabitPage({ route }) {
         habitChecks: 0,
       });
 
-      Alert.alert("OneBitLife", "Hábito criado com sucesso!");
+      Alert.alert("OneBitLife", "Meta criada com sucesso!");
       navigation.navigate("Home", {
         createdHabit: `Created in ${habit?.habitArea}`,
       });
     } catch (error) {
-      console.error("[HabitPage] Erro ao criar hábito:", error);
-      Alert.alert("Erro", "Ocorreu um erro ao salvar o hábito.");
+      console.error("[HabitPage] Erro ao criar meta:", error);
+      Alert.alert("Erro", "Ocorreu um erro ao salvar a meta.");
     }
   }
 
   async function handleUpdateHabit() {
+    if (!habitInput || !habitInput.trim()) {
+      Alert.alert("OneBitLife", "O nome da meta não pode estar em branco.");
+      return;
+    }
+
     if (notificationToggle && frequencyInput !== "Mensal" && !timeNotification) {
       Alert.alert(
         "OneBitLife",
@@ -113,33 +126,34 @@ export default function HabitPage({ route }) {
 
     try {
       await HabitsService.updateHabit({
+        id: habit?.id,
+        oldHabitName: habit?.habitName,
         habitArea: habit?.habitArea,
-        habitName: habitInput,
+        habitName: habitInput.trim(),
         habitFrequency: frequencyInput,
         habitHasNotification: notificationToggle ? 1 : 0,
         habitNotificationFrequency: dayNotification || "Diário",
         habitNotificationTime: timeNotification || "12:00",
-        habitNotificationId: notificationToggle ? habitInput : null,
       });
 
-      // Cancela anterior e cria nova se toggle ativado
+      // Cancela notificação antiga e recria
       await NotificationService.deleteNotification(habit?.habitName);
       if (notificationToggle) {
         await NotificationService.createNotification(
-          habitInput,
+          habitInput.trim(),
           frequencyInput,
           dayNotification || "Diário",
           timeNotification || "12:00"
         );
       }
 
-      Alert.alert("OneBitLife", "Hábito atualizado com sucesso!");
+      Alert.alert("OneBitLife", "Meta atualizada com sucesso!");
       navigation.navigate("Home", {
         updatedHabit: `Updated in ${habit?.habitArea}`,
       });
     } catch (error) {
-      console.error("[HabitPage] Erro ao atualizar hábito:", error);
-      Alert.alert("Erro", "Ocorreu um erro ao atualizar o hábito.");
+      console.error("[HabitPage] Erro ao atualizar meta:", error);
+      Alert.alert("Erro", "Ocorreu um erro ao atualizar a meta.");
     }
   }
 
@@ -170,14 +184,16 @@ export default function HabitPage({ route }) {
             />
           </TouchableOpacity>
           <View style={styles.mainContent}>
-            <Text style={styles.title}>Configurações {"\n"} de hábito</Text>
+            <Text style={styles.title}>
+              {create === false ? "Editar Meta" : "Criar Nova Meta"}
+            </Text>
 
-            <Text style={styles.inputText}>Área</Text>
+            <Text style={styles.inputText}>Área da Vida</Text>
             <View style={styles.inputContainer}>
-              <Text style={styles.area}>{habit?.habitArea}</Text>
+              <Text style={styles.area}>{habit?.habitArea || "Mente"}</Text>
             </View>
 
-            <Text style={styles.inputText}>Hábito</Text>
+            <Text style={styles.inputText}>Nome da Meta / Hábito</Text>
             <SelectHabit habit={habit} habitInput={setHabitInput} />
 
             <Text style={styles.inputText}>Frequência</Text>
@@ -209,12 +225,13 @@ export default function HabitPage({ route }) {
                 handleUpdate={handleUpdateHabit}
                 habitArea={habit?.habitArea}
                 habitName={habit?.habitName}
+                habitObj={habit}
                 habitInput={habitInput}
               />
             ) : (
               <View style={styles.configButton}>
                 <DefaultButton
-                  buttonText={"Criar"}
+                  buttonText={"Criar Meta"}
                   handlePress={handleCreateHabit}
                   width={250}
                   height={50}
@@ -245,12 +262,12 @@ const styles = StyleSheet.create({
     height: 35,
   },
   mainContent: {
-    width: 280,
+    width: 290,
     alignSelf: "center",
   },
   configButton: {
     alignItems: "center",
-    marginTop: 20,
+    marginTop: 25,
   },
   title: {
     fontWeight: "bold",
@@ -261,7 +278,7 @@ const styles = StyleSheet.create({
   inputText: {
     color: "white",
     fontSize: 16,
-    marginTop: 25,
+    marginTop: 22,
     marginBottom: 8,
     marginLeft: 5,
   },

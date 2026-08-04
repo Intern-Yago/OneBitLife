@@ -24,10 +24,10 @@ export default function Home({ route }) {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
 
-  const [mindHabit, setMindHabit] = useState();
-  const [moneyHabit, setMoneyHabit] = useState();
-  const [bodyHabit, setBodyHabit] = useState();
-  const [funHabit, setFunHabit] = useState();
+  const [mindHabits, setMindHabits] = useState([]);
+  const [moneyHabits, setMoneyHabits] = useState([]);
+  const [bodyHabits, setBodyHabits] = useState([]);
+  const [funHabits, setFunHabits] = useState([]);
 
   const [robotDaysLife, setRobotDaysLife] = useState();
   const [checks, setChecks] = useState(0);
@@ -50,6 +50,11 @@ export default function Home({ route }) {
   };
 
   const playerLevel = getPlayerLevel(checks);
+
+  const totalMindChecks = mindHabits.reduce((acc, h) => acc + (h.habitChecks || 0), 0);
+  const totalMoneyChecks = moneyHabits.reduce((acc, h) => acc + (h.habitChecks || 0), 0);
+  const totalBodyChecks = bodyHabits.reduce((acc, h) => acc + (h.habitChecks || 0), 0);
+  const totalFunChecks = funHabits.reduce((acc, h) => acc + (h.habitChecks || 0), 0);
 
   const achievementsList = [
     {
@@ -79,14 +84,14 @@ export default function Home({ route }) {
     {
       id: "mind_master",
       title: "🧠 Mente Brilhante",
-      description: "Complete 10 checks em Mente",
-      unlocked: (mindHabit?.habitChecks || 0) >= 10,
+      description: "Complete 10 checks na área da Mente",
+      unlocked: totalMindChecks >= 10,
     },
     {
       id: "money_master",
       title: "💰 Magnata Tecnológico",
       description: "Complete 10 checks em Financeiro",
-      unlocked: (moneyHabit?.habitChecks || 0) >= 10,
+      unlocked: totalMoneyChecks >= 10,
     },
   ];
 
@@ -102,20 +107,15 @@ export default function Home({ route }) {
     });
   }
 
-  const excludeArea = route.params?.excludeArea;
+  const loadAllHabits = () => {
+    HabitsService.findByArea("Mente").then((mind) => setMindHabits(mind));
+    HabitsService.findByArea("Financeiro").then((money) => setMoneyHabits(money));
+    HabitsService.findByArea("Corpo").then((body) => setBodyHabits(body));
+    HabitsService.findByArea("Humor").then((fun) => setFunHabits(fun));
+  };
 
   useEffect(() => {
-    HabitsService.findByArea("Mente").then((mind) => setMindHabit(mind[0]));
-    HabitsService.findByArea("Financeiro").then((money) => setMoneyHabit(money[0]));
-    HabitsService.findByArea("Corpo").then((body) => setBodyHabit(body[0]));
-    HabitsService.findByArea("Humor").then((fun) => setFunHabit(fun[0]));
-
-    if (excludeArea) {
-      if (excludeArea === "Mente") setMindHabit(null);
-      if (excludeArea === "Financeiro") setMoneyHabit(null);
-      if (excludeArea === "Corpo") setBodyHabit(null);
-      if (excludeArea === "Humor") setFunHabit(null);
-    }
+    loadAllHabits();
 
     ChangeNavigationService.checkShowHome(1)
       .then((showHome) => {
@@ -138,27 +138,25 @@ export default function Home({ route }) {
   }, [route.params]);
 
   useEffect(() => {
-    CheckService.removeCheck(mindHabit, moneyHabit, bodyHabit, funHabit);
-    CheckService.checkStatus(mindHabit, moneyHabit, bodyHabit, funHabit);
+    const allHabits = [...mindHabits, ...moneyHabits, ...bodyHabits, ...funHabits];
 
-    const mindChecks = mindHabit ? mindHabit.habitChecks || 0 : 0;
-    const moneyChecks = moneyHabit ? moneyHabit.habitChecks || 0 : 0;
-    const bodyChecks = bodyHabit ? bodyHabit.habitChecks || 0 : 0;
-    const funChecks = funHabit ? funHabit.habitChecks || 0 : 0;
+    allHabits.forEach((h) => {
+      CheckService.removeCheck(h);
+      CheckService.checkStatus(h);
+    });
 
-    setChecks(mindChecks + moneyChecks + bodyChecks + funChecks);
+    const totalChecks = allHabits.reduce((acc, h) => acc + (h.habitChecks || 0), 0);
+    setChecks(totalChecks);
 
-    if (
-      mindHabit?.progressBar === 0 ||
-      moneyHabit?.progressBar === 0 ||
-      bodyHabit?.progressBar === 0 ||
-      funHabit?.progressBar === 0
-    ) {
-      setGameOver(true);
-    } else {
-      setGameOver(false);
-    }
-  }, [mindHabit, moneyHabit, bodyHabit, funHabit]);
+    const hasDeadHabit = allHabits.some((h) => h.progressBar === 0);
+    setGameOver(hasDeadHabit);
+  }, [mindHabits, moneyHabits, bodyHabits, funHabits]);
+
+  const getAvgProgress = (habits) => {
+    if (!habits || habits.length === 0) return 1;
+    const sum = habits.reduce((acc, h) => acc + (h.progressBar !== undefined ? h.progressBar : 1), 0);
+    return sum / habits.length;
+  };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -188,41 +186,56 @@ export default function Home({ route }) {
           )}
 
           <LifeStatus
-            mindHabit={mindHabit}
-            moneyHabit={moneyHabit}
-            bodyHabit={bodyHabit}
-            funHabit={funHabit}
+            mindHabit={mindHabits[0]}
+            moneyHabit={moneyHabits[0]}
+            bodyHabit={bodyHabits[0]}
+            funHabit={funHabits[0]}
           />
 
           <StatusBar
-            mindHabit={mindHabit?.progressBar}
-            moneyHabit={moneyHabit?.progressBar}
-            bodyHabit={bodyHabit?.progressBar}
-            funHabit={funHabit?.progressBar}
+            mindHabit={getAvgProgress(mindHabits)}
+            moneyHabit={getAvgProgress(moneyHabits)}
+            bodyHabit={getAvgProgress(bodyHabits)}
+            funHabit={getAvgProgress(funHabits)}
           />
 
           {!gameOver ? (
-            <View>
-              {mindHabit ? (
-                <EditHabit habit={mindHabit} checkColor="#90B7F3" />
-              ) : (
+            <View style={{ width: "100%", alignItems: "center" }}>
+              {/* SEÇÃO MENTE */}
+              <View style={styles.areaSection}>
+                <Text style={[styles.areaTitle, { color: "#90B7F3" }]}>🧠 Mente ({mindHabits.length})</Text>
+                {mindHabits.map((h) => (
+                  <EditHabit key={h.id || h.habitName} habit={h} checkColor="#90B7F3" />
+                ))}
                 <CreateHabit habitArea="Mente" borderColor="#90B7F3" />
-              )}
-              {moneyHabit ? (
-                <EditHabit habit={moneyHabit} checkColor="#85BB65" />
-              ) : (
+              </View>
+
+              {/* SEÇÃO FINANCEIRO */}
+              <View style={styles.areaSection}>
+                <Text style={[styles.areaTitle, { color: "#85BB65" }]}>💰 Financeiro ({moneyHabits.length})</Text>
+                {moneyHabits.map((h) => (
+                  <EditHabit key={h.id || h.habitName} habit={h} checkColor="#85BB65" />
+                ))}
                 <CreateHabit habitArea="Financeiro" borderColor="#85BB65" />
-              )}
-              {bodyHabit ? (
-                <EditHabit habit={bodyHabit} checkColor="#FF0044" />
-              ) : (
+              </View>
+
+              {/* SEÇÃO CORPO */}
+              <View style={styles.areaSection}>
+                <Text style={[styles.areaTitle, { color: "#FF0044" }]}>🦾 Corpo ({bodyHabits.length})</Text>
+                {bodyHabits.map((h) => (
+                  <EditHabit key={h.id || h.habitName} habit={h} checkColor="#FF0044" />
+                ))}
                 <CreateHabit habitArea="Corpo" borderColor="#FF0044" />
-              )}
-              {funHabit ? (
-                <EditHabit habit={funHabit} checkColor="#FE7F23" />
-              ) : (
+              </View>
+
+              {/* SEÇÃO HUMOR */}
+              <View style={styles.areaSection}>
+                <Text style={[styles.areaTitle, { color: "#FE7F23" }]}>😄 Humor ({funHabits.length})</Text>
+                {funHabits.map((h) => (
+                  <EditHabit key={h.id || h.habitName} habit={h} checkColor="#FE7F23" />
+                ))}
                 <CreateHabit habitArea="Humor" borderColor="#FE7F23" />
-              )}
+              </View>
 
               <View style={styles.actionsContainer}>
                 <TouchableOpacity
@@ -265,7 +278,7 @@ export default function Home({ route }) {
             <Text style={styles.modalTitle}>🏆 Painel de Conquistas</Text>
             <Text style={styles.modalSubtitle}>Nível Atual: {playerLevel.title}</Text>
 
-            <ScrollView style={{ maxHeight: 320, width: "100%" }}>
+            <ScrollView style={{ maxHeight: 340, width: "100%" }}>
               {achievementsList.map((item) => (
                 <View
                   key={item.id}
@@ -320,9 +333,21 @@ const styles = StyleSheet.create({
     paddingTop: 15,
     paddingBottom: 20,
   },
+  areaSection: {
+    marginVertical: 8,
+    alignItems: "center",
+    width: "100%",
+  },
+  areaTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    alignSelf: "flex-start",
+    marginLeft: 30,
+    marginBottom: 4,
+  },
   actionsContainer: {
     alignItems: "center",
-    marginTop: 10,
+    marginTop: 15,
   },
   actionBtn: {
     backgroundColor: "rgba(144, 183, 243, 0.15)",

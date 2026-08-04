@@ -5,7 +5,7 @@ db.transaction((tx) => {
     "CREATE TABLE IF NOT EXISTS habits (id INTEGER PRIMARY KEY AUTOINCREMENT, habitArea TEXT, habitName TEXT, habitFrequency TEXT, habitHasNotification BOOLEAN, habitNotificationFrequency TEXT, habitNotificationTime TEXT, lastCheck TEXT, daysWithoutChecks INTEGER, progressBar INTEGER, habitIsChecked BOOLEAN, habitChecks INTEGER);",
     [],
     (_, error) => {
-      console.log(error);
+      console.log("[HabitsService] DB init error:", error);
     }
   );
 });
@@ -23,14 +23,14 @@ const createHabit = (obj) => {
           obj.habitNotificationFrequency,
           obj.habitNotificationTime,
           obj.lastCheck,
-          obj.daysWithoutChecks,
-          obj.progressBar,
-          obj.habitIsChecked,
-          obj.habitChecks,
+          obj.daysWithoutChecks || 0,
+          obj.progressBar || 1,
+          obj.habitIsChecked || 0,
+          obj.habitChecks || 0,
         ],
         (_, { rowsAffected, insertId }) => {
           if (rowsAffected > 0) resolve(insertId);
-          else reject("Error inserting obj: " + JSON.stringify(obj));
+          else reject("Error inserting habit: " + JSON.stringify(obj));
         },
         (_, error) => reject(error)
       );
@@ -42,7 +42,7 @@ const findByArea = (habitArea) => {
   return new Promise((resolve, reject) => {
     db.transaction((tx) => {
       tx.executeSql(
-        "SELECT * FROM habits WHERE habitArea LIKE ?;",
+        "SELECT * FROM habits WHERE habitArea LIKE ? ORDER BY id ASC;",
         [habitArea],
         (_, { rows }) => {
           resolve(rows._array || []);
@@ -56,37 +56,75 @@ const findByArea = (habitArea) => {
 const updateHabit = (obj) => {
   return new Promise((resolve, reject) => {
     db.transaction((tx) => {
-      tx.executeSql(
-        "UPDATE habits SET habitName=?, habitFrequency=?, habitHasNotification=?, habitNotificationFrequency=?, habitNotificationTime=? WHERE habitArea=?;",
-        [
-          obj.habitName,
-          obj.habitFrequency,
-          obj.habitHasNotification,
-          obj.habitNotificationFrequency,
-          obj.habitNotificationTime,
-          obj.habitArea,
-        ],
-        (_, { rowsAffected }) => {
-          if (rowsAffected > 0) resolve(rowsAffected);
-          else reject("Error updating obj");
-        },
-        (_, error) => reject(error)
-      );
+      if (obj.id) {
+        tx.executeSql(
+          "UPDATE habits SET habitName=?, habitFrequency=?, habitHasNotification=?, habitNotificationFrequency=?, habitNotificationTime=? WHERE id=?;",
+          [
+            obj.habitName,
+            obj.habitFrequency,
+            obj.habitHasNotification,
+            obj.habitNotificationFrequency,
+            obj.habitNotificationTime,
+            obj.id,
+          ],
+          (_, { rowsAffected }) => resolve(rowsAffected),
+          (_, error) => reject(error)
+        );
+      } else {
+        tx.executeSql(
+          "UPDATE habits SET habitName=?, habitFrequency=?, habitHasNotification=?, habitNotificationFrequency=?, habitNotificationTime=? WHERE habitArea=? AND (habitName=? OR ? IS NULL);",
+          [
+            obj.habitName,
+            obj.habitFrequency,
+            obj.habitHasNotification,
+            obj.habitNotificationFrequency,
+            obj.habitNotificationTime,
+            obj.habitArea,
+            obj.oldHabitName || obj.habitName,
+            obj.oldHabitName || null,
+          ],
+          (_, { rowsAffected }) => resolve(rowsAffected),
+          (_, error) => reject(error)
+        );
+      }
     });
   });
 };
 
-const deleteByName = (habitArea) => {
+const deleteByName = (param) => {
   return new Promise((resolve, reject) => {
     db.transaction((tx) => {
-      tx.executeSql(
-        "DELETE FROM habits WHERE habitArea=?;",
-        [habitArea],
-        (_, { rowsAffected }) => {
-          resolve(rowsAffected);
-        },
-        (_, error) => reject(error)
-      );
+      if (typeof param === "object" && param !== null) {
+        if (param.id) {
+          tx.executeSql(
+            "DELETE FROM habits WHERE id=?;",
+            [param.id],
+            (_, { rowsAffected }) => resolve(rowsAffected),
+            (_, error) => reject(error)
+          );
+        } else if (param.habitArea && param.habitName) {
+          tx.executeSql(
+            "DELETE FROM habits WHERE habitArea=? AND habitName=?;",
+            [param.habitArea, param.habitName],
+            (_, { rowsAffected }) => resolve(rowsAffected),
+            (_, error) => reject(error)
+          );
+        } else if (param.habitArea) {
+          tx.executeSql(
+            "DELETE FROM habits WHERE habitArea=?;",
+            [param.habitArea],
+            (_, { rowsAffected }) => resolve(rowsAffected),
+            (_, error) => reject(error)
+          );
+        }
+      } else {
+        tx.executeSql(
+          "DELETE FROM habits WHERE habitArea=?;",
+          [param],
+          (_, { rowsAffected }) => resolve(rowsAffected),
+          (_, error) => reject(error)
+        );
+      }
     });
   });
 };
@@ -94,18 +132,25 @@ const deleteByName = (habitArea) => {
 const changeProgress = (obj) => {
   return new Promise((resolve, reject) => {
     db.transaction((tx) => {
-      tx.executeSql(
-        "UPDATE habits SET progressBar=? WHERE habitArea=?;",
-        [obj.progressBar, obj.habitArea],
-        (_, { rowsAffected }) => {
-          if (rowsAffected > 0) resolve(rowsAffected);
-          else reject("Error updating obj");
-        },
-        (_, error) => reject(error)
-      );
+      if (obj.id) {
+        tx.executeSql(
+          "UPDATE habits SET progressBar=? WHERE id=?;",
+          [obj.progressBar, obj.id],
+          (_, { rowsAffected }) => resolve(rowsAffected),
+          (_, error) => reject(error)
+        );
+      } else {
+        tx.executeSql(
+          "UPDATE habits SET progressBar=? WHERE habitArea=?;",
+          [obj.progressBar, obj.habitArea],
+          (_, { rowsAffected }) => resolve(rowsAffected),
+          (_, error) => reject(error)
+        );
+      }
     });
   });
 };
+
 export default {
   createHabit,
   findByArea,
