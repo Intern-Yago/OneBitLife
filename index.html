@@ -3,33 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OneBitLife — Gamifique sua Vida e Construa Hábitos</title>
-  <meta name="description" content="Transforme sua rotina em um jogo RPG real. Acompanhe hábitos de Mente, Financeiro, Corpo e Humor com o OneBitLife!">
-  <meta name="theme-color" content="#151515">
+  <title>OneBitLife 2.0 — Cyber RPG Routine Engine</title>
+  <meta name="description" content="Transforme sua vida em um RPG real. Treinos de calistenia e academia, livros de finanças e mente, cronômetro Pomodoro Não Perturbe e gamificação profunda.">
+  <meta name="theme-color" content="#080A10">
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="./src/assets/icons/logo1.png">
 
   <style>
     :root {
-      --bg-dark: #0b0d12;
-      --bg-card: rgba(22, 27, 38, 0.7);
-      --bg-card-hover: rgba(30, 37, 52, 0.85);
-      --border-color: rgba(255, 255, 255, 0.1);
-      
-      --color-mind: #90B7F3;
-      --color-money: #85BB65;
-      --color-body: #FF0044;
-      --color-fun: #FE7F23;
-      
+      --bg-dark: #080A10;
+      --bg-surface: #0E131F;
+      --bg-card: rgba(16, 22, 36, 0.75);
+      --bg-card-hover: rgba(24, 32, 52, 0.9);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(0, 240, 255, 0.4);
+
+      --color-cyan: #00F0FF;
+      --color-green: #10B981;
+      --color-red: #FF3366;
+      --color-amber: #F59E0B;
+      --color-purple: #A855F7;
+
       --text-main: #FFFFFF;
       --text-muted: #94A3B8;
-      --accent-glow: rgba(144, 183, 243, 0.25);
+      --text-sub: #64748B;
     }
 
     * {
@@ -50,37 +53,41 @@
       font-family: 'Outfit', sans-serif;
     }
 
-    /* Ambient Background Glows */
+    code, .mono-font {
+      font-family: 'Space Grotesk', monospace;
+    }
+
+    /* Ambient Glows */
     .glow-orb {
       position: absolute;
       border-radius: 50%;
-      filter: blur(120px);
+      filter: blur(140px);
       pointer-events: none;
       z-index: 0;
     }
 
     .orb-1 {
-      top: -100px;
+      top: -120px;
       left: -100px;
-      width: 450px;
-      height: 450px;
-      background: radial-gradient(circle, rgba(144, 183, 243, 0.25), transparent 70%);
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(0, 240, 255, 0.18), transparent 70%);
     }
 
     .orb-2 {
-      top: 400px;
-      right: -100px;
-      width: 500px;
-      height: 500px;
-      background: radial-gradient(circle, rgba(254, 127, 35, 0.2), transparent 70%);
+      top: 550px;
+      right: -120px;
+      width: 550px;
+      height: 550px;
+      background: radial-gradient(circle, rgba(168, 85, 247, 0.15), transparent 70%);
     }
 
     .orb-3 {
-      bottom: 200px;
-      left: 15%;
-      width: 550px;
-      height: 550px;
-      background: radial-gradient(circle, rgba(255, 0, 68, 0.15), transparent 70%);
+      bottom: 250px;
+      left: 10%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.14), transparent 70%);
     }
 
     /* Header Nav */
@@ -89,19 +96,19 @@
       top: 0;
       left: 0;
       width: 100%;
-      z-index: 100;
-      backdrop-filter: blur(16px);
-      background: rgba(11, 13, 18, 0.8);
+      z-index: 1000;
+      backdrop-filter: blur(20px);
+      background: rgba(8, 10, 16, 0.85);
       border-bottom: 1px solid var(--border-color);
     }
 
     .nav-container {
-      max-width: 1200px;
+      max-width: 1240px;
       margin: 0 auto;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 1rem 2rem;
+      padding: 0.9rem 2rem;
     }
 
     .logo-box {
@@ -113,7 +120,7 @@
     }
 
     .logo-box img {
-      height: 56px;
+      height: 50px;
       object-fit: contain;
     }
 
@@ -129,74 +136,88 @@
       text-decoration: none;
       font-weight: 500;
       font-size: 0.95rem;
-      transition: color 0.3s;
+      transition: color 0.25s;
     }
 
     .nav-links a:hover {
-      color: #fff;
+      color: var(--color-cyan);
     }
 
     .btn-cta {
       display: inline-flex;
       align-items: center;
-      gap: 0.5rem;
-      background: linear-gradient(135deg, #3b82f6, #6366f1);
-      color: #fff;
-      padding: 0.7rem 1.5rem;
+      gap: 0.6rem;
+      background: linear-gradient(135deg, #00F0FF, #0284C7);
+      color: #040914;
+      padding: 0.75rem 1.6rem;
       border-radius: 99px;
-      font-weight: 700;
+      font-weight: 800;
+      font-family: 'Space Grotesk', sans-serif;
       text-decoration: none;
       font-size: 0.95rem;
-      box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
-      transition: all 0.3s ease;
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      letter-spacing: 0.3px;
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.35);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      border: 1px solid rgba(255, 255, 255, 0.4);
     }
 
     .btn-cta:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 0 30px rgba(59, 130, 246, 0.6);
-      background: linear-gradient(135deg, #2563eb, #4f46e5);
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 0 35px rgba(0, 240, 255, 0.55);
+      background: linear-gradient(135deg, #38BDF8, #00F0FF);
     }
 
     /* Hero Section */
     .hero {
       position: relative;
-      padding: 10rem 2rem 5rem;
-      max-width: 1200px;
+      padding: 8.5rem 2rem 4rem;
+      max-width: 1240px;
       margin: 0 auto;
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 4rem;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 3.5rem;
       align-items: center;
+      min-height: calc(100vh - 80px);
+    }
+
+    .hero-badge-row {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.25rem;
     }
 
     .badge-pill {
       display: inline-flex;
       align-items: center;
-      gap: 0.5rem;
-      padding: 0.4rem 1rem;
+      gap: 0.4rem;
+      padding: 0.35rem 0.9rem;
       border-radius: 99px;
-      background: rgba(144, 183, 243, 0.12);
-      border: 1px solid rgba(144, 183, 243, 0.3);
-      color: var(--color-mind);
-      font-size: 0.85rem;
+      background: rgba(0, 240, 255, 0.1);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      color: var(--color-cyan);
+      font-size: 0.8rem;
       font-weight: 700;
-      margin-bottom: 1.5rem;
       letter-spacing: 0.5px;
+      font-family: 'Space Grotesk', monospace;
+    }
+
+    .badge-pill.amber {
+      background: rgba(245, 158, 11, 0.1);
+      border-color: rgba(245, 158, 11, 0.3);
+      color: var(--color-amber);
     }
 
     .hero-title {
-      font-size: 3.5rem;
+      font-size: 3.6rem;
       font-weight: 900;
-      line-height: 1.15;
-      margin-bottom: 1.5rem;
-      background: linear-gradient(180deg, #FFFFFF 0%, #CBD5E1 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      line-height: 1.12;
+      margin-bottom: 1.3rem;
+      letter-spacing: -0.02em;
     }
 
     .hero-title span {
-      background: linear-gradient(135deg, var(--color-mind), var(--color-money));
+      background: linear-gradient(135deg, #00F0FF 0%, #10B981 50%, #A855F7 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
@@ -204,285 +225,368 @@
     .hero-subtitle {
       font-size: 1.15rem;
       color: var(--text-muted);
-      margin-bottom: 2.5rem;
-      max-width: 540px;
+      margin-bottom: 2.2rem;
+      max-width: 580px;
+      line-height: 1.7;
     }
 
     .hero-buttons {
       display: flex;
       gap: 1rem;
       flex-wrap: wrap;
+      align-items: center;
     }
 
     .btn-secondary {
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      background: rgba(255, 255, 255, 0.05);
+      background: rgba(255, 255, 255, 0.04);
       border: 1px solid var(--border-color);
       color: #fff;
-      padding: 0.7rem 1.5rem;
+      padding: 0.75rem 1.6rem;
       border-radius: 99px;
       font-weight: 600;
       text-decoration: none;
-      transition: all 0.3s;
+      font-size: 0.95rem;
+      transition: all 0.25s;
     }
 
     .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.1);
-      border-color: rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(0, 240, 255, 0.4);
+      color: var(--color-cyan);
     }
 
-    /* App Simulator Mockup */
-    .simulator-card {
-      background: rgba(18, 22, 32, 0.85);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 36px;
-      padding: 2rem;
-      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(144, 183, 243, 0.15);
-      backdrop-filter: blur(20px);
+    /* Live Phone Simulator */
+    .simulator-frame {
+      background: #0D121D;
+      border: 2px solid rgba(0, 240, 255, 0.25);
+      border-radius: 40px;
+      padding: 1.25rem;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 50px rgba(0, 240, 255, 0.12);
+      backdrop-filter: blur(25px);
       position: relative;
-      max-width: 380px;
+      max-width: 400px;
+      width: 100%;
       margin: 0 auto;
     }
 
-    .sim-header {
-      text-align: center;
-      margin-bottom: 1.5rem;
+    .sim-speaker {
+      width: 60px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 2px;
+      margin: 0 auto 0.75rem;
     }
 
-    .sim-streak {
-      font-weight: 800;
-      font-size: 1.1rem;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-    }
-
-    .sim-character {
-      width: 130px;
-      height: 130px;
-      margin: 1rem auto;
-      background: radial-gradient(circle, rgba(144, 183, 243, 0.2), transparent 70%);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 4rem;
-      animation: float 3s ease-in-out infinite;
-      box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.1);
-    }
-
-    @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-8px); }
-    }
-
-    .status-bars {
-      display: flex;
-      flex-direction: column;
-      gap: 0.8rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .status-row {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .status-label {
-      font-size: 0.85rem;
-      font-weight: 700;
-      width: 80px;
-      text-align: right;
-    }
-
-    .bar-bg {
-      flex: 1;
-      height: 12px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 99px;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .bar-fill {
-      height: 100%;
-      border-radius: 99px;
-      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .habit-item {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 16px;
-      padding: 0.8rem 1rem;
-      margin-bottom: 0.6rem;
+    .sim-top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      transition: transform 0.2s;
-    }
-
-    .habit-item:hover {
-      transform: scale(1.02);
-    }
-
-    .habit-info h5 {
-      font-size: 0.95rem;
-      color: #fff;
-    }
-
-    .habit-info p {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-    }
-
-    .btn-check {
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid var(--border-color);
-      color: #fff;
-      border-radius: 10px;
-      padding: 0.4rem 0.8rem;
-      cursor: pointer;
+      background: #141B2A;
+      padding: 0.6rem 0.9rem;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      font-size: 0.8rem;
       font-weight: 700;
-      font-size: 0.85rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .sim-hud-status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .sim-hud-hp {
+      color: #fff;
+    }
+
+    .sim-hud-checks {
+      color: var(--color-cyan);
+      font-family: 'Space Grotesk', monospace;
+    }
+
+    .sim-hud-eff {
+      color: var(--color-green);
+      font-family: 'Space Grotesk', monospace;
+    }
+
+    /* Tab Switcher inside Simulator */
+    .sim-tab-header {
+      display: flex;
+      background: #090C14;
+      border-radius: 10px;
+      padding: 3px;
+      margin-bottom: 0.9rem;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .sim-tab-btn {
+      flex: 1;
+      padding: 0.4rem 0.2rem;
+      text-align: center;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-sub);
+      background: transparent;
+      border: none;
+      border-radius: 7px;
+      cursor: pointer;
       transition: all 0.2s;
     }
 
-    .btn-check:active {
-      transform: scale(0.95);
+    .sim-tab-btn.active {
+      background: rgba(0, 240, 255, 0.15);
+      color: var(--color-cyan);
+      border: 1px solid rgba(0, 240, 255, 0.3);
     }
 
-    /* Pillars Grid */
+    /* Simulator Tab Contents */
+    .sim-tab-pane {
+      display: none;
+      min-height: 280px;
+    }
+
+    .sim-tab-pane.active {
+      display: block;
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .sim-quest-item {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 12px;
+      padding: 0.75rem 0.9rem;
+      margin-bottom: 0.55rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-left: 3px solid var(--color-cyan);
+      transition: all 0.2s;
+    }
+
+    .sim-quest-item:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .sim-quest-item.checked {
+      opacity: 0.5;
+      text-decoration: line-through;
+    }
+
+    .sim-quest-info h6 {
+      font-size: 0.85rem;
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .sim-quest-info p {
+      font-size: 0.7rem;
+      color: var(--text-sub);
+      margin-top: 2px;
+    }
+
+    .sim-check-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      border: 2px solid var(--color-cyan);
+      background: transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #040914;
+      font-weight: 900;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+
+    .sim-check-btn.done {
+      background: var(--color-green);
+      border-color: var(--color-green);
+      color: #fff;
+    }
+
+    /* Simulator Audio Notice */
+    .sim-audio-tag {
+      text-align: center;
+      font-size: 0.72rem;
+      color: var(--color-cyan);
+      margin-top: 0.75rem;
+      font-family: 'Space Grotesk', monospace;
+    }
+
+    /* Section Styling */
     .section {
-      padding: 6rem 2rem;
-      max-width: 1200px;
+      padding: 6.5rem 2rem;
+      max-width: 1240px;
       margin: 0 auto;
       position: relative;
     }
 
     .section-header {
       text-align: center;
-      max-width: 650px;
-      margin: 0 auto 4rem;
+      max-width: 680px;
+      margin: 0 auto 3.5rem;
     }
 
     .section-title {
-      font-size: 2.5rem;
+      font-size: 2.6rem;
       font-weight: 800;
-      margin-bottom: 1rem;
+      margin-bottom: 0.9rem;
+      letter-spacing: -0.01em;
     }
 
     .section-desc {
       color: var(--text-muted);
       font-size: 1.05rem;
+      line-height: 1.6;
     }
 
-    .pillars-grid {
+    /* 2.0 Features Grid */
+    .features-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
       gap: 1.5rem;
     }
 
-    .pillar-card {
+    .feature-card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
-      border-radius: 24px;
+      border-radius: 20px;
       padding: 2rem;
-      transition: all 0.3s ease;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       position: relative;
       overflow: hidden;
     }
 
-    .pillar-card:hover {
+    .feature-card:hover {
       background: var(--bg-card-hover);
-      transform: translateY(-6px);
-      border-color: rgba(255, 255, 255, 0.25);
+      transform: translateY(-5px);
+      border-color: var(--border-focus);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), 0 0 25px rgba(0, 240, 255, 0.08);
     }
 
-    .pillar-icon {
-      width: 56px;
-      height: 56px;
-      border-radius: 16px;
+    .feature-icon-wrapper {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.8rem;
-      margin-bottom: 1.5rem;
+      font-size: 1.7rem;
+      margin-bottom: 1.3rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    .card-mind .pillar-icon { background: rgba(144, 183, 243, 0.15); color: var(--color-mind); }
-    .card-money .pillar-icon { background: rgba(133, 187, 101, 0.15); color: var(--color-money); }
-    .card-body .pillar-icon { background: rgba(255, 0, 68, 0.15); color: var(--color-body); }
-    .card-fun .pillar-icon { background: rgba(254, 127, 35, 0.15); color: var(--color-fun); }
+    .feature-card.cyan .feature-icon-wrapper { background: rgba(0, 240, 255, 0.12); color: var(--color-cyan); border-color: rgba(0, 240, 255, 0.25); }
+    .feature-card.green .feature-icon-wrapper { background: rgba(16, 185, 129, 0.12); color: var(--color-green); border-color: rgba(16, 185, 129, 0.25); }
+    .feature-card.red .feature-icon-wrapper { background: rgba(255, 51, 102, 0.12); color: var(--color-red); border-color: rgba(255, 51, 102, 0.25); }
+    .feature-card.amber .feature-icon-wrapper { background: rgba(245, 158, 11, 0.12); color: var(--color-amber); border-color: rgba(245, 158, 11, 0.25); }
+    .feature-card.purple .feature-icon-wrapper { background: rgba(168, 85, 247, 0.12); color: var(--color-purple); border-color: rgba(168, 85, 247, 0.25); }
 
-    .pillar-title {
-      font-size: 1.3rem;
+    .feature-card h3 {
+      font-size: 1.35rem;
       font-weight: 700;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.6rem;
     }
 
-    .pillar-desc {
+    .feature-card p {
       color: var(--text-muted);
-      font-size: 0.92rem;
+      font-size: 0.95rem;
+      line-height: 1.6;
     }
 
-    /* Features Grid */
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 2rem;
+    .feature-tag {
+      display: inline-block;
+      margin-top: 1.1rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      font-family: 'Space Grotesk', monospace;
+      color: var(--color-cyan);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
-    .feature-box {
-      background: rgba(255, 255, 255, 0.02);
+    /* Comparison Table: 1.0 vs 2.0 */
+    .comparison-box {
+      background: var(--bg-surface);
       border: 1px solid var(--border-color);
-      border-radius: 20px;
-      padding: 2rem;
-      display: flex;
-      gap: 1.25rem;
+      border-radius: 24px;
+      overflow: hidden;
+      margin-top: 2rem;
     }
 
-    .feature-icon {
-      font-size: 2rem;
-      line-height: 1;
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
     }
 
-    .feature-content h4 {
-      font-size: 1.1rem;
-      margin-bottom: 0.5rem;
+    .comparison-table th, .comparison-table td {
+      padding: 1.25rem 1.75rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
 
-    .feature-content p {
+    .comparison-table th {
+      background: rgba(255, 255, 255, 0.02);
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .comparison-table td {
+      font-size: 0.95rem;
       color: var(--text-muted);
+    }
+
+    .comparison-table tr:hover td {
+      background: rgba(255, 255, 255, 0.015);
+    }
+
+    .badge-v1 {
+      color: #EF4444;
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+
+    .badge-v2 {
+      color: var(--color-green);
+      font-weight: 800;
       font-size: 0.9rem;
     }
 
-    /* Banner CTA */
+    /* Banner CTA Bottom */
     .banner-cta {
-      background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(99, 102, 241, 0.1));
-      border: 1px solid rgba(59, 130, 246, 0.3);
-      border-radius: 32px;
-      padding: 4rem 2rem;
+      background: linear-gradient(135deg, rgba(14, 19, 31, 0.95), rgba(16, 26, 46, 0.95));
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      border-radius: 28px;
+      padding: 4.5rem 2rem;
       text-align: center;
+      box-shadow: 0 0 60px rgba(0, 240, 255, 0.12);
       position: relative;
       overflow: hidden;
     }
 
     .banner-cta h2 {
       font-size: 2.8rem;
+      font-weight: 900;
       margin-bottom: 1rem;
     }
 
     .banner-cta p {
-      max-width: 600px;
-      margin: 0 auto 2rem;
       color: var(--text-muted);
-      font-size: 1.1rem;
+      font-size: 1.15rem;
+      max-width: 600px;
+      margin: 0 auto 2.2rem;
     }
 
     /* Footer */
@@ -490,319 +594,489 @@
       border-top: 1px solid var(--border-color);
       padding: 3rem 2rem;
       text-align: center;
-      color: var(--text-muted);
+      color: var(--text-sub);
       font-size: 0.9rem;
     }
 
     footer a {
-      color: #fff;
+      color: var(--color-cyan);
       text-decoration: none;
+      font-weight: 600;
     }
 
-    @media (max-width: 900px) {
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Responsive */
+    @media (max-width: 968px) {
       .hero {
         grid-template-columns: 1fr;
-        padding-top: 8rem;
+        padding-top: 7rem;
         text-align: center;
       }
-
       .hero-title {
-        font-size: 2.6rem;
+        font-size: 2.8rem;
       }
-
       .hero-subtitle {
         margin: 0 auto 2rem;
       }
-
       .hero-buttons {
         justify-content: center;
+      }
+      .hero-badge-row {
+        justify-content: center;
+      }
+      .nav-links {
+        display: none;
       }
     }
   </style>
 </head>
 <body>
 
-  <!-- Glow Background Orbs -->
+  <!-- Ambient Glow Orbs -->
   <div class="glow-orb orb-1"></div>
   <div class="glow-orb orb-2"></div>
   <div class="glow-orb orb-3"></div>
 
-  <!-- Header Navigation -->
+  <!-- Header -->
   <header>
     <div class="nav-container">
       <a href="#" class="logo-box">
-        <img src="./src/assets/icons/logo3.png" alt="OneBitLife Logo">
+        <img src="./src/assets/icons/logo3.png" alt="OneBitLife Logo" />
       </a>
       <ul class="nav-links">
-        <li><a href="#pilares">Pilares</a></li>
-        <li><a href="#simulador">Simulador</a></li>
-        <li><a href="#recursos">Recursos</a></li>
-        <li><a href="https://github.com/Intern-Yago/OneBitLife" target="_blank">GitHub</a></li>
+        <li><a href="#pilares">Os 4 Pilares</a></li>
+        <li><a href="#novidades">Novidades 2.0</a></li>
+        <li><a href="#comparativo">Evolução</a></li>
+        <li><a href="https://github.com/Intern-Yago/OneBitLife" target="_blank">Código Aberto</a></li>
       </ul>
       <a href="https://github.com/Intern-Yago/OneBitLife/releases" target="_blank" class="btn-cta">
-        [ BAIXAR APK ]
+        <span>⚡ Baixar APK</span>
       </a>
     </div>
   </header>
 
   <!-- Hero Section -->
   <section class="hero">
-    <div>
-      <div class="badge-pill">
-        [ SYSTEM GAMIFICATION ]
+    <div class="hero-content">
+      <div class="hero-badge-row">
+        <div class="badge-pill">⚡ ONEBITLIFE 2.0</div>
+        <div class="badge-pill amber">🏆 RPG ROUTINE ENGINE</div>
       </div>
       <h1 class="hero-title">
-        Transforme sua vida em um <span>RPG real</span>.
+        Transforme sua vida em um <span>RPG real de alta performance</span>.
       </h1>
       <p class="hero-subtitle">
-        Crie hábitos diários, acompanhe Mente, Finanças, Corpo e Humor. Mantenha suas barras no máximo e não deixe seu personagem dar Game Over!
+        Construa disciplina inabalável com fichas inteligentes de <strong>calistenia e academia</strong>, biblioteca curada de <strong>livros práticos</strong>, cronômetro Pomodoro com <strong>Modo Não Perturbe</strong> e feedback sonoro retro-cyber.
       </p>
       <div class="hero-buttons">
-        <a href="https://github.com/Intern-Yago/OneBitLife/releases" target="_blank" class="btn-cta" style="padding: 0.9rem 2rem; font-size: 1.05rem;">
-          [ BAIXAR APK GRÁTIS ]
+        <a href="https://github.com/Intern-Yago/OneBitLife/releases" target="_blank" class="btn-cta">
+          <span>📱 Baixar APK Permanente</span>
         </a>
-        <a href="https://github.com/Intern-Yago/OneBitLife" target="_blank" class="btn-secondary">
-          [ CÓDIGO FONTE / GITHUB ]
+        <a href="#demo" class="btn-secondary" onclick="simulateSound('click')">
+          <span>🎮 Testar Simulador ao Lado</span>
         </a>
       </div>
     </div>
 
-    <!-- Simulator Mockup -->
-    <div class="simulator-card" id="simulador">
-      <div class="sim-header">
-        <div class="sim-streak">
-          HP <span id="daysCount">05</span> DIAS &nbsp;|&nbsp; [ <span id="checksCount">19</span> CHECKS ]
+    <!-- Live Interactive Phone Simulator -->
+    <div class="simulator-frame" id="demo">
+      <div class="sim-speaker"></div>
+
+      <!-- Simulator Top HUD -->
+      <div class="sim-top-bar">
+        <div class="sim-hud-status">
+          <span class="sim-hud-hp">HP 14 dias</span>
+          <span class="sim-hud-checks">[ <span id="checksDisplay">42</span> Checks ]</span>
         </div>
-        <div class="sim-character" id="mascot">
-          <img id="mascotImg" src="./src/assets/icons/logo1.png" alt="Mascote OneBitLife" style="width: 90px; height: 90px; object-fit: contain; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); filter: drop-shadow(0 0 12px rgba(144, 183, 243, 0.6));">
+        <div class="sim-hud-eff">Core: 75%</div>
+      </div>
+
+      <!-- Simulator Tab Navigation -->
+      <div class="sim-tab-header">
+        <button class="sim-tab-btn active" onclick="switchSimTab('hoje')">Hoje</button>
+        <button class="sim-tab-btn" onclick="switchSimTab('treinos')">Treinos</button>
+        <button class="sim-tab-btn" onclick="switchSimTab('livros')">Livros</button>
+        <button class="sim-tab-btn" onclick="switchSimTab('foco')">Foco</button>
+        <button class="sim-tab-btn" onclick="switchSimTab('perfil')">Perfil</button>
+      </div>
+
+      <!-- Tab 1: Hoje Quests -->
+      <div class="sim-tab-pane active" id="pane-hoje">
+        <div class="sim-quest-item" id="quest-1">
+          <div class="sim-quest-info">
+            <h6>📚 Ler Hábitos Atômicos</h6>
+            <p>Mente • 20 min de foco • [Rank B]</p>
+          </div>
+          <button class="sim-check-btn" onclick="toggleQuest('quest-1')">✓</button>
+        </div>
+
+        <div class="sim-quest-item" id="quest-2">
+          <div class="sim-quest-info">
+            <h6>🦾 Treino Calistenia Full Body</h6>
+            <p>Corpo • 45 min • [Rank A]</p>
+          </div>
+          <button class="sim-check-btn" onclick="toggleQuest('quest-2')">✓</button>
+        </div>
+
+        <div class="sim-quest-item" id="quest-3">
+          <div class="sim-quest-info">
+            <h6>💎 Auditar Gastos do Dia</h6>
+            <p>Financeiro • [Rank B]</p>
+          </div>
+          <button class="sim-check-btn" onclick="toggleQuest('quest-3')">✓</button>
         </div>
       </div>
 
-      <div class="status-bars">
-        <div class="status-row">
-          <span class="status-label" style="color: var(--color-mind)">Mente</span>
-          <div class="bar-bg">
-            <div class="bar-fill" id="mindBar" style="width: 80%; background: var(--color-mind);"></div>
+      <!-- Tab 2: Treinos -->
+      <div class="sim-tab-pane" id="pane-treinos">
+        <div style="background: rgba(255,51,102,0.1); border: 1px solid rgba(255,51,102,0.3); border-radius: 10px; padding: 0.75rem; margin-bottom: 0.6rem;">
+          <h6 style="color: #FF3366; font-size: 0.85rem; font-weight: bold;">Protocolo Calistenia • Intermediário</h6>
+          <p style="font-size: 0.7rem; color: #ccc; margin-top: 2px;">4x por semana • Rest Timer: 75s</p>
+        </div>
+        <div class="sim-quest-item" style="border-left-color: #FF3366;">
+          <div class="sim-quest-info">
+            <h6>1. Barra Fixa Pronada</h6>
+            <p>4 séries × 8 a 10 reps</p>
+          </div>
+          <span style="font-size: 0.75rem; color: #FF3366; font-weight: bold;">75s Rest</span>
+        </div>
+        <div class="sim-quest-item" style="border-left-color: #FF3366;">
+          <div class="sim-quest-info">
+            <h6>2. Mergulho em Paralelas (Dips)</h6>
+            <p>4 séries × 10 a 12 reps</p>
+          </div>
+          <span style="font-size: 0.75rem; color: #FF3366; font-weight: bold;">75s Rest</span>
+        </div>
+      </div>
+
+      <!-- Tab 3: Livros -->
+      <div class="sim-tab-pane" id="pane-livros">
+        <div class="sim-quest-item" style="border-left-color: #10B981;">
+          <div class="sim-quest-info">
+            <h6>💎 A Psicologia Financeira</h6>
+            <p>Morgan Housel • "Riqueza é o que você não vê"</p>
+          </div>
+          <button class="btn-cta" style="padding: 0.3rem 0.6rem; font-size: 0.65rem;" onclick="simulateSound('check')">+ Rotina</button>
+        </div>
+        <div class="sim-quest-item" style="border-left-color: #00F0FF;">
+          <div class="sim-quest-info">
+            <h6>🧠 Hiperfoco</h6>
+            <p>Chris Bailey • Domínio da atenção digital</p>
+          </div>
+          <button class="btn-cta" style="padding: 0.3rem 0.6rem; font-size: 0.65rem;" onclick="simulateSound('check')">+ Rotina</button>
+        </div>
+      </div>
+
+      <!-- Tab 4: Foco Pomodoro -->
+      <div class="sim-tab-pane" id="pane-foco" style="text-align: center; padding: 1rem 0;">
+        <div style="font-size: 2.2rem; font-weight: 900; color: #00F0FF; font-family: 'Space Grotesk', monospace;" id="timerClock">25:00</div>
+        <p style="font-size: 0.75rem; color: #888; margin: 4px 0 12px;">🛡️ MODO NÃO PERTURBE (CYBER ZEN)</p>
+        <button class="btn-cta" style="padding: 0.45rem 1.2rem; font-size: 0.8rem;" onclick="toggleDemoTimer()">
+          <span id="timerBtnLabel">▶ Iniciar Sessão</span>
+        </button>
+      </div>
+
+      <!-- Tab 5: Perfil & Conquistas -->
+      <div class="sim-tab-pane" id="pane-perfil">
+        <div style="display: flex; gap: 0.5rem; justify-content: space-between; margin-bottom: 0.8rem;">
+          <div style="background: rgba(0,240,255,0.08); padding: 0.5rem; border-radius: 8px; flex: 1; text-align: center; border: 1px solid rgba(0,240,255,0.2);">
+            <div style="font-size: 0.65rem; color: #00F0FF; font-weight: bold;">INTELLECT</div>
+            <div style="font-size: 1rem; font-weight: 800;">18 pts</div>
+          </div>
+          <div style="background: rgba(16,185,129,0.08); padding: 0.5rem; border-radius: 8px; flex: 1; text-align: center; border: 1px solid rgba(16,185,129,0.2);">
+            <div style="font-size: 0.65rem; color: #10B981; font-weight: bold;">WEALTH</div>
+            <div style="font-size: 1rem; font-weight: 800;">12 pts</div>
+          </div>
+          <div style="background: rgba(255,51,102,0.08); padding: 0.5rem; border-radius: 8px; flex: 1; text-align: center; border: 1px solid rgba(255,51,102,0.2);">
+            <div style="font-size: 0.65rem; color: #FF3366; font-weight: bold;">STRENGTH</div>
+            <div style="font-size: 1rem; font-weight: 800;">15 pts</div>
           </div>
         </div>
-
-        <div class="status-row">
-          <span class="status-label" style="color: var(--color-money)">Finanças</span>
-          <div class="bar-bg">
-            <div class="bar-fill" id="moneyBar" style="width: 65%; background: var(--color-money);"></div>
+        <div class="sim-quest-item" style="border-left-color: #F59E0B;" onclick="simulateSound('levelup')">
+          <div class="sim-quest-info">
+            <h6>🏆 Forja de Titânio [Ouro]</h6>
+            <p>7 dias seguidos invicto • Toque p/ ouvir!</p>
           </div>
-        </div>
-
-        <div class="status-row">
-          <span class="status-label" style="color: var(--color-body)">Corpo</span>
-          <div class="bar-bg">
-            <div class="bar-fill" id="bodyBar" style="width: 90%; background: var(--color-body);"></div>
-          </div>
-        </div>
-
-        <div class="status-row">
-          <span class="status-label" style="color: var(--color-fun)">Humor</span>
-          <div class="bar-bg">
-            <div class="bar-fill" id="funBar" style="width: 50%; background: var(--color-fun);"></div>
-          </div>
+          <span style="font-size: 1rem;">🔥</span>
         </div>
       </div>
 
-      <!-- Habit List -->
-      <div class="habit-item">
-        <div class="habit-info">
-          <h5>Ler 15 páginas</h5>
-          <p><span style="color: var(--color-mind); font-weight: bold;">[ MENTE ]</span> • Diário</p>
-        </div>
-        <button class="btn-check" onclick="doCheck('mind')">[ CHECK ]</button>
-      </div>
-
-      <div class="habit-item">
-        <div class="habit-info">
-          <h5>Economizar R$ 20</h5>
-          <p><span style="color: var(--color-money); font-weight: bold;">[ FINANÇAS ]</span> • Diário</p>
-        </div>
-        <button class="btn-check" onclick="doCheck('money')">[ CHECK ]</button>
-      </div>
-
-      <div class="habit-item">
-        <div class="habit-info">
-          <h5>Treino de 45 min</h5>
-          <p><span style="color: var(--color-body); font-weight: bold;">[ CORPO ]</span> • Diário</p>
-        </div>
-        <button class="btn-check" onclick="doCheck('body')">[ CHECK ]</button>
-      </div>
-
-      <div class="habit-item">
-        <div class="habit-info">
-          <h5>Hobbies & Lazer</h5>
-          <p><span style="color: var(--color-fun); font-weight: bold;">[ HUMOR ]</span> • Semanal</p>
-        </div>
-        <button class="btn-check" onclick="doCheck('fun')">[ CHECK ]</button>
-      </div>
+      <div class="sim-audio-tag">🔊 Interativo: Toque nos botões para ouvir os efeitos sonoros!</div>
     </div>
   </section>
 
-  <!-- 4 Pillars Section -->
+  <!-- Pilares da Vida -->
   <section class="section" id="pilares">
     <div class="section-header">
-      <div class="badge-pill">[ SYSTEM PILLARS ]</div>
-      <h2 class="section-title">Os 4 Pilares da sua Jornada</h2>
-      <p class="section-desc">Equilibre todas as áreas essenciais para manter os sistemas vitais do seu personagem no nível máximo.</p>
-    </div>
-
-    <div class="pillars-grid">
-      <div class="pillar-card card-mind">
-        <div class="pillar-icon">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a9 9 0 0 1 9 9c0 3.5-2 6.5-5 8l-1 3H9l-1-3C5 17.5 3 14.5 3 11a9 9 0 0 1 9-9z"/><path d="M9 10h6M12 7v6"/></svg>
-        </div>
-        <h3 class="pillar-title">Mente</h3>
-        <p class="pillar-desc">Foco em leitura, estudos, novos aprendizados e meditação diária. Fortaleça seu poder de processamento mental.</p>
-      </div>
-
-      <div class="pillar-card card-money">
-        <div class="pillar-icon">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-        </div>
-        <h3 class="pillar-title">Financeiro</h3>
-        <p class="pillar-desc">Controle de hábitos financeiros, investimentos, economia de recursos e reserva de emergência.</p>
-      </div>
-
-      <div class="pillar-card card-body">
-        <div class="pillar-icon">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zM12 8v8M8 12h8"/></svg>
-        </div>
-        <h3 class="pillar-title">Corpo</h3>
-        <p class="pillar-desc">Prática de exercícios físicos, hidratação adequada, nutrição e descanso de alta performance.</p>
-      </div>
-
-      <div class="pillar-card card-fun">
-        <div class="pillar-icon">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-        </div>
-        <h3 class="pillar-title">Humor</h3>
-        <p class="pillar-desc">Saúde mental, conexão com pessoas, hobbies, lazer e regeneração de energia emocional.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Features Grid -->
-  <section class="section" id="recursos">
-    <div class="section-header">
-      <div class="badge-pill">[ CORE FEATURES ]</div>
-      <h2 class="section-title">Por que o OneBitLife funciona?</h2>
-      <p class="section-desc">Uma mecânica de gamificação de alto impacto para manter o compromisso diário com a sua evolução.</p>
+      <div class="badge-pill">SISTEMA DE EQUILÍBRIO</div>
+      <h2 class="section-title">Os 4 Pilares da sua Máquina Biológica</h2>
+      <p class="section-desc">No OneBitLife, você não acompanha apenas tarefas soltas. Você alimenta os 4 módulos essenciais da sua existência.</p>
     </div>
 
     <div class="features-grid">
-      <div class="feature-box">
-        <div class="feature-icon">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-mind)" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-        </div>
-        <div class="feature-content">
-          <h4>Avatar Reativo em Tempo Real</h4>
-          <p>O estado visual do personagem varia instantaneamente de acordo com os checks concluídos nos 4 pilares.</p>
-        </div>
+      <div class="feature-card cyan">
+        <div class="feature-icon-wrapper">🧠</div>
+        <h3>Mente & Processamento</h3>
+        <p>Leitura ativa, estudo aprofundado, novos idiomas e expansão cognitiva com biblioteca integrada.</p>
+        <span class="feature-tag">[ +INTELLECT ]</span>
       </div>
 
-      <div class="feature-box">
-        <div class="feature-icon">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-body)" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-        </div>
-        <div class="feature-content">
-          <h4>Mecânica Hardcore Game Over</h4>
-          <p>Se você negligenciar seus hábitos por muito tempo, a barra zera e a jornada reinicia na hora sem choro!</p>
-        </div>
+      <div class="feature-card green">
+        <div class="feature-icon-wrapper">💎</div>
+        <h3>Capital & Prosperidade</h3>
+        <p>Aportes, auditoria de gastos, controle de fluxo de caixa e livros de sabedoria financeira.</p>
+        <span class="feature-tag">[ +WEALTH ]</span>
       </div>
 
-      <div class="feature-box">
-        <div class="feature-icon">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-money)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        </div>
-        <div class="feature-content">
-          <h4>100% Offline & Privado</h4>
-          <p>Seus dados ficam armazenados exclusivamente no seu dispositivo através do banco relacional SQLite local.</p>
-        </div>
+      <div class="feature-card red">
+        <div class="feature-icon-wrapper">🦾</div>
+        <h3>Chassi & Força Física</h3>
+        <p>Fichas personalizadas de Calistenia ou Musculação com cronômetro de descanso entre séries.</p>
+        <span class="feature-tag">[ +STRENGTH ]</span>
       </div>
 
-      <div class="feature-box">
-        <div class="feature-icon">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-fun)" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        </div>
-        <div class="feature-content">
-          <h4>Lembretes do Sistema</h4>
-          <p>Notificações locais agendadas para te alertar sobre a execução dos seus hábitos no horário exato.</p>
-        </div>
+      <div class="feature-card amber">
+        <div class="feature-icon-wrapper">😄</div>
+        <h3>Vitalidade & Conexão</h3>
+        <p>Saúde mental, pausas sem telas, tempo de qualidade com amigos e regeneração de energia.</p>
+        <span class="feature-tag">[ +VITALITY ]</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Novidades do OneBitLife 2.0 -->
+  <section class="section" id="novidades">
+    <div class="section-header">
+      <div class="badge-pill amber">O QUE HÁ DE NOVO</div>
+      <h2 class="section-title">Engenharia do OneBitLife 2.0</h2>
+      <p class="section-desc">Uma reformulação completa feita para eliminar a rigidez e elevar a gamificação a outro nível.</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card cyan">
+        <div class="feature-icon-wrapper">⏱️</div>
+        <h3>Modo Não Perturbe (Cyber Zen)</h3>
+        <p>Ao iniciar sua leitura ou estudo, entre em imersão com tela cheia, frases estoicas e bloqueio anti-distração.</p>
+        <span class="feature-tag">Pomodoro + Stopwatch</span>
       </div>
 
-      <div class="feature-box">
-        <div class="feature-icon">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-mind)" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-        </div>
-        <div class="feature-content">
-          <h4>Builds de APK Automatizadas</h4>
-          <p>Integração com GitHub Actions e Expo EAS Cloud para compilação automática a cada release lançada.</p>
-        </div>
+      <div class="feature-card green">
+        <div class="feature-icon-wrapper">📚</div>
+        <h3>Biblioteca Curada</h3>
+        <p>Adicione metas diretas de leitura de obras como <em>Hábitos Atômicos</em> e <em>A Psicologia Financeira</em> em 1 toque.</p>
+        <span class="feature-tag">1-Click Wisdom</span>
       </div>
 
-      <div class="feature-box">
-        <div class="feature-icon">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-money)" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
-        </div>
-        <div class="feature-content">
-          <h4>100% Gratuito & Open Source</h4>
-          <p>Sem anúncios, anúncios invasivos nem assinaturas. Código-fonte aberto e livre no GitHub.</p>
-        </div>
+      <div class="feature-card red">
+        <div class="feature-icon-wrapper">🏋️</div>
+        <h3>Assistente de Treino Biomecânico</h3>
+        <p>O app calcula sua divisão de treino (Full Body, Upper/Lower, PPL) para peso do corpo ou academia por nível.</p>
+        <span class="feature-tag">Iniciante / Inter / Avançado</span>
       </div>
+
+      <div class="feature-card purple">
+        <div class="feature-icon-wrapper">🎲</div>
+        <h3>Terminal de Desafios Diários</h3>
+        <p>Todo dia às 00:00 o sistema sorteia 2 Side Quests fora da rotina (banho frio, detox de telas, gratidão) por +50 XP.</p>
+        <span class="feature-tag">Daily Side Quests</span>
+      </div>
+
+      <div class="feature-card amber">
+        <div class="feature-icon-wrapper">🏆</div>
+        <h3>Emblemas & Compartilhar</h3>
+        <p>Desbloqueie troféus épicos e compartilhe suas conquistas direto no WhatsApp, Stories e X em 1 toque.</p>
+        <span class="feature-tag">Social Flex</span>
+      </div>
+
+      <div class="feature-card cyan">
+        <div class="feature-icon-wrapper">🔊</div>
+        <h3>Design de Som Retro-Cyber</h3>
+        <p>Sons sintetizados procedurais para toques, checks de meta, bips de timer e fanfarras de subida de nível.</p>
+        <span class="feature-tag">Claude Sound Design</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comparativo 1.0 vs 2.0 -->
+  <section class="section" id="comparativo">
+    <div class="section-header">
+      <div class="badge-pill">COMPARAÇÃO TÉCNICA</div>
+      <h2 class="section-title">Do Básico ao Incomparável</h2>
+      <p class="section-desc">Entenda como transformamos um aplicativo rígido em um sistema vivo de rotina.</p>
+    </div>
+
+    <div class="comparison-box">
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Recurso</th>
+            <th>OneBitLife 1.0 (Anterior)</th>
+            <th>OneBitLife 2.0 (Atual)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Definição de Metas</strong></td>
+            <td><span class="badge-v1">✕ Formulário travado com dropdowns lentos</span></td>
+            <td><span class="badge-v2">✓ Cyber Forge com 3 tipos (Timer, Contador, Check) e chips</span></td>
+          </tr>
+          <tr>
+            <td><strong>Treinos Físicos</strong></td>
+            <td><span class="badge-v1">✕ Apenas texto estático genérico</span></td>
+            <td><span class="badge-v2">✓ Assistente para Calistenia e Academia com Rest Timer</span></td>
+          </tr>
+          <tr>
+            <td><strong>Livros & Finanças</strong></td>
+            <td><span class="badge-v1">✕ Nenhuma recomendação estruturada</span></td>
+            <td><span class="badge-v2">✓ Catálogo curado de elite com adição em 1 clique</span></td>
+          </tr>
+          <tr>
+            <td><strong>Foco & Concentração</strong></td>
+            <td><span class="badge-v1">✕ Inexistente</span></td>
+            <td><span class="badge-v2">✓ Cronômetro Pomodoro + Modo Não Perturbe Fullscreen</span></td>
+          </tr>
+          <tr>
+            <td><strong>Experiência Sonora</strong></td>
+            <td><span class="badge-v1">✕ 100% mudo</span></td>
+            <td><span class="badge-v2">✓ Motor de Som sintetizado retro-cyber de alta fidelidade</span></td>
+          </tr>
+          <tr>
+            <td><strong>Notificações</strong></td>
+            <td><span class="badge-v1">✕ Falhas de canal no Android e IDs nulos</span></td>
+            <td><span class="badge-v2">✓ Blindado para Android 13+, Diário, Semanal e Mensal</span></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </section>
 
   <!-- Banner CTA -->
   <section class="section">
     <div class="banner-cta">
-      <h2>Pronto para iniciar a jornada?</h2>
-      <p>Baixe o aplicativo para Android agora mesmo e comece a transformar sua rotina hoje!</p>
-      <a href="https://github.com/Intern-Yago/OneBitLife/releases" target="_blank" class="btn-cta" style="padding: 1rem 2.5rem; font-size: 1.1rem;">
-        [ BAIXAR APK NO GITHUB RELEASES ]
+      <h2>Pronto para forjar sua melhor versão?</h2>
+      <p>Baixe o APK para Android diretamente do GitHub Releases. Sem anúncios, 100% offline e com download permanente.</p>
+      <a href="https://github.com/Intern-Yago/OneBitLife/releases" target="_blank" class="btn-cta" style="padding: 1.1rem 2.8rem; font-size: 1.1rem;">
+        <span>⚡ BAIXAR APK NO GITHUB RELEASES</span>
       </a>
     </div>
   </section>
 
   <!-- Footer -->
   <footer>
-    <p>© 2026 <strong>OneBitLife</strong> — Desenvolvido por <a href="https://github.com/Intern-Yago" target="_blank">Intern-Yago</a>.</p>
-    <p style="margin-top: 0.5rem; opacity: 0.7;">Distribuído sob a Licença MIT.</p>
+    <p>© 2026 <strong>OneBitLife</strong> — Criado com disciplina por <a href="https://github.com/Intern-Yago" target="_blank">Intern-Yago</a>.</p>
+    <p style="margin-top: 0.4rem; opacity: 0.7;">Distribuído sob Licença MIT • Código 100% Livre e Aberto.</p>
   </footer>
 
+  <!-- Web Audio Synthesizer & Simulator Scripts -->
   <script>
-    let checks = 19;
-    const bars = {
-      mind: 80,
-      money: 65,
-      body: 90,
-      fun: 50
-    };
-
-    function doCheck(type) {
-      if (bars[type] < 100) {
-        bars[type] = Math.min(100, bars[type] + 20);
-        checks++;
-        document.getElementById('checksCount').innerText = checks;
+    // Web Audio API Sound Synthesizer (Claude Audio Design)
+    let audioCtx = null;
+    function simulateSound(type) {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
         
-        const barElem = document.getElementById(type + 'Bar');
-        barElem.style.width = bars[type] + '%';
-
-        // Animação tátil da imagem do mascote oficial
-        const mascotImg = document.getElementById('mascotImg');
-        if (mascotImg) {
-          mascotImg.style.transform = 'scale(1.25) rotate(6deg)';
-          setTimeout(() => {
-            mascotImg.style.transform = 'scale(1) rotate(0deg)';
-          }, 350);
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        
+        if (type === 'check') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(523.25, now);
+          osc.frequency.setValueAtTime(659.25, now + 0.08);
+          osc.frequency.setValueAtTime(783.99, now + 0.16);
+          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          osc.start(now);
+          osc.stop(now + 0.35);
+        } else if (type === 'click') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(750, now);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+          osc.start(now);
+          osc.stop(now + 0.04);
+        } else if (type === 'levelup') {
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(440, now);
+          osc.frequency.setValueAtTime(554.37, now + 0.1);
+          osc.frequency.setValueAtTime(659.25, now + 0.2);
+          osc.frequency.setValueAtTime(880, now + 0.3);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+          osc.start(now);
+          osc.stop(now + 0.55);
         }
+      } catch (e) {
+        console.log(e);
+      }
+    }
+
+    // Interactive Quest Check
+    let checks = 42;
+    function toggleQuest(id) {
+      simulateSound('check');
+      const item = document.getElementById(id);
+      const btn = item.querySelector('.sim-check-btn');
+      item.classList.toggle('checked');
+      btn.classList.toggle('done');
+      if (btn.classList.contains('done')) {
+        checks++;
+      } else {
+        checks--;
+      }
+      document.getElementById('checksDisplay').innerText = checks;
+    }
+
+    // Simulator Tab Switcher
+    function switchSimTab(tabName) {
+      simulateSound('click');
+      document.querySelectorAll('.sim-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.sim-tab-pane').forEach(p => p.classList.remove('active'));
+      
+      const activeBtn = Array.from(document.querySelectorAll('.sim-tab-btn')).find(b => b.innerText.toLowerCase().includes(tabName));
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const targetPane = document.getElementById('pane-' + tabName);
+      if (targetPane) targetPane.classList.add('active');
+    }
+
+    // Demo Timer inside Simulator
+    let timerInterval = null;
+    let timerSec = 25 * 60;
+    function toggleDemoTimer() {
+      const btn = document.getElementById('timerBtnLabel');
+      if (!timerInterval) {
+        simulateSound('click');
+        btn.innerText = '⏸ Pausar';
+        timerInterval = setInterval(() => {
+          if (timerSec <= 1) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            simulateSound('levelup');
+            btn.innerText = '▶ Iniciar Sessão';
+            timerSec = 25 * 60;
+            document.getElementById('timerClock').innerText = '25:00';
+            alert('🏆 Sessão Pomodoro Concluída! +35 XP!');
+            return;
+          }
+          timerSec--;
+          const m = String(Math.floor(timerSec / 60)).padStart(2, '0');
+          const s = String(timerSec % 60).padStart(2, '0');
+          document.getElementById('timerClock').innerText = m + ':' + s;
+        }, 1000);
+      } else {
+        simulateSound('click');
+        clearInterval(timerInterval);
+        timerInterval = null;
+        btn.innerText = '▶ Retomar';
       }
     }
   </script>
-
 </body>
 </html>
