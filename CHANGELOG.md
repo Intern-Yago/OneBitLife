@@ -1,5 +1,12 @@
 # Changelog
 
+## [v1.1.1] - 2026-10-31
+
+### Alterações nesta versão:
+- fix(ci): restore missing dependencies for Expo SDK 51 and remove restrictive memory cap in eas.json (316cc00)
+
+---
+
 ## [v1.1.0] - 2026-10-31
 
 ### Alterações nesta versão (SemVer Minor):
