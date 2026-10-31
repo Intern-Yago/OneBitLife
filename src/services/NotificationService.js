@@ -1,7 +1,7 @@
 import * as Notifications from "expo-notifications";
 import { Platform, Alert } from "react-native";
 
-// Configure default notification handler for foreground notifications
+// Configure handler for foreground notifications
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -10,16 +10,17 @@ Notifications.setNotificationHandler({
   }),
 });
 
-// Setup Android notification channel
+// Setup Android notification channel with correct types
 async function setupNotificationChannel() {
   if (Platform.OS === "android") {
     try {
       await Notifications.setNotificationChannelAsync("default", {
-        name: "Lembretes de Hábitos",
+        name: "Lembretes de Hábitos OneBitLife",
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
-        lightColor: "#90B7F3",
-        sound: true,
+        lightColor: "#00F0FF",
+        sound: "default",
+        enableVibrate: true,
       });
     } catch (error) {
       console.warn("[NotificationService] Erro ao configurar canal Android:", error);
@@ -27,7 +28,7 @@ async function setupNotificationChannel() {
   }
 }
 
-// Request permissions safely
+// Request permissions safely for iOS and Android 13+
 async function checkPermissions() {
   try {
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
@@ -43,11 +44,26 @@ async function checkPermissions() {
   }
 }
 
+// Map Brazilian Portuguese weekday name to 1-7 (1=Sunday, 2=Monday, etc.)
+function getWeekdayNumber(dayName) {
+  switch (dayName) {
+    case "Domingo": return 1;
+    case "Segunda": return 2;
+    case "Terça": return 3;
+    case "Quarta": return 4;
+    case "Quinta": return 5;
+    case "Sexta": return 6;
+    case "Sábado": return 7;
+    default: return 2; // Default Monday
+  }
+}
+
 async function createNotification(
   habitInput,
   frequencyInput,
   dayNotification,
-  timeNotification
+  timeNotification,
+  habitId = null
 ) {
   try {
     await setupNotificationChannel();
@@ -55,8 +71,8 @@ async function createNotification(
     const hasPermission = await checkPermissions();
     if (!hasPermission) {
       Alert.alert(
-        "Permissão Necessária",
-        "Por favor, permita as notificações nas configurações do seu celular para receber lembretes de hábitos."
+        "Permissão de Notificação",
+        "Por favor, autorize as notificações nas configurações do celular para receber seus lembretes."
       );
       return null;
     }
@@ -74,16 +90,8 @@ async function createNotification(
 
     if (isNaN(habitHour) || isNaN(habitMinutes)) return null;
 
-    let weekDay = 1;
-    if (dayNotification === "Domingo") weekDay = 1;
-    else if (dayNotification === "Segunda") weekDay = 2;
-    else if (dayNotification === "Terça") weekDay = 3;
-    else if (dayNotification === "Quarta") weekDay = 4;
-    else if (dayNotification === "Quinta") weekDay = 5;
-    else if (dayNotification === "Sexta") weekDay = 6;
-    else if (dayNotification === "Sábado") weekDay = 7;
-
     let triggerNotification;
+
     if (frequencyInput === "Diário") {
       triggerNotification = {
         hour: habitHour,
@@ -91,29 +99,52 @@ async function createNotification(
         repeats: true,
       };
     } else if (frequencyInput === "Semanal") {
+      const weekDay = getWeekdayNumber(dayNotification);
       triggerNotification = {
         weekday: weekDay,
         hour: habitHour,
         minute: habitMinutes,
         repeats: true,
       };
+    } else if (frequencyInput === "Mensal") {
+      triggerNotification = {
+        day: 1, // Dispara todo dia 1º do mês no horário indicado
+        hour: habitHour,
+        minute: habitMinutes,
+        repeats: true,
+      };
     } else {
-      return null;
+      triggerNotification = {
+        hour: habitHour,
+        minute: habitMinutes,
+        repeats: true,
+      };
     }
+
+    // Identificador único sem caracteres conflitantes
+    const uniqueIdentifier = habitId
+      ? `habit_notif_${habitId}`
+      : `habit_notif_${Date.now()}`;
+
+    // Cancela prévia se houver
+    try {
+      await Notifications.cancelScheduledNotificationAsync(uniqueIdentifier);
+    } catch (_) {}
 
     const notificationId = await Notifications.scheduleNotificationAsync({
       content: {
-        title: `⚡ Lembrete: ${habitInput}`,
-        body: `Hora de manter o foco! Complete seu hábito "${habitInput}" no OneBitLife!`,
+        title: `⚡ Protocolo Ativo: ${habitInput}`,
+        body: `Mantenha a sincronia do seu Avatar! Complete "${habitInput}" no OneBitLife agora.`,
         sound: true,
         channelId: "default",
         priority: Notifications.AndroidNotificationPriority.HIGH,
+        data: { habitId, habitName: habitInput },
       },
-      identifier: `${habitInput}`,
+      identifier: uniqueIdentifier,
       trigger: triggerNotification,
     });
 
-    console.log("[NotificationService] Notificação agendada com sucesso. ID:", notificationId);
+    console.log("[NotificationService] Agendado com sucesso. ID:", notificationId);
     return notificationId;
   } catch (error) {
     console.error("[NotificationService] Erro ao criar notificação:", error);
@@ -121,11 +152,23 @@ async function createNotification(
   }
 }
 
-async function deleteNotification(habitInput) {
-  if (!habitInput) return;
+async function deleteNotification(habitIdentifier) {
+  if (!habitIdentifier) return;
   try {
-    await Notifications.cancelScheduledNotificationAsync(`${habitInput}`);
-    console.log("[NotificationService] Notificação cancelada para:", habitInput);
+    const idToCancel = typeof habitIdentifier === "number"
+      ? `habit_notif_${habitIdentifier}`
+      : habitIdentifier.startsWith("habit_notif_")
+      ? habitIdentifier
+      : `habit_notif_${habitIdentifier}`;
+
+    await Notifications.cancelScheduledNotificationAsync(idToCancel);
+
+    // Cancelar também se foi salvo com o nome cru legado
+    try {
+      await Notifications.cancelScheduledNotificationAsync(`${habitIdentifier}`);
+    } catch (_) {}
+
+    console.log("[NotificationService] Notificação cancelada para:", idToCancel);
   } catch (error) {
     console.warn("[NotificationService] Erro ao cancelar notificação:", error);
   }
@@ -136,23 +179,25 @@ async function sendTestNotification(habitInput) {
     await setupNotificationChannel();
     const hasPermission = await checkPermissions();
     if (!hasPermission) {
-      Alert.alert("Erro", "Sem permissão de notificação!");
+      Alert.alert("Aviso", "Permissão de notificação negada no celular.");
       return;
     }
 
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: "⚡ Teste de Notificação OneBitLife",
-        body: habitInput ? `Lembrete ativo para: ${habitInput}` : "Sistemas de notificação 100% operacionais!",
+        title: "⚡ Conexão Cyberpunk Estabelecida!",
+        body: habitInput
+          ? `Lembrete de teste ativo para: "${habitInput}". Seus alarmes estão operacionais!`
+          : "Sistemas de notificação do OneBitLife 100% operacionais!",
         sound: true,
         channelId: "default",
       },
-      trigger: null, // Dispara imediatamente
+      trigger: null, // Disparo imediato
     });
-    Alert.alert("Sucesso", "Notificação de teste enviada com sucesso!");
+    Alert.alert("Sucesso", "Notificação de teste disparada! Verifique a barra de notificações.");
   } catch (error) {
-    console.error("[NotificationService] Erro ao enviar teste:", error);
-    Alert.alert("Erro", "Não foi possível enviar a notificação de teste.");
+    console.error("[NotificationService] Erro no teste imediato:", error);
+    Alert.alert("Erro", "Não foi possível disparar a notificação de teste.");
   }
 }
 
@@ -160,4 +205,6 @@ export default {
   createNotification,
   deleteNotification,
   sendTestNotification,
+  setupNotificationChannel,
+  checkPermissions,
 };

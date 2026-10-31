@@ -1,5 +1,4 @@
-import { useNavigation } from "@react-navigation/native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   Alert,
   ScrollView,
@@ -9,127 +8,81 @@ import {
   TouchableOpacity,
   Modal,
 } from "react-native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import DefaultButton from "../../components/Common/DefaultButton";
+
 import LifeStatus from "../../components/Common/LifeStatus";
-import CreateHabit from "../../components/Home/CreateHabit";
-import EditHabit from "../../components/Home/EditHabit";
 import StatusBar from "../../components/Home/StatusBar";
+import QuestCard from "../../components/Home/QuestCard";
+import DailyChallengesCard from "../../components/Home/DailyChallengesCard";
+import WorkoutTab from "../../components/WorkoutTab";
+import BooksTab from "../../components/BooksTab";
+import FocusTab from "../../components/FocusTab";
+import ProfileTab from "../../components/ProfileTab";
+
 import ChangeNavigationService from "../../services/ChangeNavigationService";
 import CheckService from "../../services/CheckService";
 import HabitsService from "../../services/HabitsService";
+import SoundService from "../../services/SoundService";
 
 export default function Home({ route }) {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
 
+  const [currentTab, setCurrentTab] = useState("hoje"); // "hoje", "treinos", "livros", "foco", "perfil"
+  const [allHabits, setAllHabits] = useState([]);
   const [mindHabits, setMindHabits] = useState([]);
   const [moneyHabits, setMoneyHabits] = useState([]);
   const [bodyHabits, setBodyHabits] = useState([]);
   const [funHabits, setFunHabits] = useState([]);
 
-  const [robotDaysLife, setRobotDaysLife] = useState();
+  const [robotDaysLife, setRobotDaysLife] = useState("01");
   const [checks, setChecks] = useState(0);
   const [gameOver, setGameOver] = useState(false);
-  const [showAchievements, setShowAchievements] = useState(false);
 
-  const getPlayerLevel = (totalChecks) => {
-    const count = Number(totalChecks) || 0;
-    if (count < 10) {
-      return { level: 1, title: "Cyber Recruta", badgeColor: "#90B7F3" };
-    } else if (count < 25) {
-      return { level: 2, title: "Operador Neon", badgeColor: "#85BB65" };
-    } else if (count < 50) {
-      return { level: 3, title: "Guardião do Core", badgeColor: "#FE7F23" };
-    } else if (count < 100) {
-      return { level: 4, title: "Mestre dos Hábitos", badgeColor: "#9b59b6" };
-    } else {
-      return { level: 5, title: "Lenda Cyberpunk", badgeColor: "#FFD700" };
+  // Modal de Foco acionado diretamente de uma meta
+  const [focusedHabit, setFocusedHabit] = useState(null);
+
+  const loadAllHabits = async () => {
+    try {
+      const list = await HabitsService.getAllHabits();
+      setAllHabits(list);
+
+      const mind = list.filter((h) => h.habitArea === "Mente");
+      const money = list.filter((h) => h.habitArea === "Financeiro");
+      const body = list.filter((h) => h.habitArea === "Corpo");
+      const fun = list.filter((h) => h.habitArea === "Humor");
+
+      setMindHabits(mind);
+      setMoneyHabits(money);
+      setBodyHabits(body);
+      setFunHabits(fun);
+
+      list.forEach((h) => {
+        CheckService.removeCheck(h);
+        CheckService.checkStatus(h);
+      });
+
+      const totalChecks = list.reduce(
+        (acc, h) => acc + (h.habitChecks || 0),
+        0
+      );
+      setChecks(totalChecks);
+
+      const hasDeadHabit = list.some((h) => h.progressBar === 0);
+      setGameOver(hasDeadHabit);
+    } catch (err) {
+      console.log("[Home] Erro ao carregar hábitos:", err);
     }
   };
 
-  const playerLevel = getPlayerLevel(checks);
-
-  const totalMindChecks = mindHabits.reduce((acc, h) => acc + (h.habitChecks || 0), 0);
-  const totalMoneyChecks = moneyHabits.reduce((acc, h) => acc + (h.habitChecks || 0), 0);
-  const totalBodyChecks = bodyHabits.reduce((acc, h) => acc + (h.habitChecks || 0), 0);
-  const totalFunChecks = funHabits.reduce((acc, h) => acc + (h.habitChecks || 0), 0);
-
-  const achievementsList = [
-    {
-      id: "first_check",
-      title: "🎯 Primeiro Hack",
-      description: "Complete 1 check em qualquer meta",
-      unlocked: checks >= 1,
-    },
-    {
-      id: "streak_5",
-      title: "⚡ Carga de Neon",
-      description: "Acumule 5 checks no total",
-      unlocked: checks >= 5,
-    },
-    {
-      id: "streak_25",
-      title: "🛡️ Proteção do Core",
-      description: "Chegue a 25 checks acumulados",
-      unlocked: checks >= 25,
-    },
-    {
-      id: "streak_50",
-      title: "👑 Supremo Cyberpunk",
-      description: "Conquiste 50 checks lendários",
-      unlocked: checks >= 50,
-    },
-    {
-      id: "mind_master",
-      title: "🧠 Mente Brilhante",
-      description: "Complete 10 checks na área da Mente",
-      unlocked: totalMindChecks >= 10,
-    },
-    {
-      id: "money_master",
-      title: "💰 Magnata Tecnológico",
-      description: "Complete 10 checks em Financeiro",
-      unlocked: totalMoneyChecks >= 10,
-    },
-  ];
-
-  function handleNavExplanation() {
-    navigation.navigate("AppExplanation");
-  }
-
-  function handleGameOver() {
-    Alert.alert(
-      "⚡ Reiniciar Saúde do Avatar (Recovery)",
-      "Sua energia esgotou! Deseja restaurar a barra de vida mantendo suas metas personalizadas salvas?",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Restaurar Vida",
-          onPress: () => {
-            HabitsService.resetAllProgress()
-              .then(() => {
-                setGameOver(false);
-                loadAllHabits();
-                Alert.alert("OneBitLife", "Saúde do avatar restaurada! Mantenha a disciplina!");
-              })
-              .catch((err) => console.log(err));
-          },
-        },
-      ]
-    );
-  }
-
-  const loadAllHabits = () => {
-    HabitsService.findByArea("Mente").then((mind) => setMindHabits(mind));
-    HabitsService.findByArea("Financeiro").then((money) => setMoneyHabits(money));
-    HabitsService.findByArea("Corpo").then((body) => setBodyHabits(body));
-    HabitsService.findByArea("Humor").then((fun) => setFunHabits(fun));
-  };
+  useFocusEffect(
+    useCallback(() => {
+      loadAllHabits();
+    }, [route.params])
+  );
 
   useEffect(() => {
-    loadAllHabits();
-
     ChangeNavigationService.checkShowHome(1)
       .then((showHome) => {
         if (showHome && showHome.appStartData) {
@@ -143,189 +96,271 @@ export default function Home({ route }) {
           const todayDate = new Date();
           todayDate.setHours(0, 0, 0, 0);
           const diffTime = todayDate.getTime() - startDate.getTime();
-          const diffDays = Math.max(1, Math.floor(diffTime / (1000 * 3600 * 24)) + 1);
+          const diffDays = Math.max(
+            1,
+            Math.floor(diffTime / (1000 * 3600 * 24)) + 1
+          );
           setRobotDaysLife(diffDays.toString().padStart(2, "0"));
         }
       })
       .catch((err) => console.log(err));
-  }, [route.params]);
-
-  useEffect(() => {
-    const allHabits = [...mindHabits, ...moneyHabits, ...bodyHabits, ...funHabits];
-
-    allHabits.forEach((h) => {
-      CheckService.removeCheck(h);
-      CheckService.checkStatus(h);
-    });
-
-    const totalChecks = allHabits.reduce((acc, h) => acc + (h.habitChecks || 0), 0);
-    setChecks(totalChecks);
-
-    const hasDeadHabit = allHabits.some((h) => h.progressBar === 0);
-    setGameOver(hasDeadHabit);
-  }, [mindHabits, moneyHabits, bodyHabits, funHabits]);
+  }, []);
 
   const getAvgProgress = (habits) => {
     if (!habits || habits.length === 0) return 1;
-    const sum = habits.reduce((acc, h) => acc + (h.progressBar !== undefined ? h.progressBar : 1), 0);
+    const sum = habits.reduce(
+      (acc, h) => acc + (h.progressBar !== undefined ? h.progressBar : 1),
+      0
+    );
     return sum / habits.length;
+  };
+
+  const activeHabits = allHabits.filter((h) => (h.habitIsChecked || 0) === 0);
+  const completedHabits = allHabits.filter((h) => (h.habitIsChecked || 0) === 1);
+  const efficiency =
+    allHabits.length > 0
+      ? Math.round((completedHabits.length / allHabits.length) * 100)
+      : 100;
+
+  const handleCreateNewHabit = () => {
+    SoundService.playClick();
+    navigation.navigate("HabitPage", { create: true });
+  };
+
+  const handleResetAvatar = () => {
+    SoundService.playClick();
+    Alert.alert(
+      "⚡ Restaurar Avatar (Recovery)",
+      "Deseja restaurar as barras de vida do avatar para 100% mantendo todas as suas metas?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Restaurar",
+          onPress: async () => {
+            await HabitsService.resetAllProgress();
+            setGameOver(false);
+            loadAllHabits();
+            SoundService.playLevelUp();
+            Alert.alert("OneBitLife", "Avatar restaurado com sucesso! Mantenha a disciplina.");
+          },
+        },
+      ]
+    );
+  };
+
+  const handleTabChange = (tab) => {
+    SoundService.playClick();
+    setCurrentTab(tab);
+  };
+
+  const handleStartTimerForHabit = (habit) => {
+    setFocusedHabit(habit);
   };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <ScrollView
-        contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={{ alignItems: "center" }}>
-          {!gameOver ? (
-            <View style={{ alignItems: "center", marginTop: 10 }}>
-              <Text style={styles.dailyChecks}>
-                HP {robotDaysLife || "01"} {robotDaysLife === "01" ? "dia" : "dias"} | [ {checks} {checks === 1 ? "Check" : "Checks"} ]
-              </Text>
-
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => setShowAchievements(true)}
-                style={[styles.levelBadge, { borderColor: playerLevel.badgeColor }]}
-              >
-                <Text style={[styles.levelText, { color: playerLevel.badgeColor }]}>
-                  Nível {playerLevel.level} • {playerLevel.title}  🏆
+      {/* CONTEÚDO PRINCIPAL DE CADA ABA */}
+      <View style={styles.tabContentContainer}>
+        {currentTab === "hoje" && (
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollPadding}
+          >
+            {/* CABEÇALHO DO AVATAR & HP */}
+            <View style={styles.topHud}>
+              <View style={styles.hudLeft}>
+                <Text style={styles.hpText}>
+                  HP {robotDaysLife} {robotDaysLife === "01" ? "dia" : "dias"}
                 </Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <View style={{ alignItems: "center", marginVertical: 15 }}>
-              <Text style={styles.gameOverTitle}>⚠️ Energia Esgotada ⚠️</Text>
-              <Text style={styles.gameOverDesc}>Uma de suas metas expirou. Restaure a saúde do avatar para continuar!</Text>
-            </View>
-          )}
-
-          <LifeStatus
-            mindHabit={mindHabits[0]}
-            moneyHabit={moneyHabits[0]}
-            bodyHabit={bodyHabits[0]}
-            funHabit={funHabits[0]}
-          />
-
-          <StatusBar
-            mindHabit={getAvgProgress(mindHabits)}
-            moneyHabit={getAvgProgress(moneyHabits)}
-            bodyHabit={getAvgProgress(bodyHabits)}
-            funHabit={getAvgProgress(funHabits)}
-          />
-
-          {!gameOver ? (
-            <View style={{ width: "100%", alignItems: "center" }}>
-              {/* SEÇÃO MENTE */}
-              <View style={styles.areaSection}>
-                <Text style={[styles.areaTitle, { color: "#90B7F3" }]}>🧠 Mente ({mindHabits.length})</Text>
-                {mindHabits.map((h) => (
-                  <EditHabit key={h.id || h.habitName} habit={h} checkColor="#90B7F3" />
-                ))}
-                <CreateHabit habitArea="Mente" borderColor="#90B7F3" />
+                <Text style={styles.checksPill}>[ {checks} Checks ]</Text>
               </View>
-
-              {/* SEÇÃO FINANCEIRO */}
-              <View style={styles.areaSection}>
-                <Text style={[styles.areaTitle, { color: "#85BB65" }]}>💰 Financeiro ({moneyHabits.length})</Text>
-                {moneyHabits.map((h) => (
-                  <EditHabit key={h.id || h.habitName} habit={h} checkColor="#85BB65" />
-                ))}
-                <CreateHabit habitArea="Financeiro" borderColor="#85BB65" />
-              </View>
-
-              {/* SEÇÃO CORPO */}
-              <View style={styles.areaSection}>
-                <Text style={[styles.areaTitle, { color: "#FF0044" }]}>🦾 Corpo ({bodyHabits.length})</Text>
-                {bodyHabits.map((h) => (
-                  <EditHabit key={h.id || h.habitName} habit={h} checkColor="#FF0044" />
-                ))}
-                <CreateHabit habitArea="Corpo" borderColor="#FF0044" />
-              </View>
-
-              {/* SEÇÃO HUMOR */}
-              <View style={styles.areaSection}>
-                <Text style={[styles.areaTitle, { color: "#FE7F23" }]}>😄 Humor ({funHabits.length})</Text>
-                {funHabits.map((h) => (
-                  <EditHabit key={h.id || h.habitName} habit={h} checkColor="#FE7F23" />
-                ))}
-                <CreateHabit habitArea="Humor" borderColor="#FE7F23" />
-              </View>
-
-              <View style={styles.actionsContainer}>
-                <TouchableOpacity
-                  style={styles.actionBtn}
-                  onPress={() => setShowAchievements(true)}
-                >
-                  <Text style={styles.actionBtnText}>🏆 Ver Conquistas & Painel Cyber</Text>
-                </TouchableOpacity>
-
-                <Text
-                  style={styles.explanationText}
-                  onPress={handleNavExplanation}
-                >
-                  Ver explicações novamente
-                </Text>
+              <View style={styles.hudRight}>
+                <Text style={styles.effLabel}>Eficiência do Core:</Text>
+                <Text style={styles.effPercent}>{efficiency}%</Text>
               </View>
             </View>
-          ) : (
-            <View style={{ marginVertical: 30, alignItems: "center" }}>
-              <DefaultButton
-                buttonText={"⚡ Restaurar Vida do Avatar"}
-                handlePress={handleGameOver}
-                width={260}
-                height={50}
+
+            {/* ROBÔ DE LOTTIE E BARRAS DE STATUS */}
+            <View style={{ alignItems: "center" }}>
+              <LifeStatus
+                mindHabit={mindHabits[0]}
+                moneyHabit={moneyHabits[0]}
+                bodyHabit={bodyHabits[0]}
+                funHabit={funHabits[0]}
+              />
+
+              <StatusBar
+                mindHabit={getAvgProgress(mindHabits)}
+                moneyHabit={getAvgProgress(moneyHabits)}
+                bodyHabit={getAvgProgress(bodyHabits)}
+                funHabit={getAvgProgress(funHabits)}
               />
             </View>
-          )}
-        </View>
-      </ScrollView>
 
-      {/* MODAL DE CONQUISTAS */}
-      <Modal
-        visible={showAchievements}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setShowAchievements(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>🏆 Painel de Conquistas</Text>
-            <Text style={styles.modalSubtitle}>Nível Atual: {playerLevel.title}</Text>
-
-            <ScrollView style={{ maxHeight: 340, width: "100%" }}>
-              {achievementsList.map((item) => (
-                <View
-                  key={item.id}
-                  style={[
-                    styles.achievementCard,
-                    item.unlocked && styles.achievementUnlocked,
-                  ]}
+            {/* SE O AVATAR MORREU */}
+            {gameOver && (
+              <View style={styles.gameOverBanner}>
+                <Text style={styles.gameOverTitle}>⚠️ Energia Crítica Esgotada</Text>
+                <Text style={styles.gameOverDesc}>
+                  Uma ou mais metas expiraram. Restaure a saúde do avatar para continuar!
+                </Text>
+                <TouchableOpacity
+                  style={styles.gameOverRecoverBtn}
+                  onPress={handleResetAvatar}
                 >
-                  <Text style={styles.achievementTitle}>{item.title}</Text>
-                  <Text style={styles.achievementDesc}>{item.description}</Text>
-                  <Text
-                    style={[
-                      styles.statusBadge,
-                      { color: item.unlocked ? "#85BB65" : "#777777" },
-                    ]}
-                  >
-                    {item.unlocked ? "✓ CONQUISTADO" : "🔒 BLOQUEADO"}
+                  <Text style={styles.gameOverRecoverText}>
+                    ⚡ Restaurar Energia do Avatar
                   </Text>
-                </View>
-              ))}
-            </ScrollView>
+                </TouchableOpacity>
+              </View>
+            )}
 
+            {/* TERMINAL DE DESAFIOS DIÁRIOS (SIDE QUESTS) */}
+            <DailyChallengesCard
+              onChallengeDone={() => {
+                setChecks((c) => c + 1);
+              }}
+            />
+
+            {/* SEÇÃO: QUESTS ATIVAS DE HOJE */}
+            <View style={styles.questsHeaderRow}>
+              <Text style={styles.questsSectionTitle}>
+                🎯 Quests de Hoje ({activeHabits.length})
+              </Text>
+              <TouchableOpacity
+                style={styles.newQuestBtn}
+                onPress={handleCreateNewHabit}
+              >
+                <Text style={styles.newQuestBtnText}>+ Forjar Meta</Text>
+              </TouchableOpacity>
+            </View>
+
+            {activeHabits.length === 0 ? (
+              <View style={styles.emptyStateBox}>
+                <Text style={styles.emptyStateTitle}>
+                  {allHabits.length === 0
+                    ? "Nenhum protocolo forjado ainda!"
+                    : "🎉 Todas as quests de hoje concluídas!"}
+                </Text>
+                <Text style={styles.emptyStateSub}>
+                  {allHabits.length === 0
+                    ? "Toque em '+ Forjar Meta' ou adicione rotinas nas abas de Treinos e Livros."
+                    : "Sistemas vitais operando em nível máximo. Excelente disciplina!"}
+                </Text>
+              </View>
+            ) : (
+              activeHabits.map((habit) => (
+                <QuestCard
+                  key={habit.id || habit.habitName}
+                  habit={habit}
+                  onRefresh={loadAllHabits}
+                  onStartTimer={handleStartTimerForHabit}
+                />
+              ))
+            )}
+
+            {/* SEÇÃO: QUESTS CONCLUÍDAS HOJE */}
+            {completedHabits.length > 0 && (
+              <View style={styles.completedSection}>
+                <Text style={styles.completedSectionTitle}>
+                  ⚡ Protocolos Cumpridos Hoje ({completedHabits.length})
+                </Text>
+                {completedHabits.map((habit) => (
+                  <QuestCard
+                    key={habit.id || habit.habitName}
+                    habit={habit}
+                    onRefresh={loadAllHabits}
+                    onStartTimer={handleStartTimerForHabit}
+                  />
+                ))}
+              </View>
+            )}
+
+            <View style={{ height: 30 }} />
+          </ScrollView>
+        )}
+
+        {currentTab === "treinos" && (
+          <WorkoutTab onHabitAdded={loadAllHabits} />
+        )}
+
+        {currentTab === "livros" && (
+          <BooksTab onHabitAdded={loadAllHabits} />
+        )}
+
+        {currentTab === "foco" && (
+          <FocusTab
+            onSessionDone={() => {
+              setChecks((c) => c + 1);
+            }}
+          />
+        )}
+
+        {currentTab === "perfil" && (
+          <ProfileTab
+            checks={checks}
+            daysLife={robotDaysLife}
+            mindChecks={mindHabits.reduce((acc, h) => acc + (h.habitChecks || 0), 0)}
+            moneyChecks={moneyHabits.reduce((acc, h) => acc + (h.habitChecks || 0), 0)}
+            bodyChecks={bodyHabits.reduce((acc, h) => acc + (h.habitChecks || 0), 0)}
+            funChecks={funHabits.reduce((acc, h) => acc + (h.habitChecks || 0), 0)}
+            onResetLife={handleResetAvatar}
+          />
+        )}
+      </View>
+
+      {/* BARRA DE NAVEGAÇÃO INFERIOR (BOTTOM TAB BAR) */}
+      <View style={[styles.bottomBar, { paddingBottom: Math.max(10, insets.bottom) }]}>
+        {[
+          { id: "hoje", icon: "🏠", label: "Hoje" },
+          { id: "treinos", icon: "🦾", label: "Treinos" },
+          { id: "livros", icon: "📚", label: "Livros" },
+          { id: "foco", icon: "⏱️", label: "Foco" },
+          { id: "perfil", icon: "👤", label: "Perfil" },
+        ].map((tab) => {
+          const isSel = currentTab === tab.id;
+          return (
             <TouchableOpacity
-              style={styles.closeBtn}
-              onPress={() => setShowAchievements(false)}
+              key={tab.id}
+              style={[styles.tabBtn, isSel && styles.tabBtnActive]}
+              onPress={() => handleTabChange(tab.id)}
             >
-              <Text style={styles.closeBtnText}>Fechar Painel</Text>
+              <Text style={styles.tabIcon}>{tab.icon}</Text>
+              <Text style={[styles.tabLabel, isSel && styles.tabLabelActive]}>
+                {tab.label}
+              </Text>
             </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      {/* MODAL DE FOCO DISPARADO DE UM CARD */}
+      {focusedHabit && (
+        <Modal
+          visible={!!focusedHabit}
+          animationType="slide"
+          transparent={false}
+          onRequestClose={() => setFocusedHabit(null)}
+        >
+          <View style={[styles.focusModalWrapper, { paddingTop: insets.top }]}>
+            <TouchableOpacity
+              style={styles.focusModalCloseBtn}
+              onPress={() => setFocusedHabit(null)}
+            >
+              <Text style={styles.focusModalCloseText}>‹ Fechar Sessão</Text>
+            </TouchableOpacity>
+            <FocusTab
+              habitName={focusedHabit?.habitName}
+              initialMinutes={Number(focusedHabit?.targetValue) || 25}
+              onSessionDone={() => {
+                setChecks((c) => c + 1);
+                loadAllHabits();
+                setFocusedHabit(null);
+              }}
+            />
           </View>
-        </View>
-      </Modal>
+        </Modal>
+      )}
     </View>
   );
 }
@@ -333,142 +368,188 @@ export default function Home({ route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "rgba(21, 21, 21, 0.98)",
+    backgroundColor: "#0B0E14",
   },
-  dailyChecks: {
-    color: "white",
+  tabContentContainer: {
+    flex: 1,
+  },
+  scrollPadding: {
+    paddingHorizontal: 16,
+    paddingTop: 10,
+  },
+  topHud: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#121824",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.06)",
+    marginBottom: 8,
+  },
+  hudLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  hpText: {
+    color: "#FFFFFF",
+    fontSize: 14,
     fontWeight: "bold",
-    textAlign: "center",
-    fontSize: 18,
   },
-  explanationText: {
-    color: "white",
+  checksPill: {
+    color: "#00F0FF",
+    fontSize: 12,
+    fontWeight: "bold",
+    marginLeft: 8,
+  },
+  hudRight: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  effLabel: {
+    color: "#888888",
+    fontSize: 12,
+    marginRight: 6,
+  },
+  effPercent: {
+    color: "#10B981",
     fontSize: 15,
     fontWeight: "bold",
-    textAlign: "center",
-    paddingTop: 15,
-    paddingBottom: 20,
   },
-  areaSection: {
-    marginVertical: 8,
+  gameOverBanner: {
+    backgroundColor: "rgba(255, 51, 102, 0.12)",
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1.5,
+    borderColor: "#FF3366",
+    marginVertical: 12,
     alignItems: "center",
-    width: "100%",
-  },
-  areaTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    alignSelf: "flex-start",
-    marginLeft: 30,
-    marginBottom: 4,
-  },
-  actionsContainer: {
-    alignItems: "center",
-    marginTop: 15,
-  },
-  actionBtn: {
-    backgroundColor: "rgba(144, 183, 243, 0.15)",
-    borderWidth: 1,
-    borderColor: "#90B7F3",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    marginTop: 10,
-  },
-  actionBtnText: {
-    color: "#90B7F3",
-    fontWeight: "bold",
-    fontSize: 14,
   },
   gameOverTitle: {
-    fontSize: 22,
+    color: "#FF3366",
+    fontSize: 18,
     fontWeight: "bold",
-    color: "#FF0044",
-    textAlign: "center",
   },
   gameOverDesc: {
-    color: "#CCCCCC",
-    fontSize: 14,
+    color: "#DDDDDD",
+    fontSize: 12,
     textAlign: "center",
-    marginTop: 6,
+    marginTop: 4,
+    marginBottom: 12,
+  },
+  gameOverRecoverBtn: {
+    backgroundColor: "#FF3366",
     paddingHorizontal: 20,
-  },
-  levelBadge: {
-    borderWidth: 1.5,
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    marginTop: 10,
-    marginBottom: 5,
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
-  },
-  levelText: {
-    fontWeight: "bold",
-    fontSize: 14,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.8)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  modalContent: {
-    width: "100%",
-    backgroundColor: "#1E1E1E",
-    borderRadius: 16,
-    padding: 20,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#90B7F3",
-  },
-  modalTitle: {
-    color: "#FFFFFF",
-    fontSize: 22,
-    fontWeight: "bold",
-    marginBottom: 4,
-  },
-  modalSubtitle: {
-    color: "#90B7F3",
-    fontSize: 14,
-    marginBottom: 15,
-  },
-  achievementCard: {
-    backgroundColor: "rgba(255, 255, 255, 0.04)",
-    borderRadius: 10,
-    padding: 12,
-    marginVertical: 6,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
-  },
-  achievementUnlocked: {
-    borderColor: "#85BB65",
-    backgroundColor: "rgba(133, 187, 101, 0.1)",
-  },
-  achievementTitle: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  achievementDesc: {
-    color: "#BBBBBB",
-    fontSize: 13,
-    marginTop: 2,
-  },
-  statusBadge: {
-    fontSize: 11,
-    fontWeight: "bold",
-    marginTop: 6,
-  },
-  closeBtn: {
-    marginTop: 15,
-    backgroundColor: "#90B7F3",
-    paddingVertical: 12,
-    paddingHorizontal: 30,
+    paddingVertical: 10,
     borderRadius: 8,
   },
-  closeBtnText: {
-    color: "#151515",
+  gameOverRecoverText: {
+    color: "#FFFFFF",
     fontWeight: "bold",
+    fontSize: 13,
+  },
+  questsHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  questsSectionTitle: {
+    color: "#FFFFFF",
+    fontSize: 17,
+    fontWeight: "bold",
+  },
+  newQuestBtn: {
+    backgroundColor: "#00F0FF",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  newQuestBtnText: {
+    color: "#0B0E14",
+    fontSize: 12,
+    fontWeight: "bold",
+  },
+  emptyStateBox: {
+    backgroundColor: "#121824",
+    borderRadius: 12,
+    padding: 24,
+    alignItems: "center",
+    marginVertical: 10,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.05)",
+  },
+  emptyStateTitle: {
+    color: "#FFFFFF",
     fontSize: 15,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  emptyStateSub: {
+    color: "#888888",
+    fontSize: 12,
+    textAlign: "center",
+    marginTop: 6,
+    lineHeight: 18,
+  },
+  completedSection: {
+    marginTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255, 255, 255, 0.06)",
+    paddingTop: 14,
+  },
+  completedSectionTitle: {
+    color: "#888888",
+    fontSize: 13,
+    fontWeight: "bold",
+    marginBottom: 6,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  bottomBar: {
+    flexDirection: "row",
+    backgroundColor: "#0D111A",
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255, 255, 255, 0.08)",
+    paddingTop: 8,
+    justifyContent: "space-around",
+  },
+  tabBtn: {
+    alignItems: "center",
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+  },
+  tabBtnActive: {
+    borderBottomWidth: 2,
+    borderBottomColor: "#00F0FF",
+  },
+  tabIcon: {
+    fontSize: 18,
+    marginBottom: 2,
+  },
+  tabLabel: {
+    color: "#666666",
+    fontSize: 11,
+    fontWeight: "600",
+  },
+  tabLabelActive: {
+    color: "#00F0FF",
+    fontWeight: "bold",
+  },
+  focusModalWrapper: {
+    flex: 1,
+    backgroundColor: "#0B0E14",
+  },
+  focusModalCloseBtn: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  focusModalCloseText: {
+    color: "#00F0FF",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
