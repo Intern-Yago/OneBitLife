@@ -23,7 +23,7 @@
     },
     "android": {
       "package": "com.internyago.OneBitLife",
-      "versionCode": 16,
+      "versionCode": 17,
       "allowBackup": false,
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/icons/logo1.png",
