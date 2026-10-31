@@ -123,8 +123,9 @@ export default function HabitPage({ route }) {
   };
 
   const handleSave = async () => {
-    if (!habitName.trim()) {
-      Alert.alert("OneBitLife", "Por favor, digite um nome para a sua meta.");
+    const sanitizedName = habitName.trim().replace(/[\x00-\x1F\x7F]/g, "").slice(0, 80);
+    if (!sanitizedName) {
+      Alert.alert("OneBitLife", "Por favor, digite um nome válido para a sua meta.");
       return;
     }
 
@@ -135,7 +136,7 @@ export default function HabitPage({ route }) {
       // Atualiza notificação se ativado
       if (hasNotification) {
         scheduledNotifId = await NotificationService.createNotification(
-          habitName.trim(),
+          sanitizedName,
           frequency,
           frequency === "Semanal" ? selectedWeekday : "Diário",
           notificationTime,
@@ -146,17 +147,20 @@ export default function HabitPage({ route }) {
         scheduledNotifId = "";
       }
 
+      const sanitizedTarget = Math.max(1, Math.min(99999, parseFloat(targetValue) || 1));
+      const sanitizedUnit = (unit || "").trim().replace(/[\x00-\x1F\x7F]/g, "").slice(0, 15);
+
       const habitData = {
         id: habit?.id,
         habitArea,
-        habitName: habitName.trim(),
+        habitName: sanitizedName,
         habitFrequency: frequency,
         habitHasNotification: hasNotification ? 1 : 0,
         habitNotificationFrequency: frequency === "Semanal" ? selectedWeekday : "Diário",
         habitNotificationTime: notificationTime,
         habitType,
-        targetValue: parseFloat(targetValue) || 1,
-        unit: habitType === "check" ? "" : unit,
+        targetValue: sanitizedTarget,
+        unit: habitType === "check" ? "" : sanitizedUnit,
         difficulty,
         icon: selectedIcon,
         notificationId: scheduledNotifId || "",
@@ -325,6 +329,7 @@ export default function HabitPage({ route }) {
           style={styles.input}
           value={habitName}
           onChangeText={setHabitName}
+          maxLength={80}
           placeholder="Ex: Ler 15 minutos de finanças..."
           placeholderTextColor="#666666"
         />
@@ -357,6 +362,7 @@ export default function HabitPage({ route }) {
                 value={targetValue}
                 onChangeText={setTargetValue}
                 keyboardType="numeric"
+                maxLength={8}
                 placeholder={habitType === "timer" ? "Ex: 25" : "Ex: 2000"}
                 placeholderTextColor="#666"
               />
@@ -364,6 +370,7 @@ export default function HabitPage({ route }) {
                 style={[styles.input, { width: 100 }]}
                 value={unit}
                 onChangeText={setUnit}
+                maxLength={15}
                 placeholder="Unidade (min, ml...)"
                 placeholderTextColor="#666"
               />

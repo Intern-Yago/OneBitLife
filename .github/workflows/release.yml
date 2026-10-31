@@ -47,11 +47,14 @@ jobs:
 
       - name: 6. Atualizar Versão, app.json e CHANGELOG.md
         id: versioning
-        run: node .github/scripts/bump-version.js ${{ github.event.inputs.release_type }}
+        env:
+          RELEASE_TYPE: ${{ github.event.inputs.release_type }}
+        run: node .github/scripts/bump-version.js "$RELEASE_TYPE"
 
       - name: 7. Commit, Tag e Push das Alterações
+        env:
+          VERSION: ${{ steps.versioning.outputs.version }}
         run: |
-          VERSION="${{ steps.versioning.outputs.version }}"
           git add package.json app.json CHANGELOG.md
           if [ -f package-lock.json ]; then git add package-lock.json; fi
           git commit -m "chore(release): v${VERSION} [skip ci]" || true
@@ -67,9 +70,14 @@ jobs:
       - name: 9. Gerar e Baixar Build do APK via EAS Cloud
         run: |
           eas build --platform android --profile androidApk --non-interactive --json > build-output.json
-          BUILD_URL=$(jq -r '.[0].artifacts.buildUrl' build-output.json)
+          BUILD_URL=$(jq -r '.[0].artifacts.buildUrl // empty' build-output.json)
+          if [ -z "$BUILD_URL" ] || [ "$BUILD_URL" = "null" ]; then
+            echo "Erro: URL do APK não retornada pelo build do EAS!"
+            cat build-output.json
+            exit 1
+          fi
           echo "Baixando APK de: $BUILD_URL"
-          curl -L -o ./OneBitLife.apk "$BUILD_URL"
+          curl -fL -o ./OneBitLife.apk "$BUILD_URL"
 
       - name: 10. Criar GitHub Release e Anexar o APK nos Assets
         uses: softprops/action-gh-release@v2
