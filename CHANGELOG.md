@@ -1,5 +1,12 @@
 # Changelog
 
+## [v1.0.13] - 2026-10-31
+
+### Alterações nesta versão:
+- feat(landing): redesign GitHub Pages landing page with Anthropic cyber aesthetics and live audio simulator (7838a59)
+
+---
+
 ## [v1.0.12] - 2026-10-31
 
 ### Alterações nesta versão:
