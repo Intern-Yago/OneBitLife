@@ -1,5 +1,12 @@
 # Changelog
 
+## [v1.1.3] - 2026-10-31
+
+### Alterações nesta versão:
+- fix(runtime): eliminate launch crash and white flash with Lottie source guards, robust SQLite adapter, and CyberErrorBoundary (f326523)
+
+---
+
 ## [v1.1.2] - 2026-10-31
 
 ### Alterações nesta versão:
