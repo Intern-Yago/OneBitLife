@@ -1,5 +1,12 @@
 # Changelog
 
+## [v1.1.2] - 2026-10-31
+
+### Alterações nesta versão:
+- fix(build): pre-bundle SQLite amalgamation archive and enforce IPv4 to resolve download failure (6ad6d12)
+
+---
+
 ## [v1.1.1] - 2026-10-31
 
 ### Alterações nesta versão:
