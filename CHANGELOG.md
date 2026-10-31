@@ -1,5 +1,26 @@
 # Changelog
 
+## [v1.0.14] - 2026-10-31
+
+### Alterações nesta versão:
+- feat(books): integrate Open Library universal book search with live covers, area chips, and buy links (977a44d)
+- feat(release): merge Expo SDK 51 migration with physical assessments, expanded wisdom library, audio sfx, and cyber forge (0adc514)
+- feat(rpg): physical assessment battery, expanded wisdom library with wishlist and buy links, auto-forge routine, cognitive overload alert, and xp bug fix (7112564)
+- feat(mobile): fix sound effects with bundled wav assets, add sqlite modern adapter, and smart build skip filter in CI (d03683d)
+- ci: sync eas-cli npm install fix to v51 upgrade branch (7fcff20)
+- feat(landing): restore robot mascot and replace emojis with sleek SVGs (8830d36)
+- chore(upgrade): draft expo 51 package.json and database compatibility (215827c)
+- security: apply mobile hardening (allowBackup false, sanitized inputs, hardened CI/CD workflow) (a3e952c)
+- feat: complete overhaul to OneBitLife 2.0 (quests, workouts, books, focus zen, audio sfx, daily challenges, badges) (251752e)
+- chore(release): v1.0.13 [skip ci] (6aa4520)
+- feat(landing): redesign GitHub Pages landing page with Anthropic cyber aesthetics and live audio simulator (7838a59)
+- chore(release): v1.0.12 [skip ci] (e70c0fd)
+- ci: fix eas-cli installation using npm instead of yarn action (890d9b0)
+- chore(release): v1.0.11 [skip ci] (ca31c74)
+- ci: trigger release workflow automatically on push to main (8d59dc1)
+
+---
+
 ## [v1.0.13] - 2026-10-31
 
 ### Alterações nesta versão:
