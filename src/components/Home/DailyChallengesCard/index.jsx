@@ -26,6 +26,7 @@ export default function DailyChallengesCard({ onChallengeDone }) {
     if (challenge.completed) return;
     const ok = await DailyChallengeService.completeChallenge(challenge.id);
     if (ok) {
+      SoundService.playCheck();
       setChallenges((prev) =>
         prev.map((c) => (c.id === challenge.id ? { ...c, completed: 1 } : c))
       );
@@ -41,9 +42,9 @@ export default function DailyChallengesCard({ onChallengeDone }) {
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.badge}>
-          <Text style={styles.badgeText}>🎲 SIDE QUESTS DO DIA</Text>
+          <Text style={styles.badgeText}>[SIDE QUESTS DO DIA]</Text>
         </View>
-        <Text style={styles.resetText}>Reinicia às 00:00</Text>
+        <Text style={styles.resetText}>Reinicia diariamente às 00:00</Text>
       </View>
 
       {challenges.map((c) => (
@@ -91,7 +92,7 @@ export default function DailyChallengesCard({ onChallengeDone }) {
 const styles = StyleSheet.create({
   container: {
     width: "100%",
-    backgroundColor: "rgba(18, 24, 36, 0.9)",
+    backgroundColor: "#0D131F",
     borderRadius: 14,
     padding: 14,
     marginVertical: 10,
@@ -102,93 +103,93 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: 12,
   },
   badge: {
-    backgroundColor: "rgba(0, 240, 255, 0.12)",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    backgroundColor: "rgba(0, 240, 255, 0.1)",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: "#00F0FF",
+    borderColor: "rgba(0, 240, 255, 0.3)",
   },
   badgeText: {
     color: "#00F0FF",
-    fontSize: 11,
-    fontWeight: "bold",
+    fontSize: 10.5,
+    fontWeight: "700",
     letterSpacing: 0.5,
   },
   resetText: {
-    color: "#777777",
-    fontSize: 10,
+    color: "#64748B",
+    fontSize: 10.5,
   },
   challengeItem: {
-    backgroundColor: "rgba(255, 255, 255, 0.03)",
-    borderRadius: 10,
-    padding: 12,
-    marginVertical: 5,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    backgroundColor: "#080C14",
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 8,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.05)",
+    borderColor: "rgba(255, 255, 255, 0.06)",
   },
   challengeCompleted: {
-    opacity: 0.6,
-    borderColor: "rgba(16, 185, 129, 0.2)",
+    borderColor: "#10B981",
+    backgroundColor: "rgba(16, 185, 129, 0.05)",
   },
   info: {
     flex: 1,
-    paddingRight: 10,
+    marginRight: 10,
   },
   metaRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 3,
+    marginBottom: 4,
   },
   category: {
-    color: "#F59E0B",
-    fontSize: 11,
-    fontWeight: "bold",
+    color: "#64748B",
+    fontSize: 10.5,
+    fontWeight: "700",
+    textTransform: "uppercase",
   },
   reward: {
     color: "#10B981",
     fontSize: 11,
-    fontWeight: "bold",
+    fontWeight: "700",
   },
   title: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    fontWeight: "bold",
+    color: "#F8FAFC",
+    fontSize: 13,
+    fontWeight: "700",
+    marginBottom: 3,
   },
   titleCompleted: {
+    color: "#64748B",
     textDecorationLine: "line-through",
-    color: "#888888",
   },
   desc: {
-    color: "#AAAAAA",
-    fontSize: 12,
-    marginTop: 2,
+    color: "#94A3B8",
+    fontSize: 11.5,
     lineHeight: 16,
   },
   checkBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: "#00F0FF",
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1.5,
+    borderColor: "rgba(0, 240, 255, 0.4)",
+    backgroundColor: "rgba(0, 240, 255, 0.05)",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(0, 240, 255, 0.08)",
   },
   checkBtnDone: {
-    borderColor: "#10B981",
     backgroundColor: "#10B981",
+    borderColor: "#10B981",
   },
   checkText: {
-    color: "#FFFFFF",
+    color: "#00F0FF",
+    fontWeight: "900",
     fontSize: 14,
-    fontWeight: "bold",
   },
 });

@@ -1,128 +1,265 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import {
+  ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
-  ScrollView,
-  Alert,
 } from "react-native";
-import { getWorkoutRoutine } from "../../Database/WorkoutData";
+import {
+  CALISTHENICS_ASSESSMENT_ITEMS,
+  GYM_ASSESSMENT_ITEMS,
+  GYM_COMPLEMENTARY_ITEMS,
+  WORKOUT_ROUTINES,
+  evaluateCalisthenicsAssessment,
+  evaluateGymAssessment,
+} from "../../Database/WorkoutData";
 import HabitsService from "../../services/HabitsService";
 import SoundService from "../../services/SoundService";
+import CyberModal from "../Common/CyberModal";
 
-export default function WorkoutTab({ onHabitAdded }) {
-  const [modality, setModality] = useState("calistenia");
-  const [level, setLevel] = useState("iniciante");
+export default function WorkoutTab({ onAddHabit }) {
+  const [activeScreen, setActiveScreen] = useState("routine"); // 'routine' | 'assessment'
+  const [modality, setModality] = useState("calistenia"); // 'calistenia' | 'academia'
+  const [selectedLevel, setSelectedLevel] = useState("intermediario"); // 'iniciante' | 'intermediario' | 'avancado'
   const [completedExercises, setCompletedExercises] = useState({});
+  const [restSeconds, setRestSeconds] = useState(0);
+  const [timerActive, setTimerActive] = useState(false);
 
-  // Cronômetro de Descanso
-  const [restTime, setRestTime] = useState(60);
-  const [currentTimer, setCurrentTimer] = useState(60);
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
-  const timerRef = useRef(null);
+  // Estados da Avaliação de Calistenia
+  const [calisResults, setCalisResults] = useState({
+    pull_up: "7",
+    dead_hang: "30",
+    push_up: "24",
+    hollow_body: "40",
+    v_hold: "60",
+    squat: "50",
+    lunge: "15",
+    pistol_squat: "Parcial",
+    calf_raise: "20",
+    shoulder_mobility: "Boa",
+    wrist_mobility: "Boa",
+    ankle_mobility: "Boa (1 polegar+)",
+    unilateral_balance: "30",
+  });
 
-  const routine = getWorkoutRoutine(modality, level);
+  // Estados da Avaliação de Academia
+  const [bodyweight, setBodyweight] = useState("75");
+  const [gymExercises, setGymExercises] = useState({
+    bench_press_weight: "60",
+    bench_press_reps: "8",
+    lat_pulldown_weight: "65",
+    lat_pulldown_reps: "10",
+    barbell_squat_weight: "80",
+    barbell_squat_reps: "8",
+    deadlift_weight: "100",
+    deadlift_reps: "6",
+    overhead_press_weight: "40",
+    overhead_press_reps: "8",
+    seated_row_weight: "60",
+    seated_row_reps: "10",
+    leg_press_weight: "180",
+    leg_press_reps: "12",
+    biceps_curl_weight: "26",
+    biceps_curl_reps: "10",
+    triceps_pulley_weight: "35",
+    triceps_pulley_reps: "12",
+    plank_seconds: "60",
+    hip_thrust_weight: "90",
+    hip_thrust_reps: "10",
+    standing_calf_weight: "50",
+    standing_calf_reps: "15",
+  });
 
+  const [assessmentDiagnosis, setAssessmentDiagnosis] = useState(null);
+
+  const [modalConfig, setModalConfig] = useState({
+    visible: false,
+    title: "",
+    message: "",
+    type: "info",
+    confirmText: "ENTENDIDO",
+    onConfirm: () => setModalConfig((prev) => ({ ...prev, visible: false })),
+  });
+
+  // Carrega última avaliação salva no SQLite
   useEffect(() => {
-    setRestTime(routine.restSeconds || 60);
-    setCurrentTimer(routine.restSeconds || 60);
-    setIsTimerRunning(false);
-    if (timerRef.current) clearInterval(timerRef.current);
-  }, [modality, level]);
-
-  // Efeito do cronômetro
-  useEffect(() => {
-    if (isTimerRunning) {
-      timerRef.current = setInterval(() => {
-        setCurrentTimer((prev) => {
-          if (prev <= 1) {
-            clearInterval(timerRef.current);
-            setIsTimerRunning(false);
-            SoundService.playTimerFinish();
-            Alert.alert("⚡ Descanso Finalizado!", "Hora da próxima série!");
-            return restTime;
+    async function loadSavedAssessment() {
+      try {
+        const saved = await HabitsService.getLatestWorkoutAssessment(modality);
+        if (saved && saved.parsedData) {
+          if (modality === "calistenia" && saved.parsedData.results) {
+            setCalisResults(saved.parsedData.results);
+          } else if (modality === "academia" && saved.parsedData.exercises) {
+            setGymExercises(saved.parsedData.exercises);
+            if (saved.parsedData.bodyweight) setBodyweight(saved.parsedData.bodyweight);
           }
-          if (prev === 4 || prev === 3 || prev === 2) {
+        }
+      } catch (err) {
+        console.warn("Erro ao buscar avaliação prévia:", err);
+      }
+    }
+    loadSavedAssessment();
+  }, [modality]);
+
+  // Timer de Descanso entre séries
+  useEffect(() => {
+    let interval = null;
+    if (timerActive && restSeconds > 0) {
+      interval = setInterval(() => {
+        setRestSeconds((prev) => {
+          if (prev <= 1) {
+            setTimerActive(false);
+            SoundService.playTimerFinish();
+            return 0;
+          }
+          if (prev <= 4) {
             SoundService.playBeep();
           }
           return prev - 1;
         });
       }, 1000);
-    } else {
-      if (timerRef.current) clearInterval(timerRef.current);
     }
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [isTimerRunning, restTime]);
+    return () => clearInterval(interval);
+  }, [timerActive, restSeconds]);
 
-  const toggleTimer = () => {
+  const startRestTimer = (seconds) => {
     SoundService.playClick();
-    setIsTimerRunning(!isTimerRunning);
+    setRestSeconds(seconds);
+    setTimerActive(true);
   };
 
-  const resetTimer = () => {
-    SoundService.playClick();
-    setIsTimerRunning(false);
-    setCurrentTimer(restTime);
-  };
+  const currentRoutine =
+    WORKOUT_ROUTINES[modality]?.[selectedLevel] ||
+    WORKOUT_ROUTINES.calistenia.intermediario;
 
   const toggleExerciseCheck = (index) => {
     SoundService.playClick();
-    setCompletedExercises((prev) => ({
-      ...prev,
-      [index]: !prev[index],
-    }));
+    setCompletedExercises((prev) => {
+      const next = { ...prev, [index]: !prev[index] };
+      if (next[index]) {
+        SoundService.playCheck();
+      }
+      return next;
+    });
   };
 
-  const handleAddRoutineToHabits = async () => {
-    try {
-      SoundService.playCheck();
-      await HabitsService.createHabit({
-        habitArea: "Corpo",
-        habitName: `Treino: ${routine.title}`,
-        habitFrequency: routine.frequency.includes("3x") ? "Semanal" : "Diário",
-        habitHasNotification: 0,
-        habitNotificationFrequency: "Diário",
-        habitNotificationTime: "18:00",
-        lastCheck: new Date().toISOString().slice(0, 10),
-        daysWithoutChecks: 0,
-        progressBar: 1,
-        habitIsChecked: 0,
-        habitChecks: 0,
-        habitType: "timer",
-        targetValue: 45,
-        unit: "min",
-        difficulty: level === "avancado" ? "Rank S" : level === "intermediario" ? "Rank A" : "Rank B",
-        icon: modality === "calistenia" ? "🦾" : "🏋️",
-        streak: 0,
+  const handleRunAssessment = async () => {
+    SoundService.playClick();
+    let diag = null;
+    if (modality === "calistenia") {
+      diag = evaluateCalisthenicsAssessment(calisResults);
+      await HabitsService.saveWorkoutAssessment("calistenia", diag.score, diag.rank, {
+        results: calisResults,
       });
+    } else {
+      diag = evaluateGymAssessment(bodyweight, gymExercises, {});
+      await HabitsService.saveWorkoutAssessment("academia", diag.score, diag.rank, {
+        bodyweight,
+        exercises: gymExercises,
+      });
+    }
 
-      Alert.alert(
-        "Protocolo Ativado!",
-        `O treino "${routine.title}" foi adicionado com sucesso à sua rotina do Corpo!`
-      );
-      if (onHabitAdded) onHabitAdded();
-    } catch (err) {
-      console.error(err);
-      Alert.alert("Erro", "Não foi possível adicionar o treino.");
+    setAssessmentDiagnosis(diag);
+    setSelectedLevel(diag.levelKey);
+    SoundService.playLevelUp();
+
+    setModalConfig({
+      visible: true,
+      title: "DIAGNÓSTICO BIOMECÂNICO CONCLUÍDO",
+      message: `Sua classificação: ${diag.rank}.\nO sistema calibrou automaticamente sua divisão para: ${diag.split}.`,
+      type: "success",
+      confirmText: "VER TREINO PERSONALIZADO",
+      onConfirm: () => {
+        setModalConfig((prev) => ({ ...prev, visible: false }));
+        setActiveScreen("routine");
+      },
+    });
+  };
+
+  const handleForgeRoutineToHabit = () => {
+    SoundService.playClick();
+    if (onAddHabit) {
+      onAddHabit({
+        habitName: `Treino: ${currentRoutine.title}`,
+        habitArea: "Corpo",
+        habitFrequency: "Diário",
+        habitType: "timer",
+        targetValue: 40,
+        unit: "min",
+        difficulty: selectedLevel === "avancado" ? "Rank S" : selectedLevel === "intermediario" ? "Rank A" : "Rank B",
+        icon: "⚡",
+      });
+      SoundService.playCheck();
+
+      setModalConfig({
+        visible: true,
+        title: "TREINO FORJADO COMO META",
+        message: `A rotina "${currentRoutine.title}" foi adicionada ao seu Core de Metas diárias!`,
+        type: "success",
+        confirmText: "CONTINUAR",
+        onConfirm: () => setModalConfig((prev) => ({ ...prev, visible: false })),
+      });
     }
   };
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <Text style={styles.sectionHeader}>🦾 Assistente de Treino Cyber</Text>
-      <Text style={styles.sectionSub}>
-        Selecione sua modalidade e nível para calcular a ficha biomecânica ideal.
-      </Text>
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={styles.headerTag}>
+          <Text style={styles.headerTagText}>[BIOMECHANICAL ENGINE]</Text>
+        </View>
+        <Text style={styles.title}>Assistente de Treino & Força</Text>
+        <Text style={styles.subtitle}>
+          Protocolos calculados por baterias de testes reais para Calistenia e Musculação.
+        </Text>
+      </View>
 
-      {/* SELETOR DE MODALIDADE */}
-      <View style={styles.toggleRow}>
+      {/* Navegação entre Visualização de Rotina vs Bateria de Avaliação */}
+      <View style={styles.screenSwitcher}>
+        <TouchableOpacity
+          style={[styles.screenTab, activeScreen === "routine" && styles.screenTabActive]}
+          onPress={() => {
+            SoundService.playClick();
+            setActiveScreen("routine");
+          }}
+        >
+          <Text
+            style={[
+              styles.screenTabText,
+              activeScreen === "routine" && styles.screenTabTextActive,
+            ]}
+          >
+            Treino do Dia
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.screenTab, activeScreen === "assessment" && styles.screenTabActive]}
+          onPress={() => {
+            SoundService.playClick();
+            setActiveScreen("assessment");
+          }}
+        >
+          <Text
+            style={[
+              styles.screenTabText,
+              activeScreen === "assessment" && styles.screenTabTextActive,
+            ]}
+          >
+            Bateria de Avaliação
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Switcher de Modalidade: Calistenia vs Academia */}
+      <View style={styles.modalityRow}>
         <TouchableOpacity
           style={[
-            styles.toggleBtn,
-            modality === "calistenia" && styles.toggleBtnActive,
+            styles.modalityBtn,
+            modality === "calistenia" && styles.modalityBtnActive,
           ]}
           onPress={() => {
             SoundService.playClick();
@@ -131,18 +268,18 @@ export default function WorkoutTab({ onHabitAdded }) {
         >
           <Text
             style={[
-              styles.toggleBtnText,
-              modality === "calistenia" && styles.toggleBtnTextActive,
+              styles.modalityBtnText,
+              modality === "calistenia" && styles.modalityBtnTextActive,
             ]}
           >
-            🦾 Calistenia (Corpo)
+            CALISTENIA (Controle Corporal)
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[
-            styles.toggleBtn,
-            modality === "academia" && styles.toggleBtnActive,
+            styles.modalityBtn,
+            modality === "academia" && styles.modalityBtnActive,
           ]}
           onPress={() => {
             SoundService.playClick();
@@ -151,116 +288,358 @@ export default function WorkoutTab({ onHabitAdded }) {
         >
           <Text
             style={[
-              styles.toggleBtnText,
-              modality === "academia" && styles.toggleBtnTextActive,
+              styles.modalityBtnText,
+              modality === "academia" && styles.modalityBtnTextActive,
             ]}
           >
-            🏋️ Academia (Pesos)
+            ACADEMIA (Sobrecarga Externa)
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* SELETOR DE NÍVEL */}
-      <View style={styles.levelRow}>
-        {["iniciante", "intermediario", "avancado"].map((lvl) => {
-          const isSel = level === lvl;
-          const label =
-            lvl === "iniciante"
-              ? "Iniciante"
-              : lvl === "intermediario"
-              ? "Intermediário"
-              : "Avançado";
-          return (
-            <TouchableOpacity
-              key={lvl}
-              style={[styles.levelBtn, isSel && styles.levelBtnActive]}
-              onPress={() => {
-                SoundService.playClick();
-                setLevel(lvl);
-              }}
-            >
-              <Text
-                style={[styles.levelBtnText, isSel && styles.levelBtnTextActive]}
+      {activeScreen === "routine" ? (
+        /* VISÃO: ROTINA DO DIA */
+        <>
+          {/* Nível do Treino */}
+          <View style={styles.levelRow}>
+            {["iniciante", "intermediario", "avancado"].map((lvl) => (
+              <TouchableOpacity
+                key={lvl}
+                style={[
+                  styles.levelPill,
+                  selectedLevel === lvl && styles.levelPillActive,
+                ]}
+                onPress={() => {
+                  SoundService.playClick();
+                  setSelectedLevel(lvl);
+                }}
               >
-                {label}
+                <Text
+                  style={[
+                    styles.levelText,
+                    selectedLevel === lvl && styles.levelTextActive,
+                  ]}
+                >
+                  {lvl.toUpperCase()}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Banner do Protocolo */}
+          <View style={styles.protocolCard}>
+            <View style={styles.protocolHeader}>
+              <Text style={styles.protocolTitle}>{currentRoutine.title}</Text>
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{currentRoutine.frequency}</Text>
+              </View>
+            </View>
+            <Text style={styles.protocolDesc}>{currentRoutine.description}</Text>
+          </View>
+
+          {/* Timer de Descanso */}
+          <View style={styles.timerCard}>
+            <View style={styles.timerHeader}>
+              <Text style={styles.timerTitle}>Cronômetro de Recuperação Articular</Text>
+              <Text style={styles.timerDisplay}>
+                {String(Math.floor(restSeconds / 60)).padStart(2, "0")}:
+                {String(restSeconds % 60).padStart(2, "0")}
+              </Text>
+            </View>
+
+            <View style={styles.timerButtons}>
+              <TouchableOpacity
+                style={styles.timerBtn}
+                onPress={() => startRestTimer(60)}
+              >
+                <Text style={styles.timerBtnText}>60s</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.timerBtn}
+                onPress={() => startRestTimer(75)}
+              >
+                <Text style={styles.timerBtnText}>75s</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.timerBtn}
+                onPress={() => startRestTimer(90)}
+              >
+                <Text style={styles.timerBtnText}>90s</Text>
+              </TouchableOpacity>
+              {timerActive && (
+                <TouchableOpacity
+                  style={styles.timerCancelBtn}
+                  onPress={() => {
+                    SoundService.playClick();
+                    setTimerActive(false);
+                    setRestSeconds(0);
+                  }}
+                >
+                  <Text style={styles.timerCancelText}>Zerar</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+
+          {/* Checklist de Exercícios */}
+          <View style={styles.exercisesList}>
+            <Text style={styles.sectionTitle}>Séries & Execução do Dia:</Text>
+            {currentRoutine.exercises.map((ex, index) => {
+              const isDone = !!completedExercises[index];
+              return (
+                <TouchableOpacity
+                  key={index}
+                  style={[styles.exerciseCard, isDone && styles.exerciseCardDone]}
+                  onPress={() => toggleExerciseCheck(index)}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.exerciseHeader}>
+                    <Text
+                      style={[
+                        styles.exerciseName,
+                        isDone && styles.exerciseNameDone,
+                      ]}
+                    >
+                      {ex.name}
+                    </Text>
+                    <View
+                      style={[
+                        styles.checkbox,
+                        isDone && styles.checkboxDone,
+                      ]}
+                    >
+                      <Text style={styles.checkboxText}>{isDone ? "✓" : ""}</Text>
+                    </View>
+                  </View>
+
+                  <Text style={styles.exerciseMeta}>
+                    {ex.sets} séries × {ex.reps}
+                  </Text>
+                  <Text style={styles.exerciseTip}>{ex.tip}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          {/* Botões de Ação */}
+          <View style={styles.actionButtonsContainer}>
+            <TouchableOpacity
+              style={styles.forgeHabitBtn}
+              onPress={handleForgeRoutineToHabit}
+            >
+              <Text style={styles.forgeHabitText}>
+                + Forjar Este Treino no Meu Core Diário
               </Text>
             </TouchableOpacity>
-          );
-        })}
-      </View>
 
-      {/* CARD DA ROTINA */}
-      <View style={styles.routineCard}>
-        <View style={styles.routineHeader}>
-          <Text style={styles.routineTitle}>{routine.title}</Text>
-          <Text style={styles.routineFrequency}>{routine.frequency}</Text>
-        </View>
-        <Text style={styles.routineDesc}>{routine.description}</Text>
-
-        {/* CRONÔMETRO DE DESCANSO EMBUTIDO */}
-        <View style={styles.timerBox}>
-          <View>
-            <Text style={styles.timerLabel}>⏱️ Cronômetro de Descanso</Text>
-            <Text style={styles.timerDisplay}>
-              {Math.floor(currentTimer / 60)}:
-              {`${currentTimer % 60}`.padStart(2, "0")}
+            <TouchableOpacity
+              style={styles.reassessBtn}
+              onPress={() => setActiveScreen("assessment")}
+            >
+              <Text style={styles.reassessText}>
+                Fazer Bateria de Avaliação Completa ↗
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      ) : (
+        /* VISÃO: BATERIA DE AVALIAÇÃO FÍSICA */
+        <View style={styles.assessmentContainer}>
+          <View style={styles.assessmentIntroCard}>
+            <Text style={styles.assessmentIntroTitle}>
+              {modality === "calistenia"
+                ? "Bateria de 13 Avaliações — Calistenia"
+                : "Bateria de Força Submáxima — Academia"}
+            </Text>
+            <Text style={styles.assessmentIntroDesc}>
+              {modality === "calistenia"
+                ? "Insira o número exato de repetições e tempos isométricos. O sistema calcula seu índice gravitacional e ajusta o volume."
+                : "Considere peso corporal e cargas submáximas reais. Não force 1RM perigoso; o sistema utiliza equações biométricas de estimativa segura."}
             </Text>
           </View>
-          <View style={styles.timerBtnsRow}>
-            <TouchableOpacity
-              style={[
-                styles.timerActionBtn,
-                isTimerRunning && styles.timerPauseBtn,
-              ]}
-              onPress={toggleTimer}
-            >
-              <Text style={styles.timerActionText}>
-                {isTimerRunning ? "Pausar" : "Iniciar"}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.timerResetBtn} onPress={resetTimer}>
-              <Text style={styles.timerResetText}>Zerar</Text>
-            </TouchableOpacity>
-          </View>
+
+          {modality === "calistenia" ? (
+            /* FORMULÁRIO DE 13 AVALIAÇÕES CALISTENIA */
+            <View style={styles.testItemsGrid}>
+              {CALISTHENICS_ASSESSMENT_ITEMS.map((item) => (
+                <View key={item.id} style={styles.testCard}>
+                  <View style={styles.testHeaderRow}>
+                    <Text style={styles.testName}>{item.name}</Text>
+                    <Text style={styles.testUnit}>[{item.unit}]</Text>
+                  </View>
+                  <Text style={styles.testDesc}>{item.desc}</Text>
+                  {item.note && (
+                    <Text style={styles.testNote}>{item.note}</Text>
+                  )}
+
+                  {item.type === "choice" ? (
+                    <View style={styles.choiceRow}>
+                      {item.options.map((opt) => (
+                        <TouchableOpacity
+                          key={opt}
+                          style={[
+                            styles.choiceBtn,
+                            calisResults[item.id] === opt && styles.choiceBtnActive,
+                          ]}
+                          onPress={() => {
+                            SoundService.playClick();
+                            setCalisResults((prev) => ({ ...prev, [item.id]: opt }));
+                          }}
+                        >
+                          <Text
+                            style={[
+                              styles.choiceBtnText,
+                              calisResults[item.id] === opt && styles.choiceBtnTextActive,
+                            ]}
+                          >
+                            {opt}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  ) : (
+                    <View style={styles.inputStepperRow}>
+                      <TouchableOpacity
+                        style={styles.stepperBtn}
+                        onPress={() => {
+                          SoundService.playClick();
+                          const val = Math.max(0, (Number(calisResults[item.id]) || 0) - 1);
+                          setCalisResults((prev) => ({ ...prev, [item.id]: String(val) }));
+                        }}
+                      >
+                        <Text style={styles.stepperText}>-</Text>
+                      </TouchableOpacity>
+
+                      <TextInput
+                        style={styles.stepperInput}
+                        keyboardType="numeric"
+                        value={String(calisResults[item.id] || "0")}
+                        onChangeText={(txt) => {
+                          const sanitized = txt.replace(/[^0-9]/g, "");
+                          setCalisResults((prev) => ({ ...prev, [item.id]: sanitized }));
+                        }}
+                      />
+
+                      <TouchableOpacity
+                        style={styles.stepperBtn}
+                        onPress={() => {
+                          SoundService.playClick();
+                          const val = (Number(calisResults[item.id]) || 0) + 1;
+                          setCalisResults((prev) => ({ ...prev, [item.id]: String(val) }));
+                        }}
+                      >
+                        <Text style={styles.stepperText}>+</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+              ))}
+            </View>
+          ) : (
+            /* FORMULÁRIO DE ACADEMIA */
+            <View style={styles.testItemsGrid}>
+              {/* Peso Corporal */}
+              <View style={[styles.testCard, { borderColor: "#00F0FF" }]}>
+                <Text style={styles.testName}>Peso Corporal do Atleta (kg)</Text>
+                <Text style={styles.testDesc}>
+                  Indispensável para cálculo da relação de força relativa (1RM / Peso).
+                </Text>
+                <TextInput
+                  style={styles.bodyweightInput}
+                  keyboardType="numeric"
+                  value={bodyweight}
+                  onChangeText={(txt) => setBodyweight(txt.replace(/[^0-9.]/g, ""))}
+                  placeholder="Ex: 75"
+                  placeholderTextColor="#64748B"
+                />
+              </View>
+
+              {/* 12 Exercícios de Força Submáxima */}
+              {GYM_ASSESSMENT_ITEMS.map((item) => {
+                const weightKey = `${item.id}_weight`;
+                const repsKey = `${item.id}_reps`;
+                return (
+                  <View key={item.id} style={styles.testCard}>
+                    <Text style={styles.testName}>{item.name}</Text>
+                    <Text style={styles.testDesc}>{item.desc}</Text>
+
+                    {item.isSeconds ? (
+                      <View style={styles.gymInputRow}>
+                        <Text style={styles.inputLabel}>Segundos com postura correta:</Text>
+                        <TextInput
+                          style={styles.gymInput}
+                          keyboardType="numeric"
+                          value={gymExercises.plank_seconds || "60"}
+                          onChangeText={(txt) =>
+                            setGymExercises((prev) => ({
+                              ...prev,
+                              plank_seconds: txt.replace(/[^0-9]/g, ""),
+                            }))
+                          }
+                        />
+                      </View>
+                    ) : (
+                      <View style={styles.gymDualInputRow}>
+                        <View style={styles.gymInputHalf}>
+                          <Text style={styles.inputLabel}>Carga (kg):</Text>
+                          <TextInput
+                            style={styles.gymInput}
+                            keyboardType="numeric"
+                            value={String(gymExercises[weightKey] || "0")}
+                            onChangeText={(txt) =>
+                              setGymExercises((prev) => ({
+                                ...prev,
+                                [weightKey]: txt.replace(/[^0-9.]/g, ""),
+                              }))
+                            }
+                          />
+                        </View>
+
+                        <Text style={styles.multiplierX}>×</Text>
+
+                        <View style={styles.gymInputHalf}>
+                          <Text style={styles.inputLabel}>Repetições:</Text>
+                          <TextInput
+                            style={styles.gymInput}
+                            keyboardType="numeric"
+                            value={String(gymExercises[repsKey] || "0")}
+                            onChangeText={(txt) =>
+                              setGymExercises((prev) => ({
+                                ...prev,
+                                [repsKey]: txt.replace(/[^0-9]/g, ""),
+                              }))
+                            }
+                          />
+                        </View>
+                      </View>
+                    )}
+                  </View>
+                );
+              })}
+            </View>
+          )}
+
+          {/* Botão de Enviar Avaliação */}
+          <TouchableOpacity
+            style={styles.submitAssessmentBtn}
+            onPress={handleRunAssessment}
+          >
+            <Text style={styles.submitAssessmentText}>
+              Calcular Diagnóstico & Calibrar Treino
+            </Text>
+          </TouchableOpacity>
         </View>
+      )}
 
-        {/* LISTA DE EXERCÍCIOS */}
-        <Text style={styles.exercisesTitle}>📋 Exercícios do Ciclo:</Text>
-        {routine.exercises.map((ex, idx) => {
-          const isDone = !!completedExercises[idx];
-          return (
-            <TouchableOpacity
-              key={idx}
-              style={[styles.exItem, isDone && styles.exItemDone]}
-              onPress={() => toggleExerciseCheck(idx)}
-              activeOpacity={0.8}
-            >
-              <View style={styles.exInfo}>
-                <Text style={[styles.exName, isDone && styles.exNameDone]}>
-                  {idx + 1}. {ex.name}
-                </Text>
-                <Text style={styles.exSpecs}>
-                  {ex.sets} séries × {ex.reps}
-                </Text>
-                <Text style={styles.exTip}>💡 {ex.tip}</Text>
-              </View>
-              <View style={[styles.exCheck, isDone && styles.exCheckDone]}>
-                {isDone && <Text style={styles.exCheckIcon}>✓</Text>}
-              </View>
-            </TouchableOpacity>
-          );
-        })}
-
-        {/* BOTÃO ADICIONAR À ROTINA */}
-        <TouchableOpacity
-          style={styles.addRoutineBtn}
-          onPress={handleAddRoutineToHabits}
-        >
-          <Text style={styles.addRoutineBtnText}>
-            ⚡ Adicionar este Treino aos Hábitos do Corpo
-          </Text>
-        </TouchableOpacity>
-      </View>
+      {/* Cyber Modal */}
+      <CyberModal
+        visible={modalConfig.visible}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        type={modalConfig.type}
+        confirmText={modalConfig.confirmText}
+        onConfirm={modalConfig.onConfirm}
+      />
     </ScrollView>
   );
 }
@@ -269,233 +648,493 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 16,
+    paddingTop: 10,
+    backgroundColor: "#080C14",
   },
-  sectionHeader: {
-    color: "#FFFFFF",
+  header: {
+    marginBottom: 14,
+  },
+  headerTag: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+    backgroundColor: "rgba(255, 51, 102, 0.1)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 51, 102, 0.3)",
+    marginBottom: 6,
+  },
+  headerTagText: {
+    fontSize: 10,
+    color: "#FF3366",
+    fontWeight: "700",
+    letterSpacing: 0.5,
+  },
+  title: {
     fontSize: 20,
-    fontWeight: "bold",
-    marginTop: 10,
+    fontWeight: "800",
+    color: "#F8FAFC",
+    marginBottom: 4,
   },
-  sectionSub: {
-    color: "#888888",
-    fontSize: 13,
-    marginTop: 4,
-    marginBottom: 16,
+  subtitle: {
+    fontSize: 12.5,
+    color: "#94A3B8",
+    lineHeight: 18,
   },
-  toggleRow: {
+  screenSwitcher: {
     flexDirection: "row",
-    backgroundColor: "#121824",
+    backgroundColor: "#0D131F",
     borderRadius: 10,
     padding: 4,
     marginBottom: 12,
-  },
-  toggleBtn: {
-    flex: 1,
-    paddingVertical: 10,
-    alignItems: "center",
-    borderRadius: 8,
-  },
-  toggleBtnActive: {
-    backgroundColor: "#FF3366",
-  },
-  toggleBtnText: {
-    color: "#888888",
-    fontSize: 13,
-    fontWeight: "bold",
-  },
-  toggleBtnTextActive: {
-    color: "#FFFFFF",
-  },
-  levelRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 16,
-  },
-  levelBtn: {
-    flex: 1,
-    marginHorizontal: 3,
-    backgroundColor: "#121824",
-    paddingVertical: 8,
-    alignItems: "center",
-    borderRadius: 8,
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.08)",
   },
-  levelBtnActive: {
-    borderColor: "#00F0FF",
-    backgroundColor: "rgba(0, 240, 255, 0.12)",
+  screenTab: {
+    flex: 1,
+    paddingVertical: 9,
+    alignItems: "center",
+    borderRadius: 8,
   },
-  levelBtnText: {
-    color: "#AAAAAA",
+  screenTabActive: {
+    backgroundColor: "rgba(0, 240, 255, 0.15)",
+    borderWidth: 1,
+    borderColor: "#00F0FF",
+  },
+  screenTabText: {
     fontSize: 12,
     fontWeight: "600",
+    color: "#64748B",
   },
-  levelBtnTextActive: {
+  screenTabTextActive: {
     color: "#00F0FF",
-    fontWeight: "bold",
+    fontWeight: "800",
   },
-  routineCard: {
-    backgroundColor: "#121824",
+  modalityRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 14,
+  },
+  modalityBtn: {
+    flex: 1,
+    paddingVertical: 9,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+    backgroundColor: "#0D131F",
+    alignItems: "center",
+  },
+  modalityBtnActive: {
+    borderColor: "#FF3366",
+    backgroundColor: "rgba(255, 51, 102, 0.12)",
+  },
+  modalityBtnText: {
+    fontSize: 10.5,
+    fontWeight: "700",
+    color: "#64748B",
+    textAlign: "center",
+  },
+  modalityBtnTextActive: {
+    color: "#FF3366",
+  },
+  levelRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 14,
+  },
+  levelPill: {
+    flex: 1,
+    paddingVertical: 7,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+    backgroundColor: "#0D131F",
+    alignItems: "center",
+  },
+  levelPillActive: {
+    borderColor: "#00F0FF",
+    backgroundColor: "rgba(0, 240, 255, 0.1)",
+  },
+  levelText: {
+    fontSize: 11,
+    color: "#64748B",
+    fontWeight: "600",
+  },
+  levelTextActive: {
+    color: "#00F0FF",
+    fontWeight: "800",
+  },
+  protocolCard: {
+    backgroundColor: "#0D131F",
     borderRadius: 14,
     padding: 16,
     borderWidth: 1,
-    borderColor: "rgba(255, 51, 102, 0.25)",
-    marginBottom: 40,
+    borderColor: "rgba(255, 255, 255, 0.08)",
+    marginBottom: 14,
   },
-  routineHeader: {
+  protocolHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    marginBottom: 6,
   },
-  routineTitle: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "bold",
+  protocolTitle: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#F8FAFC",
     flex: 1,
   },
-  routineFrequency: {
-    color: "#FF3366",
-    fontSize: 11,
-    fontWeight: "bold",
-    backgroundColor: "rgba(255, 51, 102, 0.12)",
+  badge: {
+    backgroundColor: "rgba(0, 240, 255, 0.1)",
     paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  routineDesc: {
-    color: "#BBBBBB",
-    fontSize: 12,
-    marginTop: 8,
-    lineHeight: 18,
-  },
-  timerBox: {
-    backgroundColor: "#0B0E14",
-    borderRadius: 10,
-    padding: 12,
-    marginTop: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    paddingVertical: 3,
+    borderRadius: 4,
     borderWidth: 1,
-    borderColor: "rgba(0, 240, 255, 0.2)",
+    borderColor: "rgba(0, 240, 255, 0.3)",
   },
-  timerLabel: {
+  badgeText: {
+    fontSize: 10,
     color: "#00F0FF",
-    fontSize: 11,
-    fontWeight: "bold",
+    fontWeight: "700",
+  },
+  protocolDesc: {
+    fontSize: 12,
+    color: "#94A3B8",
+    lineHeight: 17,
+  },
+  timerCard: {
+    backgroundColor: "rgba(0, 240, 255, 0.04)",
+    borderRadius: 12,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: "rgba(0, 240, 255, 0.25)",
+    marginBottom: 14,
+  },
+  timerHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  timerTitle: {
+    fontSize: 12,
+    color: "#94A3B8",
+    fontWeight: "600",
   },
   timerDisplay: {
-    color: "#FFFFFF",
-    fontSize: 22,
-    fontWeight: "bold",
-    marginTop: 2,
-    letterSpacing: 1,
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#00F0FF",
+    fontFamily: "monospace",
   },
-  timerBtnsRow: {
+  timerButtons: {
     flexDirection: "row",
-    alignItems: "center",
+    gap: 8,
   },
-  timerActionBtn: {
-    backgroundColor: "#00F0FF",
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 8,
-    marginRight: 6,
-  },
-  timerPauseBtn: {
-    backgroundColor: "#F59E0B",
-  },
-  timerActionText: {
-    color: "#0B0E14",
-    fontWeight: "bold",
-    fontSize: 12,
-  },
-  timerResetBtn: {
-    borderWidth: 1,
-    borderColor: "#444444",
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  timerResetText: {
-    color: "#888888",
-    fontSize: 12,
-  },
-  exercisesTitle: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    fontWeight: "bold",
-    marginTop: 18,
-    marginBottom: 8,
-  },
-  exItem: {
-    backgroundColor: "rgba(255, 255, 255, 0.03)",
-    borderRadius: 10,
-    padding: 12,
-    marginVertical: 4,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.05)",
-  },
-  exItemDone: {
-    opacity: 0.6,
-    borderColor: "rgba(16, 185, 129, 0.3)",
-  },
-  exInfo: {
+  timerBtn: {
     flex: 1,
-    paddingRight: 10,
+    paddingVertical: 8,
+    borderRadius: 6,
+    backgroundColor: "#0D131F",
+    borderWidth: 1,
+    borderColor: "rgba(0, 240, 255, 0.3)",
+    alignItems: "center",
   },
-  exName: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  exNameDone: {
-    textDecorationLine: "line-through",
-    color: "#888888",
-  },
-  exSpecs: {
-    color: "#FF3366",
+  timerBtnText: {
     fontSize: 12,
-    fontWeight: "600",
-    marginTop: 2,
+    color: "#00F0FF",
+    fontWeight: "700",
   },
-  exTip: {
-    color: "#888888",
-    fontSize: 11,
-    marginTop: 4,
-    lineHeight: 15,
-  },
-  exCheck: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    borderWidth: 2,
+  timerCancelBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    backgroundColor: "rgba(255, 51, 102, 0.15)",
+    borderWidth: 1,
     borderColor: "#FF3366",
+    alignItems: "center",
+  },
+  timerCancelText: {
+    fontSize: 12,
+    color: "#FF3366",
+    fontWeight: "700",
+  },
+  exercisesList: {
+    marginBottom: 20,
+    gap: 10,
+  },
+  sectionTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#94A3B8",
+    marginBottom: 4,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  exerciseCard: {
+    backgroundColor: "#0D131F",
+    borderRadius: 12,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.08)",
+  },
+  exerciseCardDone: {
+    borderColor: "#10B981",
+    backgroundColor: "rgba(16, 185, 129, 0.05)",
+  },
+  exerciseHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  exerciseName: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#F8FAFC",
+    flex: 1,
+  },
+  exerciseNameDone: {
+    color: "#10B981",
+    textDecorationLine: "line-through",
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: "rgba(255, 255, 255, 0.25)",
     alignItems: "center",
     justifyContent: "center",
   },
-  exCheckDone: {
-    backgroundColor: "#10B981",
+  checkboxDone: {
     borderColor: "#10B981",
+    backgroundColor: "#10B981",
   },
-  exCheckIcon: {
-    color: "#FFFFFF",
-    fontWeight: "bold",
-    fontSize: 14,
+  checkboxText: {
+    color: "#05080F",
+    fontSize: 12,
+    fontWeight: "900",
   },
-  addRoutineBtn: {
-    backgroundColor: "#FF3366",
-    borderRadius: 10,
-    paddingVertical: 14,
+  exerciseMeta: {
+    fontSize: 12,
+    color: "#00F0FF",
+    fontWeight: "700",
+    marginBottom: 4,
+  },
+  exerciseTip: {
+    fontSize: 11.5,
+    color: "#64748B",
+    lineHeight: 16,
+  },
+  actionButtonsContainer: {
+    gap: 10,
+    paddingBottom: 40,
+  },
+  forgeHabitBtn: {
+    paddingVertical: 12,
+    borderRadius: 8,
+    backgroundColor: "rgba(255, 51, 102, 0.15)",
+    borderWidth: 1,
+    borderColor: "#FF3366",
     alignItems: "center",
-    marginTop: 18,
   },
-  addRoutineBtnText: {
-    color: "#FFFFFF",
-    fontWeight: "bold",
+  forgeHabitText: {
+    color: "#FF3366",
+    fontSize: 12.5,
+    fontWeight: "800",
+    letterSpacing: 0.4,
+  },
+  reassessBtn: {
+    paddingVertical: 11,
+    borderRadius: 8,
+    backgroundColor: "#0D131F",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.12)",
+    alignItems: "center",
+  },
+  reassessText: {
+    color: "#94A3B8",
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  assessmentContainer: {
+    paddingBottom: 40,
+  },
+  assessmentIntroCard: {
+    backgroundColor: "#0D131F",
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "rgba(0, 240, 255, 0.25)",
+    marginBottom: 16,
+  },
+  assessmentIntroTitle: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#F8FAFC",
+    marginBottom: 6,
+  },
+  assessmentIntroDesc: {
+    fontSize: 12,
+    color: "#94A3B8",
+    lineHeight: 17,
+  },
+  testItemsGrid: {
+    gap: 12,
+    marginBottom: 20,
+  },
+  testCard: {
+    backgroundColor: "#0D131F",
+    borderRadius: 12,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.08)",
+  },
+  testHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  testName: {
+    fontSize: 13.5,
+    fontWeight: "700",
+    color: "#F8FAFC",
+    flex: 1,
+  },
+  testUnit: {
+    fontSize: 11,
+    color: "#64748B",
+    fontWeight: "700",
+  },
+  testDesc: {
+    fontSize: 11.5,
+    color: "#64748B",
+    lineHeight: 16,
+    marginBottom: 10,
+  },
+  testNote: {
+    fontSize: 11,
+    color: "#F59E0B",
+    fontStyle: "italic",
+    marginBottom: 8,
+  },
+  choiceRow: {
+    flexDirection: "row",
+    gap: 6,
+  },
+  choiceBtn: {
+    flex: 1,
+    paddingVertical: 7,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+    backgroundColor: "rgba(255, 255, 255, 0.02)",
+    alignItems: "center",
+  },
+  choiceBtnActive: {
+    borderColor: "#00F0FF",
+    backgroundColor: "rgba(0, 240, 255, 0.15)",
+  },
+  choiceBtnText: {
+    fontSize: 10.5,
+    color: "#64748B",
+    fontWeight: "600",
+  },
+  choiceBtnTextActive: {
+    color: "#00F0FF",
+    fontWeight: "700",
+  },
+  inputStepperRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  stepperBtn: {
+    width: 40,
+    height: 38,
+    borderRadius: 6,
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.15)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  stepperText: {
+    color: "#F8FAFC",
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  stepperInput: {
+    flex: 1,
+    height: 38,
+    backgroundColor: "#080C14",
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "rgba(0, 240, 255, 0.3)",
+    color: "#00F0FF",
+    textAlign: "center",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  bodyweightInput: {
+    height: 42,
+    backgroundColor: "#080C14",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#00F0FF",
+    color: "#00F0FF",
+    paddingHorizontal: 14,
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  gymDualInputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  gymInputHalf: {
+    flex: 1,
+  },
+  inputLabel: {
+    fontSize: 11,
+    color: "#64748B",
+    marginBottom: 4,
+  },
+  multiplierX: {
+    color: "#64748B",
+    fontSize: 16,
+    fontWeight: "700",
+    marginTop: 14,
+  },
+  gymInput: {
+    height: 38,
+    backgroundColor: "#080C14",
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.15)",
+    color: "#F8FAFC",
+    textAlign: "center",
     fontSize: 14,
+    fontWeight: "700",
+  },
+  gymInputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  submitAssessmentBtn: {
+    paddingVertical: 14,
+    borderRadius: 8,
+    backgroundColor: "#00F0FF",
+    alignItems: "center",
+  },
+  submitAssessmentText: {
+    color: "#05080F",
+    fontSize: 13.5,
+    fontWeight: "900",
+    letterSpacing: 0.5,
   },
 });
