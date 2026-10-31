@@ -1,5 +1,12 @@
 # Changelog
 
+## [v1.0.12] - 2026-10-31
+
+### Alterações nesta versão:
+- ci: fix eas-cli installation using npm instead of yarn action (890d9b0)
+
+---
+
 ## [v1.0.11] - 2026-10-31
 
 ### Alterações nesta versão:
