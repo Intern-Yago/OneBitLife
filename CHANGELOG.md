@@ -1,5 +1,14 @@
 # Changelog
 
+## [v1.0.11] - 2026-10-31
+
+### Alterações nesta versão:
+- ci: trigger release workflow automatically on push to main (8d59dc1)
+- security: apply mobile hardening (allowBackup false, sanitized inputs, hardened CI/CD workflow) (a3e952c)
+- feat: complete overhaul to OneBitLife 2.0 (quests, workouts, books, focus zen, audio sfx, daily challenges, badges) (251752e)
+
+---
+
 ## [v1.0.10] - 2026-08-04
 
 ### Alterações nesta versão:
