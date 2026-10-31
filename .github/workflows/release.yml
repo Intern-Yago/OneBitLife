@@ -1,6 +1,9 @@
 name: Release & Build Expo APK
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       release_type:
@@ -48,7 +51,7 @@ jobs:
       - name: 6. Atualizar Versão, app.json e CHANGELOG.md
         id: versioning
         env:
-          RELEASE_TYPE: ${{ github.event.inputs.release_type }}
+          RELEASE_TYPE: ${{ github.event.inputs.release_type || 'patch' }}
         run: node .github/scripts/bump-version.js "$RELEASE_TYPE"
 
       - name: 7. Commit, Tag e Push das Alterações
