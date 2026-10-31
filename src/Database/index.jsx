@@ -1,4 +1,12 @@
-import * as SQLite from 'expo-sqlite'
-const db = SQLite.openDatabase('bitlife.db')
+let SQLite;
+try {
+  SQLite = require("expo-sqlite/legacy");
+} catch (_) {
+  SQLite = require("expo-sqlite");
+}
 
-export default db
+const db = SQLite.openDatabase
+  ? SQLite.openDatabase("bitlife.db")
+  : (SQLite.openDatabaseSync ? SQLite.openDatabaseSync("bitlife.db") : null);
+
+export default db;
