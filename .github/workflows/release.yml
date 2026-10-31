@@ -1,6 +1,9 @@
 name: Release & Build Expo APK
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       release_type:
@@ -47,9 +50,10 @@ jobs:
 
       - name: 6. Atualizar Versão, app.json e CHANGELOG.md
         id: versioning
-        env:
-          RELEASE_TYPE: ${{ github.event.inputs.release_type }}
-        run: node .github/scripts/bump-version.js "$RELEASE_TYPE"
+        run: |
+          BUMP="${{ github.event.inputs.release_type }}"
+          if [ -z "$BUMP" ]; then BUMP="patch"; fi
+          node .github/scripts/bump-version.js "$BUMP"
 
       - name: 7. Commit, Tag e Push das Alterações
         env:
@@ -61,13 +65,12 @@ jobs:
           git tag -f "v${VERSION}"
           git push origin HEAD:${{ github.ref_name }} --tags -f
 
-      - name: 8. Configurar Expo CLI
-        uses: expo/expo-github-action@v8
-        with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
+      - name: 8. Instalar EAS CLI Oficial
+        run: npm install -g eas-cli
 
       - name: 9. Gerar e Baixar Build do APK via EAS Cloud
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
           eas build --platform android --profile androidApk --non-interactive --json > build-output.json
           BUILD_URL=$(jq -r '.[0].artifacts.buildUrl // empty' build-output.json)
