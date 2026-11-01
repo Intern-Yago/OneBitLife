@@ -1,5 +1,18 @@
 # Changelog
 
+## [v1.1.0] - 2026-10-31
+
+### Alterações nesta versão (SemVer Minor):
+- feat(books): integração com Open Library API (Internet Archive) para busca universal de livros em qualquer disciplina (Biologia, Direito, Medicina, Arte, etc.) com capas ao vivo e links de compra (977a44d)
+- feat(release): migração para o Expo SDK 51, React Native 0.74 e conformidade com Android API 34 da Play Store (0adc514)
+- feat(workouts): bateria oficial de avaliação física biomecânica (Calistenia 13 testes + Musculação 12 testes com força relativa e estimativa submáxima segura de 1RM)
+- feat(habits): forjador de metas inteligente com botão 'Gerar Automático' sem duplicações e alerta de sobrecarga cognitiva
+- fix(audio): efeitos sonoros sintetizados em arquivos nativos WAV PCM 16-bit com reprodução em alto-falante e haptic feedback
+- fix(xp): cálculo unificado de XP e pontuação no SQLite somando checks de rotinas e +50 XP por Side Quest concluída
+- feat(ui): substituição de popups nativos brancos pelo CyberModal dark neon e eliminação do excesso de emojis por ícones SVG e tipografia Anthropic
+
+---
+
 ## [v1.0.14] - 2026-10-31
 
 ### Alterações nesta versão:
@@ -8,16 +21,6 @@
 - feat(rpg): physical assessment battery, expanded wisdom library with wishlist and buy links, auto-forge routine, cognitive overload alert, and xp bug fix (7112564)
 - feat(mobile): fix sound effects with bundled wav assets, add sqlite modern adapter, and smart build skip filter in CI (d03683d)
 - ci: sync eas-cli npm install fix to v51 upgrade branch (7fcff20)
-- feat(landing): restore robot mascot and replace emojis with sleek SVGs (8830d36)
-- chore(upgrade): draft expo 51 package.json and database compatibility (215827c)
-- security: apply mobile hardening (allowBackup false, sanitized inputs, hardened CI/CD workflow) (a3e952c)
-- feat: complete overhaul to OneBitLife 2.0 (quests, workouts, books, focus zen, audio sfx, daily challenges, badges) (251752e)
-- chore(release): v1.0.13 [skip ci] (6aa4520)
-- feat(landing): redesign GitHub Pages landing page with Anthropic cyber aesthetics and live audio simulator (7838a59)
-- chore(release): v1.0.12 [skip ci] (e70c0fd)
-- ci: fix eas-cli installation using npm instead of yarn action (890d9b0)
-- chore(release): v1.0.11 [skip ci] (ca31c74)
-- ci: trigger release workflow automatically on push to main (8d59dc1)
 
 ---
 
@@ -56,7 +59,7 @@
 ### Alterações nesta versão:
 - feat(gameover): add non-destructive avatar recovery mode preserving custom habits on game over (0110754)
 - fix(checks): bind habit checks to individual habit ID to guarantee accurate check calculation (01dcef7)
-- feat(habits): allow typing custom habit names and creating multiple habits per area (b9a3aef)
+- feat(habits): allow typing custom habit names and practical multiple habits per area (b9a3aef)
 - fix(notifications): resolve notification crashes, add safe area transparent bars, and implement achievements panel (3013bcf)
 
 ---

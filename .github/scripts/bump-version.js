@@ -17,34 +17,51 @@ const appJson = JSON.parse(fs.readFileSync(appJsonPath, 'utf8'));
 
 // 2. Incrementar versão SemVer
 const currentVersion = pkg.version || '1.0.0';
-const versionParts = currentVersion.split('.').map(Number);
-let [major, minor, patch] = versionParts;
 
-if (bumpType === 'major') {
-  major += 1;
-  minor = 0;
-  patch = 0;
-} else if (bumpType === 'minor') {
-  minor += 1;
-  patch = 0;
-} else {
-  // patch por padrão
-  patch += 1;
-}
-
-let newVersion = `${major}.${minor}.${patch}`;
-
-// Garantir que a versão não colida com uma tag existente no git
+let lastTag = '';
 try {
-  const existingTags = execSync('git tag -l', { stdio: ['pipe', 'pipe', 'ignore'] })
+  lastTag = execSync('git describe --tags --abbrev=0', { stdio: ['pipe', 'pipe', 'ignore'] }).toString().trim();
+} catch (e) {
+  lastTag = '';
+}
+const lastTagVersion = lastTag.replace(/^v/, '');
+
+let existingTags = [];
+try {
+  existingTags = execSync('git tag -l', { stdio: ['pipe', 'pipe', 'ignore'] })
     .toString()
     .split(/\r?\n/)
     .map(t => t.trim());
+} catch (e) {}
+
+let newVersion;
+// Se o package.json já foi atualizado manualmente para uma versão que não foi taggeada:
+if (currentVersion !== lastTagVersion && !existingTags.includes(`v${currentVersion}`)) {
+  newVersion = currentVersion;
+} else {
+  const versionParts = (lastTagVersion || currentVersion).split('.').map(Number);
+  let [major, minor, patch] = versionParts;
+
+  if (bumpType === 'major') {
+    major += 1;
+    minor = 0;
+    patch = 0;
+  } else if (bumpType === 'minor') {
+    minor += 1;
+    patch = 0;
+  } else {
+    // patch por padrão
+    patch += 1;
+  }
+
+  newVersion = `${major}.${minor}.${patch}`;
+
+  // Garantir que a versão não colida com uma tag existente no git
   while (existingTags.includes(`v${newVersion}`)) {
     patch += 1;
     newVersion = `${major}.${minor}.${patch}`;
   }
-} catch (e) {}
+}
 
 console.log(`Bumping version: ${currentVersion} -> ${newVersion} (${bumpType})`);
 
@@ -106,17 +123,19 @@ if (fs.existsSync(changelogPath)) {
   changelogContent = `# Changelog\n\nTodas as alterações notáveis neste projeto serão documentadas neste arquivo.\n\n---\n`;
 }
 
-// Inserir a nova seção logo após o cabeçalho principal do Changelog
-if (changelogContent.includes('# Changelog')) {
-  changelogContent = changelogContent.replace(
-    /# Changelog\n+/,
-    `# Changelog\n\n${releaseSection}\n---\n\n`
-  );
-} else {
-  changelogContent = `# Changelog\n\n${releaseSection}\n---\n\n` + changelogContent;
-}
+// Inserir a nova seção logo após o cabeçalho principal do Changelog se ainda não estiver presente
+if (!changelogContent.includes(`## [v${newVersion}]`)) {
+  if (changelogContent.includes('# Changelog')) {
+    changelogContent = changelogContent.replace(
+      /# Changelog\n+/,
+      `# Changelog\n\n${releaseSection}\n---\n\n`
+    );
+  } else {
+    changelogContent = `# Changelog\n\n${releaseSection}\n---\n\n` + changelogContent;
+  }
 
-fs.writeFileSync(changelogPath, changelogContent);
+  fs.writeFileSync(changelogPath, changelogContent);
+}
 
 // 8. Definir output para GitHub Actions se aplicável
 if (process.env.GITHUB_OUTPUT) {

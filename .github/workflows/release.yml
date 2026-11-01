@@ -81,12 +81,22 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: 7. Atualizar Versão, app.json e CHANGELOG.md
+      - name: 7. Atualizar Versão, app.json e CHANGELOG.md (SemVer)
         if: steps.filter.outputs.build_app == 'true'
         id: versioning
         run: |
           BUMP="${{ github.event.inputs.release_type }}"
-          if [ -z "$BUMP" ]; then BUMP="patch"; fi
+          if [ -z "$BUMP" ]; then
+            COMMIT_MSG=$(git log -1 --pretty=%B)
+            if echo "$COMMIT_MSG" | grep -iqE '(BREAKING CHANGE|major)'; then
+              BUMP="major"
+            elif echo "$COMMIT_MSG" | grep -iqE '^(feat|minor)'; then
+              BUMP="minor"
+            else
+              BUMP="patch"
+            fi
+          fi
+          echo "SemVer release type detectado: $BUMP"
           node .github/scripts/bump-version.js "$BUMP"
 
       - name: 8. Commit, Tag e Push das Alterações
