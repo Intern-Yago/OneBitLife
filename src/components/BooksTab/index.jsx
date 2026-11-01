@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
+  Image,
   Linking,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -12,13 +15,21 @@ import {
   BOOKS_CATALOG,
   getWeeklyFeaturedBooks,
 } from "../../Database/BooksData";
+import BookSearchService, {
+  POPULAR_DISCIPLINES,
+} from "../../services/BookSearchService";
 import HabitsService from "../../services/HabitsService";
 import SoundService from "../../services/SoundService";
 import CyberModal from "../Common/CyberModal";
 
 export default function BooksTab({ onAddHabit }) {
-  const [selectedCategory, setSelectedCategory] = useState("ALL");
-  const [activeView, setActiveView] = useState("catalog"); // 'catalog' ou 'wishlist'
+  const [activeView, setActiveView] = useState("explorer"); // 'explorer' | 'foundations' | 'wishlist'
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [currentDiscipline, setCurrentDiscipline] = useState("biologia");
+
+  const [selectedFoundationCategory, setSelectedFoundationCategory] = useState("ALL");
   const [wishlist, setWishlist] = useState([]);
   const [modalConfig, setModalConfig] = useState({
     visible: false,
@@ -42,7 +53,41 @@ export default function BooksTab({ onAddHabit }) {
 
   useEffect(() => {
     loadWishlist();
+    // Faz uma busca inicial pela disciplina padrão (ex: biologia)
+    handleDisciplineSelect("biologia");
   }, []);
+
+  const handleDisciplineSelect = async (queryText) => {
+    SoundService.playClick();
+    setCurrentDiscipline(queryText);
+    setSearchQuery(queryText);
+    setIsSearching(true);
+    try {
+      const results = await BookSearchService.searchBooks(queryText, 12);
+      setSearchResults(results);
+    } catch (err) {
+      console.warn("Erro na busca por disciplina:", err);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleManualSearch = async () => {
+    if (!searchQuery.trim()) return;
+    SoundService.playClick();
+    setIsSearching(true);
+    try {
+      const results = await BookSearchService.searchBooks(searchQuery, 12);
+      setSearchResults(results);
+      if (results.length === 0) {
+        SoundService.playBeep();
+      }
+    } catch (err) {
+      console.warn("Erro na busca manual:", err);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   const isBookInWishlist = (bookId) => {
     return wishlist.some((item) => item.id === bookId);
@@ -61,8 +106,9 @@ export default function BooksTab({ onAddHabit }) {
             id: book.id,
             title: book.title,
             author: book.author,
-            category: book.category,
+            category: book.category || "GERAL",
             buyUrl: book.buyUrl,
+            coverUrl: book.coverUrl,
             addedDate: new Date().toISOString(),
           },
           ...prev,
@@ -102,40 +148,57 @@ export default function BooksTab({ onAddHabit }) {
     }
   };
 
-  const filteredBooks =
-    selectedCategory === "ALL"
+  const filteredFoundations =
+    selectedFoundationCategory === "ALL"
       ? BOOKS_CATALOG
-      : BOOKS_CATALOG.filter((b) => b.category === selectedCategory);
+      : BOOKS_CATALOG.filter((b) => b.category === selectedFoundationCategory);
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTag}>
-          <Text style={styles.headerTagText}>[WISDOM REPOSITORY]</Text>
+          <Text style={styles.headerTagText}>[REPOSITÓRIO UNIVERSAL DO SABER]</Text>
         </View>
-        <Text style={styles.title}>Biblioteca Curada & Ideias</Text>
+        <Text style={styles.title}>Biblioteca & Conhecimento</Text>
         <Text style={styles.subtitle}>
-          Grandes obras de tecnologia, política, finanças e mente para alimentar seu intelecto.
+          Explore acervos de qualquer disciplina do mundo com capas e links de compra.
         </Text>
       </View>
 
-      {/* Switcher de Visão: Catálogo vs Lista de Interesse */}
+      {/* Switcher de Visão: Explorador Universal vs Fundamentos vs Lista de Interesse */}
       <View style={styles.viewSwitcher}>
         <TouchableOpacity
-          style={[styles.viewTab, activeView === "catalog" && styles.viewTabActive]}
+          style={[styles.viewTab, activeView === "explorer" && styles.viewTabActive]}
           onPress={() => {
             SoundService.playClick();
-            setActiveView("catalog");
+            setActiveView("explorer");
           }}
         >
           <Text
             style={[
               styles.viewTabText,
-              activeView === "catalog" && styles.viewTabTextActive,
+              activeView === "explorer" && styles.viewTabTextActive,
             ]}
           >
-            Catálogo & Destaques
+            Explorar Áreas
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.viewTab, activeView === "foundations" && styles.viewTabActive]}
+          onPress={() => {
+            SoundService.playClick();
+            setActiveView("foundations");
+          }}
+        >
+          <Text
+            style={[
+              styles.viewTabText,
+              activeView === "foundations" && styles.viewTabTextActive,
+            ]}
+          >
+            Fundamentos
           </Text>
         </TouchableOpacity>
 
@@ -152,25 +215,197 @@ export default function BooksTab({ onAddHabit }) {
               activeView === "wishlist" && styles.viewTabTextActive,
             ]}
           >
-            Lista de Interesse ({wishlist.length})
+            Interesses ({wishlist.length})
           </Text>
         </TouchableOpacity>
       </View>
 
-      {activeView === "catalog" ? (
-        <>
-          {/* Card de Destaque Semanal com Rotação Automática */}
+      {/* ======================================================== */}
+      {/* VISÃO 1: EXPLORADOR UNIVERSAL COM OPEN LIBRARY API       */}
+      {/* ======================================================== */}
+      {activeView === "explorer" && (
+        <View style={styles.explorerSection}>
+          {/* Barra de Busca Universal */}
+          <View style={styles.searchBarRow}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Pesquise qualquer área: Biologia, Direito, Arte..."
+              placeholderTextColor="#64748B"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              onSubmitEditing={handleManualSearch}
+              returnKeyType="search"
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity
+                style={styles.clearSearchBtn}
+                onPress={() => {
+                  SoundService.playClick();
+                  setSearchQuery("");
+                }}
+              >
+                <Text style={styles.clearSearchText}>✕</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              style={styles.searchActionBtn}
+              onPress={handleManualSearch}
+            >
+              <Text style={styles.searchActionText}>Buscar</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Chips Rápidos de Disciplinas */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.disciplineScroll}
+            contentContainerStyle={styles.disciplineContainer}
+          >
+            {POPULAR_DISCIPLINES.map((disc) => (
+              <TouchableOpacity
+                key={disc.id}
+                style={[
+                  styles.disciplineChip,
+                  currentDiscipline === disc.query && styles.disciplineChipActive,
+                ]}
+                onPress={() => handleDisciplineSelect(disc.query)}
+              >
+                <Text
+                  style={[
+                    styles.disciplineText,
+                    currentDiscipline === disc.query && styles.disciplineTextActive,
+                  ]}
+                >
+                  [{disc.label}]
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+
+          {/* Estado de Carregamento */}
+          {isSearching && (
+            <View style={styles.loadingBox}>
+              <ActivityIndicator color="#00F0FF" size="small" />
+              <Text style={styles.loadingText}>
+                Consultando acervo mundial da Open Library...
+              </Text>
+            </View>
+          )}
+
+          {/* Resultados da Busca com Capas de Livros */}
+          {!isSearching && searchResults.length === 0 ? (
+            <View style={styles.emptySearchBox}>
+              <Text style={styles.emptySearchTitle}>Nenhum livro encontrado</Text>
+              <Text style={styles.emptySearchDesc}>
+                Tente buscar por termos mais amplos (ex: "biologia", "direito penal", "anatomia", "design").
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.booksGrid}>
+              {searchResults.map((book) => {
+                const inWishlist = isBookInWishlist(book.id);
+                return (
+                  <View key={book.id} style={styles.bookCardUniversal}>
+                    <View style={styles.bookCardContentRow}>
+                      {/* Capa do Livro */}
+                      <View style={styles.coverWrapper}>
+                        {book.coverUrl ? (
+                          <Image
+                            source={{ uri: book.coverUrl }}
+                            style={styles.bookCoverImage}
+                            resizeMode="cover"
+                          />
+                        ) : (
+                          <View style={styles.coverPlaceholder}>
+                            <Text style={styles.coverPlaceholderText}>LIVRO</Text>
+                          </View>
+                        )}
+                      </View>
+
+                      {/* Informações da Obra */}
+                      <View style={styles.bookDetailsCol}>
+                        <View style={styles.metaRow}>
+                          <Text style={styles.categoryBadgeText}>[{book.category}]</Text>
+                          {book.year && (
+                            <Text style={styles.yearText}>{book.year}</Text>
+                          )}
+                        </View>
+
+                        <Text style={styles.bookTitle} numberOfLines={2}>
+                          {book.title}
+                        </Text>
+                        <Text style={styles.bookAuthor} numberOfLines={1}>
+                          {book.author}
+                        </Text>
+
+                        {book.pages !== "N/A" && (
+                          <Text style={styles.pagesText}>{book.pages} páginas est.</Text>
+                        )}
+                      </View>
+                    </View>
+
+                    {/* Ações: Comprar, Adicionar a Interesse, Adicionar à Rotina */}
+                    <View style={styles.cardActions}>
+                      <TouchableOpacity
+                        style={[
+                          styles.interestBtn,
+                          inWishlist && styles.interestBtnActive,
+                        ]}
+                        onPress={() => handleToggleWishlist(book)}
+                      >
+                        <Text
+                          style={[
+                            styles.interestBtnText,
+                            inWishlist && styles.interestBtnTextActive,
+                          ]}
+                        >
+                          {inWishlist ? "✓ Salvo" : "+ Tenho Interesse"}
+                        </Text>
+                      </TouchableOpacity>
+
+                      {book.buyUrl && (
+                        <TouchableOpacity
+                          style={styles.buyBtn}
+                          onPress={() => handleOpenStore(book.buyUrl)}
+                        >
+                          <Text style={styles.buyBtnText}>Onde Comprar ↗</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+
+                    <TouchableOpacity
+                      style={styles.addRoutineBtn}
+                      onPress={() => handleAddHabit(book)}
+                    >
+                      <Text style={styles.addRoutineText}>
+                        + Forjar Meta de Leitura ({book.actionRoutine.targetValue} min)
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                );
+              })}
+            </View>
+          )}
+        </View>
+      )}
+
+      {/* ======================================================== */}
+      {/* VISÃO 2: FUNDAMENTOS & DESTAQUES SEMANAIS (OFFLINE)      */}
+      {/* ======================================================== */}
+      {activeView === "foundations" && (
+        <View style={styles.foundationsSection}>
           <View style={styles.weeklyCard}>
             <View style={styles.weeklyHeader}>
               <Text style={styles.weeklyBadge}>SELEÇÃO DA SEMANA #{weeklyInfo.weekNumber}</Text>
-              <Text style={styles.weeklySub}>Rotação semanal sem repetições</Text>
+              <Text style={styles.weeklySub}>Rotação semanal offline</Text>
             </View>
             <Text style={styles.weeklyDesc}>
-              4 livros fundamentais selecionados para balancear seu desenvolvimento técnico, político, comportamental e financeiro.
+              Obras fundamentais selecionadas para desenvolvimento intelectual, político, comportamental e financeiro.
             </Text>
           </View>
 
-          {/* Categorias Filtro em Chips */}
+          {/* Filtros em Chips */}
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -182,17 +417,17 @@ export default function BooksTab({ onAddHabit }) {
                 key={cat.id}
                 style={[
                   styles.categoryChip,
-                  selectedCategory === cat.id && styles.categoryChipActive,
+                  selectedFoundationCategory === cat.id && styles.categoryChipActive,
                 ]}
                 onPress={() => {
                   SoundService.playClick();
-                  setSelectedCategory(cat.id);
+                  setSelectedFoundationCategory(cat.id);
                 }}
               >
                 <Text
                   style={[
                     styles.categoryText,
-                    selectedCategory === cat.id && styles.categoryTextActive,
+                    selectedFoundationCategory === cat.id && styles.categoryTextActive,
                   ]}
                 >
                   {cat.label}
@@ -201,9 +436,9 @@ export default function BooksTab({ onAddHabit }) {
             ))}
           </ScrollView>
 
-          {/* Lista de Livros do Catálogo */}
+          {/* Lista de Fundamentos */}
           <View style={styles.booksGrid}>
-            {filteredBooks.map((book) => {
+            {filteredFoundations.map((book) => {
               const inWishlist = isBookInWishlist(book.id);
               return (
                 <View key={book.id} style={styles.bookCard}>
@@ -227,7 +462,6 @@ export default function BooksTab({ onAddHabit }) {
                     ))}
                   </View>
 
-                  {/* Ações: Comprar, Adicionar a Interesse, Adicionar à Rotina */}
                   <View style={styles.cardActions}>
                     <TouchableOpacity
                       style={[
@@ -268,21 +502,25 @@ export default function BooksTab({ onAddHabit }) {
               );
             })}
           </View>
-        </>
-      ) : (
-        /* VISÃO: MINHA LISTA DE INTERESSE */
+        </View>
+      )}
+
+      {/* ======================================================== */}
+      {/* VISÃO 3: MINHA LISTA DE INTERESSE (WISHLIST SQLITE)      */}
+      {/* ======================================================== */}
+      {activeView === "wishlist" && (
         <View style={styles.wishlistContainer}>
           {wishlist.length === 0 ? (
             <View style={styles.emptyState}>
               <Text style={styles.emptyTitle}>Sua lista de interesses está vazia</Text>
               <Text style={styles.emptySubtitle}>
-                Navegue pelo catálogo e clique em "+ Tenho Interesse" para salvar os livros que você pretende adquirir ou ler no futuro.
+                Busque qualquer livro de sua área no Explorador e toque em "+ Tenho Interesse" para salvá-lo aqui.
               </Text>
               <TouchableOpacity
                 style={styles.backToCatalogBtn}
-                onPress={() => setActiveView("catalog")}
+                onPress={() => setActiveView("explorer")}
               >
-                <Text style={styles.backToCatalogText}>Explorar Catálogo</Text>
+                <Text style={styles.backToCatalogText}>Explorar Livros</Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -352,7 +590,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#080C14",
   },
   header: {
-    marginBottom: 16,
+    marginBottom: 14,
   },
   headerTag: {
     alignSelf: "flex-start",
@@ -402,13 +640,189 @@ const styles = StyleSheet.create({
     borderColor: "rgba(0, 240, 255, 0.35)",
   },
   viewTabText: {
-    fontSize: 12,
+    fontSize: 11.5,
     fontWeight: "600",
     color: "#64748B",
   },
   viewTabTextActive: {
     color: "#00F0FF",
     fontWeight: "800",
+  },
+  explorerSection: {
+    paddingBottom: 40,
+  },
+  searchBarRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#0D131F",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "rgba(0, 240, 255, 0.3)",
+    paddingHorizontal: 12,
+    marginBottom: 12,
+    height: 44,
+  },
+  searchInput: {
+    flex: 1,
+    color: "#F8FAFC",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  clearSearchBtn: {
+    padding: 6,
+    marginRight: 4,
+  },
+  clearSearchText: {
+    color: "#64748B",
+    fontSize: 14,
+  },
+  searchActionBtn: {
+    backgroundColor: "rgba(0, 240, 255, 0.15)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "#00F0FF",
+  },
+  searchActionText: {
+    color: "#00F0FF",
+    fontSize: 11.5,
+    fontWeight: "800",
+  },
+  disciplineScroll: {
+    marginBottom: 14,
+  },
+  disciplineContainer: {
+    gap: 8,
+  },
+  disciplineChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: "#0D131F",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.08)",
+  },
+  disciplineChipActive: {
+    borderColor: "#00F0FF",
+    backgroundColor: "rgba(0, 240, 255, 0.12)",
+  },
+  disciplineText: {
+    fontSize: 11,
+    color: "#64748B",
+    fontWeight: "700",
+  },
+  disciplineTextActive: {
+    color: "#00F0FF",
+  },
+  loadingBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 20,
+  },
+  loadingText: {
+    color: "#64748B",
+    fontSize: 12,
+  },
+  emptySearchBox: {
+    backgroundColor: "#0D131F",
+    borderRadius: 12,
+    padding: 24,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.08)",
+    marginTop: 10,
+  },
+  emptySearchTitle: {
+    color: "#F8FAFC",
+    fontSize: 14,
+    fontWeight: "700",
+    marginBottom: 6,
+  },
+  emptySearchDesc: {
+    color: "#64748B",
+    fontSize: 11.5,
+    textAlign: "center",
+  },
+  booksGrid: {
+    gap: 14,
+  },
+  bookCardUniversal: {
+    backgroundColor: "#0D131F",
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.08)",
+  },
+  bookCardContentRow: {
+    flexDirection: "row",
+    gap: 14,
+    marginBottom: 12,
+  },
+  coverWrapper: {
+    width: 70,
+    height: 100,
+    borderRadius: 8,
+    overflow: "hidden",
+    backgroundColor: "#080C14",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+  },
+  bookCoverImage: {
+    width: "100%",
+    height: "100%",
+  },
+  coverPlaceholder: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(0, 240, 255, 0.05)",
+  },
+  coverPlaceholderText: {
+    color: "#00F0FF",
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+  },
+  bookDetailsCol: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  metaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 4,
+  },
+  categoryBadgeText: {
+    fontSize: 9.5,
+    color: "#64748B",
+    fontWeight: "800",
+  },
+  yearText: {
+    fontSize: 10,
+    color: "#64748B",
+  },
+  bookTitle: {
+    fontSize: 14.5,
+    fontWeight: "800",
+    color: "#F8FAFC",
+    marginBottom: 3,
+    lineHeight: 19,
+  },
+  bookAuthor: {
+    fontSize: 12,
+    color: "#00F0FF",
+    marginBottom: 4,
+  },
+  pagesText: {
+    fontSize: 11,
+    color: "#64748B",
+  },
+  foundationsSection: {
+    paddingBottom: 40,
   },
   weeklyCard: {
     backgroundColor: "rgba(16, 185, 129, 0.06)",
@@ -466,10 +880,6 @@ const styles = StyleSheet.create({
     color: "#00F0FF",
     fontWeight: "700",
   },
-  booksGrid: {
-    gap: 14,
-    paddingBottom: 40,
-  },
   bookCard: {
     backgroundColor: "#0D131F",
     borderRadius: 14,
@@ -488,26 +898,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
-  },
-  categoryBadgeText: {
-    fontSize: 10,
-    color: "#64748B",
-    fontWeight: "700",
-  },
-  pagesText: {
-    fontSize: 11,
-    color: "#64748B",
-  },
-  bookTitle: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: "#F8FAFC",
-    marginBottom: 2,
-  },
-  bookAuthor: {
-    fontSize: 12,
-    color: "#00F0FF",
-    marginBottom: 12,
   },
   takeawaysContainer: {
     backgroundColor: "rgba(0, 0, 0, 0.35)",
