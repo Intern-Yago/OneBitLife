@@ -1,5 +1,12 @@
 # Changelog
 
+## [v1.3.0] - 2026-11-01
+
+### Alterações nesta versão:
+- feat(ui): replace text tags with SVG vector icons, add cyber protocol icon picker, and lock book search to pt-br (301b556)
+
+---
+
 ## [v1.2.0] - 2026-11-01
 
 ### Alterações nesta versão:
