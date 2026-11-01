@@ -69,7 +69,9 @@ jobs:
 
       - name: 4. Instalar Dependências
         if: steps.filter.outputs.build_app == 'true'
-        run: npm ci || npm install
+        run: |
+          npm ci || npm install
+          node .github/scripts/patch-sqlite.js
 
       - name: 5. Executar Expo Doctor
         if: steps.filter.outputs.build_app == 'true'

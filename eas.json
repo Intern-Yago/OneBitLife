@@ -15,6 +15,9 @@
     "androidApk": {
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "GRADLE_OPTS": "-Djava.net.preferIPv4Stack=true"
       }
     }
   },
