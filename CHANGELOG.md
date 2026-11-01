@@ -1,5 +1,12 @@
 # Changelog
 
+## [v1.1.4] - 2026-11-01
+
+### Alterações nesta versão:
+- fix(mascot): restore robot visibility with explicit Lottie dimensions and dynamic Tamagotchi hunger states (a2645c8)
+
+---
+
 ## [v1.1.3] - 2026-10-31
 
 ### Alterações nesta versão:
