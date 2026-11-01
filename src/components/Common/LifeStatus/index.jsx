@@ -4,56 +4,63 @@ import { View, StyleSheet } from "react-native";
 import Lottie from "lottie-react-native";
 import AnimationService from "../../../services/AnimationService";
 
+// Fallback inicial pré-carregado para evitar renderizar Lottie com source=undefined no primeiro tick
+const defaultMind = require("../../../assets/education/education-100.json");
+const defaultMoney = require("../../../assets/money/money-100.json");
+const defaultRobot = require("../../../assets/robot/robot-100-100.json");
+
 export default function LifeStatus({
   mindHabit,
   moneyHabit,
   bodyHabit,
   funHabit,
 }) {
-  /*Status:
-   100 - Máximo
-   50 - Médio
-   25 - baixo
-   00 - Curto (Acabou o game)
-   No robô, nós temos primeiros Felicidade e depoisa Saúde xx-xx
-*/
-  const [mind, setMind] = useState();
-  const [money, setMoney] = useState();
-  const [robot, setRobot] = useState();
+  const [mind, setMind] = useState(defaultMind);
+  const [money, setMoney] = useState(defaultMoney);
+  const [robot, setRobot] = useState(defaultRobot);
 
   useEffect(() => {
-    AnimationService.animationStatus(
-      mindHabit?.progressBar,
-      moneyHabit?.progressBar,
-      bodyHabit?.progressBar,
-      funHabit?.progressBar,
-      setMind,
-      setMoney,
-      setRobot
-    );
+    try {
+      AnimationService.animationStatus(
+        mindHabit?.progressBar,
+        moneyHabit?.progressBar,
+        bodyHabit?.progressBar,
+        funHabit?.progressBar,
+        setMind,
+        setMoney,
+        setRobot
+      );
+    } catch (err) {
+      console.warn("[LifeStatus] Erro ao atualizar status de animação:", err);
+    }
   }, [mindHabit, moneyHabit, bodyHabit, funHabit]);
 
   return (
     <View style={styles.container}>
-      <Lottie
-        source={mind}
-        autoPlay
-        loop
-        style={styles.educacaoAnimacao}
-      />
-      <Lottie
-        source={money}
-        autoPlay
-        loop
-        style={styles.financasAnimacao}
-      />
-
-      <Lottie
-        source={robot}
-        autoPlay
-        loop
-        style={styles.roboAnimacao}
-      />
+      {mind ? (
+        <Lottie
+          source={mind}
+          autoPlay
+          loop
+          style={styles.educacaoAnimacao}
+        />
+      ) : null}
+      {money ? (
+        <Lottie
+          source={money}
+          autoPlay
+          loop
+          style={styles.financasAnimacao}
+        />
+      ) : null}
+      {robot ? (
+        <Lottie
+          source={robot}
+          autoPlay
+          loop
+          style={styles.roboAnimacao}
+        />
+      ) : null}
     </View>
   );
 }
@@ -66,7 +73,7 @@ const styles = StyleSheet.create({
   roboAnimacao: {
     width: 190,
     marginTop: 30,
-    marginLeft: 25,
+    alignSelf: "center",
   },
   educacaoAnimacao: {
     width: 100,
@@ -76,8 +83,8 @@ const styles = StyleSheet.create({
   },
   financasAnimacao: {
     width: 100,
+    position: "absolute",
     marginTop: 50,
     marginLeft: 95,
-    position: "absolute",
   },
 });
