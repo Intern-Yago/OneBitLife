@@ -1,5 +1,12 @@
 # Changelog
 
+## [v1.5.0] - 2026-11-01
+
+### Alterações nesta versão:
+- feat(books): add book synopsis modal with ratings, reviews, and strict pt-br title filter (32fc15a)
+
+---
+
 ## [v1.4.0] - 2026-11-01
 
 ### Alterações nesta versão:
