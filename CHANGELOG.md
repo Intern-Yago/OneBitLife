@@ -1,5 +1,12 @@
 # Changelog
 
+## [v1.4.0] - 2026-11-01
+
+### Alterações nesta versão:
+- feat(books): implement persistent weekly SQLite cache with 7-day TTL and offline fallback (95a8c53)
+
+---
+
 ## [v1.3.0] - 2026-11-01
 
 ### Alterações nesta versão:
