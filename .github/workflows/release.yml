@@ -119,7 +119,11 @@ jobs:
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
-          eas build --platform android --profile androidApk --non-interactive --json > build-output.json
+          eas build --platform android --profile androidApk --non-interactive --json > build-output.json || {
+            echo "EAS Build falhou na nuvem! Saída detalhada:"
+            cat build-output.json
+            exit 1
+          }
           BUILD_URL=$(jq -r '.[0].artifacts.buildUrl // empty' build-output.json)
           if [ -z "$BUILD_URL" ] || [ "$BUILD_URL" = "null" ]; then
             echo "Erro: URL do APK não retornada pelo build do EAS!"
