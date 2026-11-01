@@ -1,5 +1,12 @@
 # Changelog
 
+## [v1.6.0] - 2026-11-01
+
+### Alterações nesta versão:
+- feat(system): add full backup/restore for device migration and fix lottie animations foreground stacking (258f01b)
+
+---
+
 ## [v1.5.0] - 2026-11-01
 
 ### Alterações nesta versão:
