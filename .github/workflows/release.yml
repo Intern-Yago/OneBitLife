@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - 'index.html'
+      - 'README.md'
+      - 'docs/**'
+      - '.github/workflows/pages.yml'
+      - 'LICENSE'
   workflow_dispatch:
     inputs:
       release_type:
@@ -37,25 +43,54 @@ jobs:
           node-version: 20
           cache: 'npm'
 
-      - name: 3. Instalar Dependências
+      - name: 3. Verificar Alterações Relevantes do App Mobile
+        id: filter
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "build_app=true" >> "$GITHUB_OUTPUT"
+            echo "Disparo manual via workflow_dispatch: build liberado."
+            exit 0
+          fi
+
+          # Detecta arquivos alterados no commit
+          CHANGED=$(git diff-tree --no-commit-id --name-only -r HEAD)
+          echo "Arquivos modificados no commit:"
+          echo "$CHANGED"
+
+          APP_CHANGES=$(echo "$CHANGED" | grep -E '^(src/|app\.json|package\.json|eas\.json|babel\.config\.js|metro\.config\.js|\.github/workflows/release\.yml)' || true)
+
+          if [ -z "$APP_CHANGES" ]; then
+            echo "Apenas arquivos web/docs/landing alterados. Pulando build do EAS Expo."
+            echo "build_app=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Alterações de código mobile detectadas. Prosseguindo para build do EAS."
+            echo "build_app=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 4. Instalar Dependências
+        if: steps.filter.outputs.build_app == 'true'
         run: npm ci || npm install
 
-      - name: 4. Executar Expo Doctor
+      - name: 5. Executar Expo Doctor
+        if: steps.filter.outputs.build_app == 'true'
         run: npx expo-doctor || true
 
-      - name: 5. Configurar Usuário do Git
+      - name: 6. Configurar Usuário do Git
+        if: steps.filter.outputs.build_app == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: 6. Atualizar Versão, app.json e CHANGELOG.md
+      - name: 7. Atualizar Versão, app.json e CHANGELOG.md
+        if: steps.filter.outputs.build_app == 'true'
         id: versioning
         run: |
           BUMP="${{ github.event.inputs.release_type }}"
           if [ -z "$BUMP" ]; then BUMP="patch"; fi
           node .github/scripts/bump-version.js "$BUMP"
 
-      - name: 7. Commit, Tag e Push das Alterações
+      - name: 8. Commit, Tag e Push das Alterações
+        if: steps.filter.outputs.build_app == 'true'
         env:
           VERSION: ${{ steps.versioning.outputs.version }}
         run: |
@@ -65,10 +100,12 @@ jobs:
           git tag -f "v${VERSION}"
           git push origin HEAD:${{ github.ref_name }} --tags -f
 
-      - name: 8. Instalar EAS CLI Oficial
+      - name: 9. Instalar EAS CLI Oficial
+        if: steps.filter.outputs.build_app == 'true'
         run: npm install -g eas-cli
 
-      - name: 9. Gerar e Baixar Build do APK via EAS Cloud
+      - name: 10. Gerar e Baixar Build do APK via EAS Cloud
+        if: steps.filter.outputs.build_app == 'true'
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
@@ -82,7 +119,8 @@ jobs:
           echo "Baixando APK de: $BUILD_URL"
           curl -fL -o ./OneBitLife.apk "$BUILD_URL"
 
-      - name: 10. Criar GitHub Release e Anexar o APK nos Assets
+      - name: 11. Criar GitHub Release e Anexar o APK nos Assets
+        if: steps.filter.outputs.build_app == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: "v${{ steps.versioning.outputs.version }}"

@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
 import {
-  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -19,6 +18,7 @@ import WorkoutTab from "../../components/WorkoutTab";
 import BooksTab from "../../components/BooksTab";
 import FocusTab from "../../components/FocusTab";
 import ProfileTab from "../../components/ProfileTab";
+import CyberModal from "../../components/Common/CyberModal";
 
 import ChangeNavigationService from "../../services/ChangeNavigationService";
 import CheckService from "../../services/CheckService";
@@ -37,11 +37,39 @@ export default function Home({ route }) {
   const [funHabits, setFunHabits] = useState([]);
 
   const [robotDaysLife, setRobotDaysLife] = useState("01");
-  const [checks, setChecks] = useState(0);
   const [gameOver, setGameOver] = useState(false);
+
+  // Estatísticas Unificadas de XP do Jogador
+  const [playerStats, setPlayerStats] = useState({
+    totalXP: 0,
+    habitChecksTotal: 0,
+    habitXPTotal: 0,
+    completedChallengesCount: 0,
+    challengeXPTotal: 0,
+    mindXP: 0,
+    moneyXP: 0,
+    bodyXP: 0,
+    funXP: 0,
+    mindChecks: 0,
+    moneyChecks: 0,
+    bodyChecks: 0,
+    funChecks: 0,
+  });
 
   // Modal de Foco acionado diretamente de uma meta
   const [focusedHabit, setFocusedHabit] = useState(null);
+
+  // Cyber Modal state
+  const [modalConfig, setModalConfig] = useState({
+    visible: false,
+    title: "",
+    message: "",
+    type: "info",
+    confirmText: "ENTENDIDO",
+    cancelText: null,
+    onConfirm: () => setModalConfig((prev) => ({ ...prev, visible: false })),
+    onCancel: null,
+  });
 
   const loadAllHabits = async () => {
     try {
@@ -63,11 +91,9 @@ export default function Home({ route }) {
         CheckService.checkStatus(h);
       });
 
-      const totalChecks = list.reduce(
-        (acc, h) => acc + (h.habitChecks || 0),
-        0
-      );
-      setChecks(totalChecks);
+      // Cálculo de XP Unificado (Hábitos + Desafios Diários)
+      const stats = await HabitsService.getPlayerStats();
+      setPlayerStats(stats);
 
       const hasDeadHabit = list.some((h) => h.progressBar === 0);
       setGameOver(hasDeadHabit);
@@ -127,25 +153,53 @@ export default function Home({ route }) {
     navigation.navigate("HabitPage", { create: true });
   };
 
+  const handleAddRoutineFromTab = async (routineObj) => {
+    try {
+      await HabitsService.createHabit({
+        ...routineObj,
+        lastCheck: new Date().toISOString().slice(0, 10),
+        daysWithoutChecks: 0,
+        progressBar: 1,
+        habitIsChecked: 0,
+        habitChecks: 0,
+        currentValue: 0,
+        streak: 0,
+      });
+      await loadAllHabits();
+    } catch (err) {
+      console.error("Erro ao adicionar rotina:", err);
+    }
+  };
+
   const handleResetAvatar = () => {
     SoundService.playClick();
-    Alert.alert(
-      "⚡ Restaurar Avatar (Recovery)",
-      "Deseja restaurar as barras de vida do avatar para 100% mantendo todas as suas metas?",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Restaurar",
-          onPress: async () => {
-            await HabitsService.resetAllProgress();
-            setGameOver(false);
-            loadAllHabits();
-            SoundService.playLevelUp();
-            Alert.alert("OneBitLife", "Avatar restaurado com sucesso! Mantenha a disciplina.");
-          },
-        },
-      ]
-    );
+    setModalConfig({
+      visible: true,
+      title: "RESTAURAR SAÚDE DO AVATAR",
+      message: "Deseja restaurar as barras de vida do avatar para 100% mantendo todas as suas metas e seu histórico acumulado?",
+      type: "warning",
+      confirmText: "RESTAURAR ENERGIA",
+      cancelText: "CANCELAR",
+      onCancel: () => setModalConfig((prev) => ({ ...prev, visible: false })),
+      onConfirm: async () => {
+        try {
+          await HabitsService.resetAllProgress();
+          setGameOver(false);
+          await loadAllHabits();
+          SoundService.playLevelUp();
+          setModalConfig({
+            visible: true,
+            title: "SISTEMA RESTAURADO",
+            message: "Avatar recuperado com sucesso. O Core está operando com energia total!",
+            type: "success",
+            confirmText: "CONTINUAR",
+            onConfirm: () => setModalConfig((prev) => ({ ...prev, visible: false })),
+          });
+        } catch (err) {
+          console.error(err);
+        }
+      },
+    });
   };
 
   const handleTabChange = (tab) => {
@@ -172,7 +226,7 @@ export default function Home({ route }) {
                 <Text style={styles.hpText}>
                   HP {robotDaysLife} {robotDaysLife === "01" ? "dia" : "dias"}
                 </Text>
-                <Text style={styles.checksPill}>[ {checks} Checks ]</Text>
+                <Text style={styles.checksPill}>[ {playerStats.totalXP} XP ]</Text>
               </View>
               <View style={styles.hudRight}>
                 <Text style={styles.effLabel}>Eficiência do Core:</Text>
@@ -200,7 +254,7 @@ export default function Home({ route }) {
             {/* SE O AVATAR MORREU */}
             {gameOver && (
               <View style={styles.gameOverBanner}>
-                <Text style={styles.gameOverTitle}>⚠️ Energia Crítica Esgotada</Text>
+                <Text style={styles.gameOverTitle}>Energia Crítica Esgotada</Text>
                 <Text style={styles.gameOverDesc}>
                   Uma ou mais metas expiraram. Restaure a saúde do avatar para continuar!
                 </Text>
@@ -209,7 +263,7 @@ export default function Home({ route }) {
                   onPress={handleResetAvatar}
                 >
                   <Text style={styles.gameOverRecoverText}>
-                    ⚡ Restaurar Energia do Avatar
+                    Restaurar Energia do Avatar
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -217,15 +271,16 @@ export default function Home({ route }) {
 
             {/* TERMINAL DE DESAFIOS DIÁRIOS (SIDE QUESTS) */}
             <DailyChallengesCard
-              onChallengeDone={() => {
-                setChecks((c) => c + 1);
+              onChallengeDone={async () => {
+                SoundService.playCheck();
+                await loadAllHabits();
               }}
             />
 
             {/* SEÇÃO: QUESTS ATIVAS DE HOJE */}
             <View style={styles.questsHeaderRow}>
               <Text style={styles.questsSectionTitle}>
-                🎯 Quests de Hoje ({activeHabits.length})
+                Quests de Hoje ({activeHabits.length})
               </Text>
               <TouchableOpacity
                 style={styles.newQuestBtn}
@@ -239,8 +294,8 @@ export default function Home({ route }) {
               <View style={styles.emptyStateBox}>
                 <Text style={styles.emptyStateTitle}>
                   {allHabits.length === 0
-                    ? "Nenhum protocolo forjado ainda!"
-                    : "🎉 Todas as quests de hoje concluídas!"}
+                    ? "Nenhum protocolo forjado ainda"
+                    : "Todas as quests de hoje concluídas"}
                 </Text>
                 <Text style={styles.emptyStateSub}>
                   {allHabits.length === 0
@@ -263,7 +318,7 @@ export default function Home({ route }) {
             {completedHabits.length > 0 && (
               <View style={styles.completedSection}>
                 <Text style={styles.completedSectionTitle}>
-                  ⚡ Protocolos Cumpridos Hoje ({completedHabits.length})
+                  Protocolos Cumpridos Hoje ({completedHabits.length})
                 </Text>
                 {completedHabits.map((habit) => (
                   <QuestCard
@@ -281,29 +336,33 @@ export default function Home({ route }) {
         )}
 
         {currentTab === "treinos" && (
-          <WorkoutTab onHabitAdded={loadAllHabits} />
+          <WorkoutTab onAddHabit={handleAddRoutineFromTab} />
         )}
 
         {currentTab === "livros" && (
-          <BooksTab onHabitAdded={loadAllHabits} />
+          <BooksTab onAddHabit={handleAddRoutineFromTab} />
         )}
 
         {currentTab === "foco" && (
           <FocusTab
-            onSessionDone={() => {
-              setChecks((c) => c + 1);
+            onSessionDone={async () => {
+              SoundService.playCheck();
+              await loadAllHabits();
             }}
           />
         )}
 
         {currentTab === "perfil" && (
           <ProfileTab
-            checks={checks}
+            totalXP={playerStats.totalXP}
+            checks={playerStats.totalXP}
             daysLife={robotDaysLife}
-            mindChecks={mindHabits.reduce((acc, h) => acc + (h.habitChecks || 0), 0)}
-            moneyChecks={moneyHabits.reduce((acc, h) => acc + (h.habitChecks || 0), 0)}
-            bodyChecks={bodyHabits.reduce((acc, h) => acc + (h.habitChecks || 0), 0)}
-            funChecks={funHabits.reduce((acc, h) => acc + (h.habitChecks || 0), 0)}
+            mindChecks={playerStats.mindXP}
+            moneyChecks={playerStats.moneyXP}
+            bodyChecks={playerStats.bodyXP}
+            funChecks={playerStats.funXP}
+            rawHabitChecks={playerStats.habitChecksTotal}
+            challengesDone={playerStats.completedChallengesCount}
             onResetLife={handleResetAvatar}
           />
         )}
@@ -312,11 +371,11 @@ export default function Home({ route }) {
       {/* BARRA DE NAVEGAÇÃO INFERIOR (BOTTOM TAB BAR) */}
       <View style={[styles.bottomBar, { paddingBottom: Math.max(10, insets.bottom) }]}>
         {[
-          { id: "hoje", icon: "🏠", label: "Hoje" },
-          { id: "treinos", icon: "🦾", label: "Treinos" },
-          { id: "livros", icon: "📚", label: "Livros" },
-          { id: "foco", icon: "⏱️", label: "Foco" },
-          { id: "perfil", icon: "👤", label: "Perfil" },
+          { id: "hoje", code: "[HOJE]", label: "Hoje" },
+          { id: "treinos", code: "[TREINO]", label: "Treinos" },
+          { id: "livros", code: "[LIVROS]", label: "Livros" },
+          { id: "foco", code: "[FOCO]", label: "Foco" },
+          { id: "perfil", code: "[PERFIL]", label: "Perfil" },
         ].map((tab) => {
           const isSel = currentTab === tab.id;
           return (
@@ -325,7 +384,9 @@ export default function Home({ route }) {
               style={[styles.tabBtn, isSel && styles.tabBtnActive]}
               onPress={() => handleTabChange(tab.id)}
             >
-              <Text style={styles.tabIcon}>{tab.icon}</Text>
+              <Text style={[styles.tabCode, isSel && styles.tabCodeActive]}>
+                {tab.code}
+              </Text>
               <Text style={[styles.tabLabel, isSel && styles.tabLabelActive]}>
                 {tab.label}
               </Text>
@@ -334,33 +395,68 @@ export default function Home({ route }) {
         })}
       </View>
 
-      {/* MODAL DE FOCO DISPARADO DE UM CARD */}
+      {/* MODAL FOCO / TIMER ACIONADO DE UMA META */}
       {focusedHabit && (
         <Modal
           visible={!!focusedHabit}
           animationType="slide"
-          transparent={false}
+          presentationStyle="pageSheet"
           onRequestClose={() => setFocusedHabit(null)}
         >
-          <View style={[styles.focusModalWrapper, { paddingTop: insets.top }]}>
-            <TouchableOpacity
-              style={styles.focusModalCloseBtn}
-              onPress={() => setFocusedHabit(null)}
-            >
-              <Text style={styles.focusModalCloseText}>‹ Fechar Sessão</Text>
-            </TouchableOpacity>
+          <View style={[styles.modalContainer, { paddingTop: insets.top + 20 }]}>
+            <View style={styles.modalHeader}>
+              <View>
+                <Text style={styles.modalHabitArea}>
+                  [{focusedHabit.habitArea.toUpperCase()}]
+                </Text>
+                <Text style={styles.modalHabitName}>
+                  {focusedHabit.habitName}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setFocusedHabit(null)}
+                style={styles.modalCloseBtn}
+              >
+                <Text style={styles.modalCloseText}>Fechar ✕</Text>
+              </TouchableOpacity>
+            </View>
+
             <FocusTab
-              habitName={focusedHabit?.habitName}
-              initialMinutes={Number(focusedHabit?.targetValue) || 25}
-              onSessionDone={() => {
-                setChecks((c) => c + 1);
-                loadAllHabits();
+              initialMinutes={
+                focusedHabit.habitType === "timer"
+                  ? focusedHabit.targetValue || 25
+                  : 25
+              }
+              onSessionDone={async () => {
+                await HabitsService.changeProgress({
+                  habitArea: focusedHabit.habitArea,
+                  progressBar: 1,
+                  habitChecks: (focusedHabit.habitChecks || 0) + 1,
+                  lastCheck: new Date().toISOString().slice(0, 10),
+                  daysWithoutChecks: 0,
+                  habitIsChecked: 1,
+                  currentValue: focusedHabit.targetValue || 25,
+                  streak: (focusedHabit.streak || 0) + 1,
+                });
                 setFocusedHabit(null);
+                loadAllHabits();
               }}
             />
           </View>
         </Modal>
       )}
+
+      {/* Cyber Modal */}
+      <CyberModal
+        visible={modalConfig.visible}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        type={modalConfig.type}
+        confirmText={modalConfig.confirmText}
+        cancelText={modalConfig.cancelText}
+        onConfirm={modalConfig.onConfirm}
+        onCancel={modalConfig.onCancel}
+      />
     </View>
   );
 }
@@ -368,188 +464,224 @@ export default function Home({ route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0B0E14",
+    backgroundColor: "#080C14",
   },
   tabContentContainer: {
     flex: 1,
   },
   scrollPadding: {
     paddingHorizontal: 16,
-    paddingTop: 10,
+    paddingTop: 8,
   },
   topHud: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "#121824",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    backgroundColor: "#0D131F",
     borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.06)",
-    marginBottom: 8,
+    borderColor: "rgba(0, 240, 255, 0.2)",
+    marginBottom: 10,
   },
   hudLeft: {
     flexDirection: "row",
     alignItems: "center",
+    gap: 8,
   },
   hpText: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    fontWeight: "bold",
+    color: "#F8FAFC",
+    fontWeight: "800",
+    fontSize: 13,
+    letterSpacing: 0.5,
   },
   checksPill: {
+    backgroundColor: "rgba(0, 240, 255, 0.12)",
     color: "#00F0FF",
-    fontSize: 12,
-    fontWeight: "bold",
-    marginLeft: 8,
+    fontSize: 11,
+    fontWeight: "700",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "rgba(0, 240, 255, 0.3)",
   },
   hudRight: {
     flexDirection: "row",
     alignItems: "center",
+    gap: 6,
   },
   effLabel: {
-    color: "#888888",
-    fontSize: 12,
-    marginRight: 6,
+    color: "#64748B",
+    fontSize: 11,
+    fontWeight: "600",
   },
   effPercent: {
     color: "#10B981",
-    fontSize: 15,
-    fontWeight: "bold",
+    fontSize: 14,
+    fontWeight: "900",
   },
   gameOverBanner: {
     backgroundColor: "rgba(255, 51, 102, 0.12)",
-    borderRadius: 12,
-    padding: 16,
     borderWidth: 1.5,
     borderColor: "#FF3366",
-    marginVertical: 12,
+    borderRadius: 12,
+    padding: 14,
+    marginVertical: 10,
     alignItems: "center",
   },
   gameOverTitle: {
     color: "#FF3366",
-    fontSize: 18,
-    fontWeight: "bold",
+    fontSize: 14,
+    fontWeight: "800",
+    marginBottom: 4,
+    letterSpacing: 0.5,
   },
   gameOverDesc: {
-    color: "#DDDDDD",
+    color: "#CBD5E1",
     fontSize: 12,
     textAlign: "center",
-    marginTop: 4,
-    marginBottom: 12,
+    lineHeight: 16,
+    marginBottom: 10,
   },
   gameOverRecoverBtn: {
     backgroundColor: "#FF3366",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     borderRadius: 8,
   },
   gameOverRecoverText: {
     color: "#FFFFFF",
-    fontWeight: "bold",
-    fontSize: 13,
+    fontWeight: "800",
+    fontSize: 12,
   },
   questsHeaderRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 16,
-    marginBottom: 8,
+    marginTop: 14,
+    marginBottom: 10,
   },
   questsSectionTitle: {
-    color: "#FFFFFF",
-    fontSize: 17,
-    fontWeight: "bold",
+    color: "#F8FAFC",
+    fontSize: 15,
+    fontWeight: "800",
+    letterSpacing: 0.5,
   },
   newQuestBtn: {
-    backgroundColor: "#00F0FF",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    backgroundColor: "rgba(0, 240, 255, 0.12)",
+    borderWidth: 1,
+    borderColor: "#00F0FF",
     borderRadius: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
   },
   newQuestBtnText: {
-    color: "#0B0E14",
-    fontSize: 12,
-    fontWeight: "bold",
+    color: "#00F0FF",
+    fontWeight: "800",
+    fontSize: 11.5,
   },
   emptyStateBox: {
-    backgroundColor: "#121824",
+    backgroundColor: "#0D131F",
     borderRadius: 12,
-    padding: 24,
+    padding: 20,
     alignItems: "center",
-    marginVertical: 10,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.05)",
+    borderColor: "rgba(255, 255, 255, 0.08)",
+    marginVertical: 6,
   },
   emptyStateTitle: {
-    color: "#FFFFFF",
-    fontSize: 15,
-    fontWeight: "bold",
-    textAlign: "center",
+    color: "#F8FAFC",
+    fontSize: 14,
+    fontWeight: "700",
+    marginBottom: 4,
   },
   emptyStateSub: {
-    color: "#888888",
+    color: "#64748B",
     fontSize: 12,
     textAlign: "center",
-    marginTop: 6,
-    lineHeight: 18,
+    lineHeight: 17,
   },
   completedSection: {
-    marginTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: "rgba(255, 255, 255, 0.06)",
-    paddingTop: 14,
+    marginTop: 14,
   },
   completedSectionTitle: {
-    color: "#888888",
+    color: "#10B981",
     fontSize: 13,
-    fontWeight: "bold",
-    marginBottom: 6,
-    textTransform: "uppercase",
+    fontWeight: "700",
+    marginBottom: 8,
     letterSpacing: 0.5,
   },
   bottomBar: {
     flexDirection: "row",
-    backgroundColor: "#0D111A",
+    backgroundColor: "#0A0E17",
     borderTopWidth: 1,
     borderTopColor: "rgba(255, 255, 255, 0.08)",
     paddingTop: 8,
-    justifyContent: "space-around",
+    paddingHorizontal: 8,
   },
   tabBtn: {
+    flex: 1,
     alignItems: "center",
     paddingVertical: 4,
-    paddingHorizontal: 12,
+    borderRadius: 8,
   },
   tabBtnActive: {
-    borderBottomWidth: 2,
-    borderBottomColor: "#00F0FF",
+    backgroundColor: "rgba(0, 240, 255, 0.08)",
   },
-  tabIcon: {
-    fontSize: 18,
+  tabCode: {
+    fontSize: 10,
+    color: "#64748B",
+    fontWeight: "800",
     marginBottom: 2,
+    letterSpacing: 0.5,
+  },
+  tabCodeActive: {
+    color: "#00F0FF",
   },
   tabLabel: {
-    color: "#666666",
     fontSize: 11,
+    color: "#64748B",
     fontWeight: "600",
   },
   tabLabelActive: {
     color: "#00F0FF",
-    fontWeight: "bold",
+    fontWeight: "800",
   },
-  focusModalWrapper: {
+  modalContainer: {
     flex: 1,
-    backgroundColor: "#0B0E14",
+    backgroundColor: "#080C14",
+    paddingHorizontal: 16,
   },
-  focusModalCloseBtn: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingBottom: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255, 255, 255, 0.08)",
+    marginBottom: 10,
   },
-  focusModalCloseText: {
+  modalHabitArea: {
     color: "#00F0FF",
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  modalHabitName: {
+    color: "#F8FAFC",
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: "800",
+  },
+  modalCloseBtn: {
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
+  },
+  modalCloseText: {
+    color: "#CBD5E1",
+    fontSize: 12,
+    fontWeight: "700",
   },
 });

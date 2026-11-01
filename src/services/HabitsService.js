@@ -69,6 +69,30 @@ db.transaction((tx) => {
       unlockedAt TEXT
     );`
   );
+
+  // 4. Tabela de Livros de Interesse (Wishlist de Leitura)
+  tx.executeSql(
+    `CREATE TABLE IF NOT EXISTS book_interests (
+      id TEXT PRIMARY KEY,
+      title TEXT,
+      author TEXT,
+      category TEXT,
+      buyUrl TEXT,
+      addedDate TEXT
+    );`
+  );
+
+  // 5. Tabela de Avaliações Físicas Biomecânicas
+  tx.executeSql(
+    `CREATE TABLE IF NOT EXISTS workout_assessments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      type TEXT,
+      date TEXT,
+      score REAL,
+      rank TEXT,
+      dataJson TEXT
+    );`
+  );
 });
 
 const createHabit = (obj) => {
@@ -102,10 +126,7 @@ const createHabit = (obj) => {
           obj.streak || 0,
           obj.notificationId || "",
         ],
-        (_, { rowsAffected, insertId }) => {
-          if (rowsAffected > 0) resolve(insertId);
-          else reject("Erro ao inserir hábito: " + JSON.stringify(obj));
-        },
+        (_, { rowsAffected, insertId }) => resolve(insertId),
         (_, error) => reject(error)
       );
     });
@@ -116,7 +137,7 @@ const findByArea = (habitArea) => {
   return new Promise((resolve, reject) => {
     db.transaction((tx) => {
       tx.executeSql(
-        "SELECT * FROM habits WHERE habitArea LIKE ? ORDER BY id ASC;",
+        "SELECT * FROM habits WHERE habitArea = ?;",
         [habitArea],
         (_, { rows }) => resolve(rows._array || []),
         (_, error) => reject(error)
@@ -129,7 +150,7 @@ const getAllHabits = () => {
   return new Promise((resolve, reject) => {
     db.transaction((tx) => {
       tx.executeSql(
-        "SELECT * FROM habits ORDER BY id ASC;",
+        "SELECT * FROM habits;",
         [],
         (_, { rows }) => resolve(rows._array || []),
         (_, error) => reject(error)
@@ -141,60 +162,29 @@ const getAllHabits = () => {
 const updateHabit = (obj) => {
   return new Promise((resolve, reject) => {
     db.transaction((tx) => {
-      if (obj.id) {
-        tx.executeSql(
-          `UPDATE habits SET 
-            habitName=?, habitFrequency=?, habitHasNotification=?,
-            habitNotificationFrequency=?, habitNotificationTime=?,
-            habitType=?, targetValue=?, unit=?, difficulty=?, icon=?, notificationId=?
-           WHERE id=?;`,
-          [
-            obj.habitName,
-            obj.habitFrequency,
-            obj.habitHasNotification ? 1 : 0,
-            obj.habitNotificationFrequency,
-            obj.habitNotificationTime,
-            obj.habitType || "check",
-            obj.targetValue !== undefined ? obj.targetValue : 1,
-            obj.unit || "",
-            obj.difficulty || "Rank B",
-            obj.icon || "⚡",
-            obj.notificationId || "",
-            obj.id,
-          ],
-          (_, { rowsAffected }) => resolve(rowsAffected),
-          (_, error) => reject(error)
-        );
-      } else {
-        tx.executeSql(
-          `UPDATE habits SET 
-            habitName=?, habitFrequency=?, habitHasNotification=?,
-            habitNotificationFrequency=?, habitNotificationTime=?
-           WHERE habitArea=? AND habitName=?;`,
-          [
-            obj.habitName,
-            obj.habitFrequency,
-            obj.habitHasNotification ? 1 : 0,
-            obj.habitNotificationFrequency,
-            obj.habitNotificationTime,
-            obj.habitArea,
-            obj.oldHabitName || obj.habitName,
-          ],
-          (_, { rowsAffected }) => resolve(rowsAffected),
-          (_, error) => reject(error)
-        );
-      }
-    });
-  });
-};
-
-const updateCounterProgress = (id, newCurrentValue, targetValue) => {
-  return new Promise((resolve, reject) => {
-    const isCompleted = newCurrentValue >= targetValue ? 1 : 0;
-    db.transaction((tx) => {
       tx.executeSql(
-        "UPDATE habits SET currentValue=?, habitIsChecked=?, progressBar=1 WHERE id=?;",
-        [newCurrentValue, isCompleted, id],
+        `UPDATE habits SET
+          habitName = ?, habitFrequency = ?, habitHasNotification = ?,
+          habitNotificationFrequency = ?, habitNotificationTime = ?,
+          habitType = ?, targetValue = ?, currentValue = ?, unit = ?,
+          difficulty = ?, icon = ?, streak = ?, notificationId = ?
+        WHERE habitArea = ?;`,
+        [
+          obj.habitName,
+          obj.habitFrequency,
+          obj.habitHasNotification ? 1 : 0,
+          obj.habitNotificationFrequency,
+          obj.habitNotificationTime,
+          obj.habitType || "check",
+          obj.targetValue || 1,
+          obj.currentValue || 0,
+          obj.unit || "",
+          obj.difficulty || "Rank B",
+          obj.icon || "⚡",
+          obj.streak || 0,
+          obj.notificationId || "",
+          obj.habitArea,
+        ],
         (_, { rowsAffected }) => resolve(rowsAffected),
         (_, error) => reject(error)
       );
@@ -202,33 +192,28 @@ const updateCounterProgress = (id, newCurrentValue, targetValue) => {
   });
 };
 
-const deleteByName = (param) => {
+const updateCounterProgress = (id, currentValue, isChecked) => {
   return new Promise((resolve, reject) => {
     db.transaction((tx) => {
-      if (typeof param === "object" && param !== null) {
-        if (param.id) {
-          tx.executeSql(
-            "DELETE FROM habits WHERE id=?;",
-            [param.id],
-            (_, { rowsAffected }) => resolve(rowsAffected),
-            (_, error) => reject(error)
-          );
-        } else if (param.habitArea && param.habitName) {
-          tx.executeSql(
-            "DELETE FROM habits WHERE habitArea=? AND habitName=?;",
-            [param.habitArea, param.habitName],
-            (_, { rowsAffected }) => resolve(rowsAffected),
-            (_, error) => reject(error)
-          );
-        }
-      } else {
-        tx.executeSql(
-          "DELETE FROM habits WHERE habitArea=?;",
-          [param],
-          (_, { rowsAffected }) => resolve(rowsAffected),
-          (_, error) => reject(error)
-        );
-      }
+      tx.executeSql(
+        "UPDATE habits SET currentValue = ?, habitIsChecked = ? WHERE id = ?;",
+        [currentValue, isChecked ? 1 : 0, id],
+        (_, { rowsAffected }) => resolve(rowsAffected),
+        (_, error) => reject(error)
+      );
+    });
+  });
+};
+
+const deleteByName = (habitArea) => {
+  return new Promise((resolve, reject) => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        "DELETE FROM habits WHERE habitArea = ?;",
+        [habitArea],
+        (_, { rowsAffected }) => resolve(rowsAffected),
+        (_, error) => reject(error)
+      );
     });
   });
 };
@@ -236,14 +221,29 @@ const deleteByName = (param) => {
 const changeProgress = (obj) => {
   return new Promise((resolve, reject) => {
     db.transaction((tx) => {
-      if (obj.id) {
-        tx.executeSql(
-          "UPDATE habits SET progressBar=? WHERE id=?;",
-          [obj.progressBar, obj.id],
-          (_, { rowsAffected }) => resolve(rowsAffected),
-          (_, error) => reject(error)
-        );
-      }
+      tx.executeSql(
+        `UPDATE habits SET
+          progressBar = ?,
+          habitChecks = ?,
+          lastCheck = ?,
+          daysWithoutChecks = ?,
+          habitIsChecked = ?,
+          currentValue = ?,
+          streak = ?
+        WHERE habitArea = ?;`,
+        [
+          obj.progressBar,
+          obj.habitChecks,
+          obj.lastCheck,
+          obj.daysWithoutChecks,
+          obj.habitIsChecked ? 1 : 0,
+          obj.currentValue || 0,
+          obj.streak || 0,
+          obj.habitArea,
+        ],
+        (_, { rowsAffected }) => resolve(rowsAffected),
+        (_, error) => reject(error)
+      );
     });
   });
 };
@@ -252,9 +252,16 @@ const resetAllProgress = () => {
   return new Promise((resolve, reject) => {
     db.transaction((tx) => {
       tx.executeSql(
-        "UPDATE habits SET progressBar=1, habitIsChecked=0, daysWithoutChecks=0, currentValue=0;",
+        "UPDATE habits SET progressBar = 0, habitChecks = 0, daysWithoutChecks = 0, habitIsChecked = 0, currentValue = 0, streak = 0;",
         [],
-        (_, { rowsAffected }) => resolve(rowsAffected),
+        (_, { rowsAffected }) => {
+          tx.executeSql(
+            "UPDATE daily_challenges SET completed = 0;",
+            [],
+            () => resolve(rowsAffected),
+            (_, error) => reject(error)
+          );
+        },
         (_, error) => reject(error)
       );
     });
@@ -308,6 +315,189 @@ const completeDailyChallenge = (id) => {
   });
 };
 
+// --- SERVIÇO DE LIVROS DE INTERESSE (WISHLIST) ---
+const getBookInterests = () => {
+  return new Promise((resolve, reject) => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        "SELECT * FROM book_interests ORDER BY addedDate DESC;",
+        [],
+        (_, { rows }) => resolve(rows._array || []),
+        (_, error) => reject(error)
+      );
+    });
+  });
+};
+
+const addBookInterest = (book) => {
+  return new Promise((resolve, reject) => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        "INSERT OR REPLACE INTO book_interests (id, title, author, category, buyUrl, addedDate) VALUES (?, ?, ?, ?, ?, ?);",
+        [
+          book.id,
+          book.title,
+          book.author,
+          book.category,
+          book.buyUrl || "",
+          new Date().toISOString(),
+        ],
+        (_, { rowsAffected }) => resolve(rowsAffected),
+        (_, error) => reject(error)
+      );
+    });
+  });
+};
+
+const removeBookInterest = (bookId) => {
+  return new Promise((resolve, reject) => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        "DELETE FROM book_interests WHERE id = ?;",
+        [bookId],
+        (_, { rowsAffected }) => resolve(rowsAffected),
+        (_, error) => reject(error)
+      );
+    });
+  });
+};
+
+// --- SERVIÇO DE AVALIAÇÕES FÍSICAS ---
+const saveWorkoutAssessment = (type, score, rank, dataObj) => {
+  return new Promise((resolve, reject) => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        "INSERT INTO workout_assessments (type, date, score, rank, dataJson) VALUES (?, ?, ?, ?, ?);",
+        [
+          type,
+          new Date().toISOString(),
+          score || 0,
+          rank || "Recruta Cyber",
+          JSON.stringify(dataObj || {}),
+        ],
+        (_, { insertId }) => resolve(insertId),
+        (_, error) => reject(error)
+      );
+    });
+  });
+};
+
+const getLatestWorkoutAssessment = (type) => {
+  return new Promise((resolve, reject) => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        "SELECT * FROM workout_assessments WHERE type = ? ORDER BY id DESC LIMIT 1;",
+        [type],
+        (_, { rows }) => {
+          const list = rows._array || [];
+          if (list.length > 0) {
+            const item = list[0];
+            try {
+              item.parsedData = JSON.parse(item.dataJson);
+            } catch (_) {
+              item.parsedData = {};
+            }
+            resolve(item);
+          } else {
+            resolve(null);
+          }
+        },
+        (_, error) => reject(error)
+      );
+    });
+  });
+};
+
+// --- CÁLCULO UNIFICADO DE XP E ESTATÍSTICAS DO JOGADOR ---
+const getPlayerStats = () => {
+  return new Promise((resolve, reject) => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        "SELECT * FROM habits;",
+        [],
+        (_, { rows: habitRows }) => {
+          const habits = habitRows._array || [];
+          tx.executeSql(
+            "SELECT * FROM daily_challenges WHERE completed = 1;",
+            [],
+            (_, { rows: challengeRows }) => {
+              const challenges = challengeRows._array || [];
+
+              let habitChecksTotal = 0;
+              let mindChecks = 0;
+              let moneyChecks = 0;
+              let bodyChecks = 0;
+              let funChecks = 0;
+
+              let habitXPTotal = 0;
+              const difficultyMultiplier = {
+                "Rank C": 10,
+                "Rank B": 15,
+                "Rank A": 25,
+                "Rank S": 50,
+              };
+
+              habits.forEach((h) => {
+                const checks = Number(h.habitChecks) || 0;
+                habitChecksTotal += checks;
+                const multiplier = difficultyMultiplier[h.difficulty] || 15;
+                const earnedXP = checks * multiplier;
+                habitXPTotal += earnedXP;
+
+                if (h.habitArea === "Mente") mindChecks += checks;
+                else if (h.habitArea === "Financeiro") moneyChecks += checks;
+                else if (h.habitArea === "Corpo") bodyChecks += checks;
+                else if (h.habitArea === "Humor") funChecks += checks;
+              });
+
+              let challengeXPTotal = 0;
+              let challengeMindXP = 0;
+              let challengeMoneyXP = 0;
+              let challengeBodyXP = 0;
+              let challengeFunXP = 0;
+
+              challenges.forEach((c) => {
+                const xp = Number(c.xpReward) || 50;
+                challengeXPTotal += xp;
+                const cat = (c.category || "").toLowerCase();
+                if (cat.includes("mente") || cat.includes("bio-hack")) {
+                  challengeMindXP += xp;
+                } else if (cat.includes("finan") || cat.includes("riqueza")) {
+                  challengeMoneyXP += xp;
+                } else if (cat.includes("corpo") || cat.includes("físico")) {
+                  challengeBodyXP += xp;
+                } else {
+                  challengeFunXP += xp;
+                }
+              });
+
+              const totalXP = habitXPTotal + challengeXPTotal;
+
+              resolve({
+                totalXP,
+                habitChecksTotal,
+                habitXPTotal,
+                completedChallengesCount: challenges.length,
+                challengeXPTotal,
+                mindXP: (mindChecks * 20) + challengeMindXP,
+                moneyXP: (moneyChecks * 20) + challengeMoneyXP,
+                bodyXP: (bodyChecks * 20) + challengeBodyXP,
+                funXP: (funChecks * 20) + challengeFunXP,
+                mindChecks,
+                moneyChecks,
+                bodyChecks,
+                funChecks,
+              });
+            },
+            (_, error) => reject(error)
+          );
+        },
+        (_, error) => reject(error)
+      );
+    });
+  });
+};
+
 export default {
   createHabit,
   findByArea,
@@ -320,4 +510,10 @@ export default {
   getDailyChallenges,
   insertDailyChallenge,
   completeDailyChallenge,
+  getBookInterests,
+  addBookInterest,
+  removeBookInterest,
+  saveWorkoutAssessment,
+  getLatestWorkoutAssessment,
+  getPlayerStats,
 };

@@ -71,7 +71,7 @@
       left: -100px;
       width: 500px;
       height: 500px;
-      background: radial-gradient(circle, rgba(0, 240, 255, 0.18), transparent 70%);
+      background: radial-gradient(circle, rgba(0, 240, 255, 0.16), transparent 70%);
     }
 
     .orb-2 {
@@ -79,7 +79,7 @@
       right: -120px;
       width: 550px;
       height: 550px;
-      background: radial-gradient(circle, rgba(168, 85, 247, 0.15), transparent 70%);
+      background: radial-gradient(circle, rgba(168, 85, 247, 0.14), transparent 70%);
     }
 
     .orb-3 {
@@ -87,7 +87,7 @@
       left: 10%;
       width: 600px;
       height: 600px;
-      background: radial-gradient(circle, rgba(16, 185, 129, 0.14), transparent 70%);
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.12), transparent 70%);
     }
 
     /* Header Nav */
@@ -120,7 +120,7 @@
     }
 
     .logo-box img {
-      height: 50px;
+      height: 48px;
       object-fit: contain;
     }
 
@@ -174,7 +174,7 @@
       max-width: 1240px;
       margin: 0 auto;
       display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
+      grid-template-columns: 1.1fr 0.9fr;
       gap: 3.5rem;
       align-items: center;
       min-height: calc(100vh - 80px);
@@ -193,7 +193,7 @@
       gap: 0.4rem;
       padding: 0.35rem 0.9rem;
       border-radius: 99px;
-      background: rgba(0, 240, 255, 0.1);
+      background: rgba(0, 240, 255, 0.08);
       border: 1px solid rgba(0, 240, 255, 0.3);
       color: var(--color-cyan);
       font-size: 0.8rem;
@@ -203,7 +203,7 @@
     }
 
     .badge-pill.amber {
-      background: rgba(245, 158, 11, 0.1);
+      background: rgba(245, 158, 11, 0.08);
       border-color: rgba(245, 158, 11, 0.3);
       color: var(--color-amber);
     }
@@ -226,7 +226,7 @@
       font-size: 1.15rem;
       color: var(--text-muted);
       margin-bottom: 2.2rem;
-      max-width: 580px;
+      max-width: 560px;
       line-height: 1.7;
     }
 
@@ -261,13 +261,13 @@
     /* Live Phone Simulator */
     .simulator-frame {
       background: #0D121D;
-      border: 2px solid rgba(0, 240, 255, 0.25);
+      border: 2px solid rgba(0, 240, 255, 0.22);
       border-radius: 40px;
       padding: 1.25rem;
-      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 50px rgba(0, 240, 255, 0.12);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 50px rgba(0, 240, 255, 0.1);
       backdrop-filter: blur(25px);
       position: relative;
-      max-width: 400px;
+      max-width: 390px;
       width: 100%;
       margin: 0 auto;
     }
@@ -290,7 +290,7 @@
       border: 1px solid rgba(255, 255, 255, 0.06);
       font-size: 0.8rem;
       font-weight: 700;
-      margin-bottom: 0.8rem;
+      margin-bottom: 0.6rem;
     }
 
     .sim-hud-status {
@@ -313,6 +313,40 @@
       font-family: 'Space Grotesk', monospace;
     }
 
+    /* Mascot Robot Box */
+    .sim-mascot-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0.4rem 0 0.8rem;
+      position: relative;
+    }
+
+    .sim-mascot-pedestal {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0, 240, 255, 0.18), transparent 70%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(0, 240, 255, 0.2);
+    }
+
+    .sim-mascot-img {
+      width: 68px;
+      height: 68px;
+      object-fit: contain;
+      animation: floatRobot 3.2s ease-in-out infinite;
+      filter: drop-shadow(0 0 10px rgba(0, 240, 255, 0.5));
+      transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes floatRobot {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+
     /* Tab Switcher inside Simulator */
     .sim-tab-header {
       display: flex;
@@ -325,7 +359,7 @@
 
     .sim-tab-btn {
       flex: 1;
-      padding: 0.4rem 0.2rem;
+      padding: 0.45rem 0.2rem;
       text-align: center;
       font-size: 0.72rem;
       font-weight: 700;
@@ -346,7 +380,7 @@
     /* Simulator Tab Contents */
     .sim-tab-pane {
       display: none;
-      min-height: 280px;
+      min-height: 250px;
     }
 
     .sim-tab-pane.active {
@@ -422,6 +456,7 @@
       color: var(--color-cyan);
       margin-top: 0.75rem;
       font-family: 'Space Grotesk', monospace;
+      letter-spacing: 0.3px;
     }
 
     /* Section Styling */
@@ -476,25 +511,29 @@
     }
 
     .feature-icon-wrapper {
-      width: 52px;
-      height: 52px;
-      border-radius: 14px;
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.7rem;
       margin-bottom: 1.3rem;
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    .feature-card.cyan .feature-icon-wrapper { background: rgba(0, 240, 255, 0.12); color: var(--color-cyan); border-color: rgba(0, 240, 255, 0.25); }
-    .feature-card.green .feature-icon-wrapper { background: rgba(16, 185, 129, 0.12); color: var(--color-green); border-color: rgba(16, 185, 129, 0.25); }
-    .feature-card.red .feature-icon-wrapper { background: rgba(255, 51, 102, 0.12); color: var(--color-red); border-color: rgba(255, 51, 102, 0.25); }
-    .feature-card.amber .feature-icon-wrapper { background: rgba(245, 158, 11, 0.12); color: var(--color-amber); border-color: rgba(245, 158, 11, 0.25); }
-    .feature-card.purple .feature-icon-wrapper { background: rgba(168, 85, 247, 0.12); color: var(--color-purple); border-color: rgba(168, 85, 247, 0.25); }
+    .feature-icon-wrapper svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .feature-card.cyan .feature-icon-wrapper { background: rgba(0, 240, 255, 0.1); color: var(--color-cyan); border-color: rgba(0, 240, 255, 0.25); }
+    .feature-card.green .feature-icon-wrapper { background: rgba(16, 185, 129, 0.1); color: var(--color-green); border-color: rgba(16, 185, 129, 0.25); }
+    .feature-card.red .feature-icon-wrapper { background: rgba(255, 51, 102, 0.1); color: var(--color-red); border-color: rgba(255, 51, 102, 0.25); }
+    .feature-card.amber .feature-icon-wrapper { background: rgba(245, 158, 11, 0.1); color: var(--color-amber); border-color: rgba(245, 158, 11, 0.25); }
+    .feature-card.purple .feature-icon-wrapper { background: rgba(168, 85, 247, 0.1); color: var(--color-purple); border-color: rgba(168, 85, 247, 0.25); }
 
     .feature-card h3 {
-      font-size: 1.35rem;
+      font-size: 1.3rem;
       font-weight: 700;
       margin-bottom: 0.6rem;
     }
@@ -571,7 +610,7 @@
       border-radius: 28px;
       padding: 4.5rem 2rem;
       text-align: center;
-      box-shadow: 0 0 60px rgba(0, 240, 255, 0.12);
+      box-shadow: 0 0 60px rgba(0, 240, 255, 0.1);
       position: relative;
       overflow: hidden;
     }
@@ -653,7 +692,7 @@
         <li><a href="https://github.com/Intern-Yago/OneBitLife" target="_blank">Código Aberto</a></li>
       </ul>
       <a href="https://github.com/Intern-Yago/OneBitLife/releases" target="_blank" class="btn-cta">
-        <span>⚡ Baixar APK</span>
+        <span>Baixar APK</span>
       </a>
     </div>
   </header>
@@ -662,8 +701,8 @@
   <section class="hero">
     <div class="hero-content">
       <div class="hero-badge-row">
-        <div class="badge-pill">⚡ ONEBITLIFE 2.0</div>
-        <div class="badge-pill amber">🏆 RPG ROUTINE ENGINE</div>
+        <div class="badge-pill">ONEBITLIFE 2.0</div>
+        <div class="badge-pill amber">CYBER ROUTINE ENGINE</div>
       </div>
       <h1 class="hero-title">
         Transforme sua vida em um <span>RPG real de alta performance</span>.
@@ -673,10 +712,10 @@
       </p>
       <div class="hero-buttons">
         <a href="https://github.com/Intern-Yago/OneBitLife/releases" target="_blank" class="btn-cta">
-          <span>📱 Baixar APK Permanente</span>
+          <span>Baixar APK Permanente</span>
         </a>
         <a href="#demo" class="btn-secondary" onclick="simulateSound('click')">
-          <span>🎮 Testar Simulador ao Lado</span>
+          <span>Testar Simulador Interativo</span>
         </a>
       </div>
     </div>
@@ -694,6 +733,13 @@
         <div class="sim-hud-eff">Core: 75%</div>
       </div>
 
+      <!-- Mascote Robô OneBitLife -->
+      <div class="sim-mascot-container">
+        <div class="sim-mascot-pedestal">
+          <img id="mascotImg" class="sim-mascot-img" src="./src/assets/icons/logo1.png" alt="Mascote Robô OneBitLife" />
+        </div>
+      </div>
+
       <!-- Simulator Tab Navigation -->
       <div class="sim-tab-header">
         <button class="sim-tab-btn active" onclick="switchSimTab('hoje')">Hoje</button>
@@ -707,15 +753,15 @@
       <div class="sim-tab-pane active" id="pane-hoje">
         <div class="sim-quest-item" id="quest-1">
           <div class="sim-quest-info">
-            <h6>📚 Ler Hábitos Atômicos</h6>
-            <p>Mente • 20 min de foco • [Rank B]</p>
+            <h6>Ler Hábitos Atômicos</h6>
+            <p>Mente • 20 min foco • [Rank B]</p>
           </div>
           <button class="sim-check-btn" onclick="toggleQuest('quest-1')">✓</button>
         </div>
 
         <div class="sim-quest-item" id="quest-2">
           <div class="sim-quest-info">
-            <h6>🦾 Treino Calistenia Full Body</h6>
+            <h6>Treino Calistenia Full Body</h6>
             <p>Corpo • 45 min • [Rank A]</p>
           </div>
           <button class="sim-check-btn" onclick="toggleQuest('quest-2')">✓</button>
@@ -723,7 +769,7 @@
 
         <div class="sim-quest-item" id="quest-3">
           <div class="sim-quest-info">
-            <h6>💎 Auditar Gastos do Dia</h6>
+            <h6>Auditar Gastos do Dia</h6>
             <p>Financeiro • [Rank B]</p>
           </div>
           <button class="sim-check-btn" onclick="toggleQuest('quest-3')">✓</button>
@@ -732,7 +778,7 @@
 
       <!-- Tab 2: Treinos -->
       <div class="sim-tab-pane" id="pane-treinos">
-        <div style="background: rgba(255,51,102,0.1); border: 1px solid rgba(255,51,102,0.3); border-radius: 10px; padding: 0.75rem; margin-bottom: 0.6rem;">
+        <div style="background: rgba(255,51,102,0.08); border: 1px solid rgba(255,51,102,0.25); border-radius: 10px; padding: 0.75rem; margin-bottom: 0.6rem;">
           <h6 style="color: #FF3366; font-size: 0.85rem; font-weight: bold;">Protocolo Calistenia • Intermediário</h6>
           <p style="font-size: 0.7rem; color: #ccc; margin-top: 2px;">4x por semana • Rest Timer: 75s</p>
         </div>
@@ -756,25 +802,25 @@
       <div class="sim-tab-pane" id="pane-livros">
         <div class="sim-quest-item" style="border-left-color: #10B981;">
           <div class="sim-quest-info">
-            <h6>💎 A Psicologia Financeira</h6>
+            <h6>A Psicologia Financeira</h6>
             <p>Morgan Housel • "Riqueza é o que você não vê"</p>
           </div>
-          <button class="btn-cta" style="padding: 0.3rem 0.6rem; font-size: 0.65rem;" onclick="simulateSound('check')">+ Rotina</button>
+          <button class="btn-cta" style="padding: 0.35rem 0.75rem; font-size: 0.7rem;" onclick="simulateSound('check')">+ Rotina</button>
         </div>
         <div class="sim-quest-item" style="border-left-color: #00F0FF;">
           <div class="sim-quest-info">
-            <h6>🧠 Hiperfoco</h6>
+            <h6>Hiperfoco</h6>
             <p>Chris Bailey • Domínio da atenção digital</p>
           </div>
-          <button class="btn-cta" style="padding: 0.3rem 0.6rem; font-size: 0.65rem;" onclick="simulateSound('check')">+ Rotina</button>
+          <button class="btn-cta" style="padding: 0.35rem 0.75rem; font-size: 0.7rem;" onclick="simulateSound('check')">+ Rotina</button>
         </div>
       </div>
 
       <!-- Tab 4: Foco Pomodoro -->
       <div class="sim-tab-pane" id="pane-foco" style="text-align: center; padding: 1rem 0;">
         <div style="font-size: 2.2rem; font-weight: 900; color: #00F0FF; font-family: 'Space Grotesk', monospace;" id="timerClock">25:00</div>
-        <p style="font-size: 0.75rem; color: #888; margin: 4px 0 12px;">🛡️ MODO NÃO PERTURBE (CYBER ZEN)</p>
-        <button class="btn-cta" style="padding: 0.45rem 1.2rem; font-size: 0.8rem;" onclick="toggleDemoTimer()">
+        <p style="font-size: 0.75rem; color: #888; margin: 4px 0 12px; font-weight: 600;">MODO NÃO PERTURBE (CYBER ZEN)</p>
+        <button class="btn-cta" style="padding: 0.5rem 1.4rem; font-size: 0.82rem;" onclick="toggleDemoTimer()">
           <span id="timerBtnLabel">▶ Iniciar Sessão</span>
         </button>
       </div>
@@ -782,29 +828,29 @@
       <!-- Tab 5: Perfil & Conquistas -->
       <div class="sim-tab-pane" id="pane-perfil">
         <div style="display: flex; gap: 0.5rem; justify-content: space-between; margin-bottom: 0.8rem;">
-          <div style="background: rgba(0,240,255,0.08); padding: 0.5rem; border-radius: 8px; flex: 1; text-align: center; border: 1px solid rgba(0,240,255,0.2);">
+          <div style="background: rgba(0,240,255,0.06); padding: 0.5rem; border-radius: 8px; flex: 1; text-align: center; border: 1px solid rgba(0,240,255,0.2);">
             <div style="font-size: 0.65rem; color: #00F0FF; font-weight: bold;">INTELLECT</div>
             <div style="font-size: 1rem; font-weight: 800;">18 pts</div>
           </div>
-          <div style="background: rgba(16,185,129,0.08); padding: 0.5rem; border-radius: 8px; flex: 1; text-align: center; border: 1px solid rgba(16,185,129,0.2);">
+          <div style="background: rgba(16,185,129,0.06); padding: 0.5rem; border-radius: 8px; flex: 1; text-align: center; border: 1px solid rgba(16,185,129,0.2);">
             <div style="font-size: 0.65rem; color: #10B981; font-weight: bold;">WEALTH</div>
             <div style="font-size: 1rem; font-weight: 800;">12 pts</div>
           </div>
-          <div style="background: rgba(255,51,102,0.08); padding: 0.5rem; border-radius: 8px; flex: 1; text-align: center; border: 1px solid rgba(255,51,102,0.2);">
+          <div style="background: rgba(255,51,102,0.06); padding: 0.5rem; border-radius: 8px; flex: 1; text-align: center; border: 1px solid rgba(255,51,102,0.2);">
             <div style="font-size: 0.65rem; color: #FF3366; font-weight: bold;">STRENGTH</div>
             <div style="font-size: 1rem; font-weight: 800;">15 pts</div>
           </div>
         </div>
-        <div class="sim-quest-item" style="border-left-color: #F59E0B;" onclick="simulateSound('levelup')">
+        <div class="sim-quest-item" style="border-left-color: #F59E0B; cursor: pointer;" onclick="simulateSound('levelup')">
           <div class="sim-quest-info">
-            <h6>🏆 Forja de Titânio [Ouro]</h6>
+            <h6>Forja de Titânio [Ouro]</h6>
             <p>7 dias seguidos invicto • Toque p/ ouvir!</p>
           </div>
-          <span style="font-size: 1rem;">🔥</span>
+          <span style="font-size: 0.8rem; color: #F59E0B; font-weight: bold;">[DESBLOQUEADO]</span>
         </div>
       </div>
 
-      <div class="sim-audio-tag">🔊 Interativo: Toque nos botões para ouvir os efeitos sonoros!</div>
+      <div class="sim-audio-tag">Interativo: Toque nas ações para ouvir os efeitos sonoros.</div>
     </div>
   </section>
 
@@ -818,28 +864,36 @@
 
     <div class="features-grid">
       <div class="feature-card cyan">
-        <div class="feature-icon-wrapper">🧠</div>
+        <div class="feature-icon-wrapper">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a9 9 0 0 1 9 9c0 3.5-2 6.5-5 8l-1 3H9l-1-3C5 17.5 3 14.5 3 11a9 9 0 0 1 9-9z"/><path d="M9 10h6M12 7v6"/></svg>
+        </div>
         <h3>Mente & Processamento</h3>
         <p>Leitura ativa, estudo aprofundado, novos idiomas e expansão cognitiva com biblioteca integrada.</p>
         <span class="feature-tag">[ +INTELLECT ]</span>
       </div>
 
       <div class="feature-card green">
-        <div class="feature-icon-wrapper">💎</div>
+        <div class="feature-icon-wrapper">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
         <h3>Capital & Prosperidade</h3>
         <p>Aportes, auditoria de gastos, controle de fluxo de caixa e livros de sabedoria financeira.</p>
         <span class="feature-tag">[ +WEALTH ]</span>
       </div>
 
       <div class="feature-card red">
-        <div class="feature-icon-wrapper">🦾</div>
+        <div class="feature-icon-wrapper">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+        </div>
         <h3>Chassi & Força Física</h3>
         <p>Fichas personalizadas de Calistenia ou Musculação com cronômetro de descanso entre séries.</p>
         <span class="feature-tag">[ +STRENGTH ]</span>
       </div>
 
       <div class="feature-card amber">
-        <div class="feature-icon-wrapper">😄</div>
+        <div class="feature-icon-wrapper">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </div>
         <h3>Vitalidade & Conexão</h3>
         <p>Saúde mental, pausas sem telas, tempo de qualidade com amigos e regeneração de energia.</p>
         <span class="feature-tag">[ +VITALITY ]</span>
@@ -857,42 +911,54 @@
 
     <div class="features-grid">
       <div class="feature-card cyan">
-        <div class="feature-icon-wrapper">⏱️</div>
+        <div class="feature-icon-wrapper">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
         <h3>Modo Não Perturbe (Cyber Zen)</h3>
         <p>Ao iniciar sua leitura ou estudo, entre em imersão com tela cheia, frases estoicas e bloqueio anti-distração.</p>
         <span class="feature-tag">Pomodoro + Stopwatch</span>
       </div>
 
       <div class="feature-card green">
-        <div class="feature-icon-wrapper">📚</div>
+        <div class="feature-icon-wrapper">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        </div>
         <h3>Biblioteca Curada</h3>
         <p>Adicione metas diretas de leitura de obras como <em>Hábitos Atômicos</em> e <em>A Psicologia Financeira</em> em 1 toque.</p>
         <span class="feature-tag">1-Click Wisdom</span>
       </div>
 
       <div class="feature-card red">
-        <div class="feature-icon-wrapper">🏋️</div>
+        <div class="feature-icon-wrapper">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6.5 6.5h11v11h-11z"/><path d="M2 12h4.5M17.5 12H22"/></svg>
+        </div>
         <h3>Assistente de Treino Biomecânico</h3>
         <p>O app calcula sua divisão de treino (Full Body, Upper/Lower, PPL) para peso do corpo ou academia por nível.</p>
         <span class="feature-tag">Iniciante / Inter / Avançado</span>
       </div>
 
       <div class="feature-card purple">
-        <div class="feature-icon-wrapper">🎲</div>
+        <div class="feature-icon-wrapper">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><circle cx="15.5" cy="15.5" r="1.5"/></svg>
+        </div>
         <h3>Terminal de Desafios Diários</h3>
         <p>Todo dia às 00:00 o sistema sorteia 2 Side Quests fora da rotina (banho frio, detox de telas, gratidão) por +50 XP.</p>
         <span class="feature-tag">Daily Side Quests</span>
       </div>
 
       <div class="feature-card amber">
-        <div class="feature-icon-wrapper">🏆</div>
+        <div class="feature-icon-wrapper">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.45 1-1 1H7.5c-.55 0-1-.45-1-1v-2.34c-1.21-.5-2-1.68-2-3V4c0-.55.45-1 1-1h13c.55 0 1 .45 1 1v7.66c0 1.32-.79 2.5-2 3z"/></svg>
+        </div>
         <h3>Emblemas & Compartilhar</h3>
         <p>Desbloqueie troféus épicos e compartilhe suas conquistas direto no WhatsApp, Stories e X em 1 toque.</p>
         <span class="feature-tag">Social Flex</span>
       </div>
 
       <div class="feature-card cyan">
-        <div class="feature-icon-wrapper">🔊</div>
+        <div class="feature-icon-wrapper">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        </div>
         <h3>Design de Som Retro-Cyber</h3>
         <p>Sons sintetizados procedurais para toques, checks de meta, bips de timer e fanfarras de subida de nível.</p>
         <span class="feature-tag">Claude Sound Design</span>
@@ -921,7 +987,7 @@
           <tr>
             <td><strong>Definição de Metas</strong></td>
             <td><span class="badge-v1">✕ Formulário travado com dropdowns lentos</span></td>
-            <td><span class="badge-v2">✓ Cyber Forge com 3 tipos (Timer, Contador, Check) e chips</span></td>
+            <td><span class="badge-v2">✓ Cyber Forge com 3 tipos (Timer, Contador, Check) e chips táteis</span></td>
           </tr>
           <tr>
             <td><strong>Treinos Físicos</strong></td>
@@ -959,7 +1025,7 @@
       <h2>Pronto para forjar sua melhor versão?</h2>
       <p>Baixe o APK para Android diretamente do GitHub Releases. Sem anúncios, 100% offline e com download permanente.</p>
       <a href="https://github.com/Intern-Yago/OneBitLife/releases" target="_blank" class="btn-cta" style="padding: 1.1rem 2.8rem; font-size: 1.1rem;">
-        <span>⚡ BAIXAR APK NO GITHUB RELEASES</span>
+        <span>BAIXAR APK NO GITHUB RELEASES</span>
       </a>
     </div>
   </section>
@@ -1017,7 +1083,7 @@
       }
     }
 
-    // Interactive Quest Check
+    // Interactive Quest Check with Mascot Reaction
     let checks = 42;
     function toggleQuest(id) {
       simulateSound('check');
@@ -1031,6 +1097,15 @@
         checks--;
       }
       document.getElementById('checksDisplay').innerText = checks;
+
+      // Animação tátil e rotação do Mascote Robô
+      const mascot = document.getElementById('mascotImg');
+      if (mascot) {
+        mascot.style.transform = 'scale(1.22) rotate(8deg)';
+        setTimeout(() => {
+          mascot.style.transform = 'scale(1) rotate(0deg)';
+        }, 320);
+      }
     }
 
     // Simulator Tab Switcher
