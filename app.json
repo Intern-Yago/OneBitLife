@@ -3,7 +3,7 @@
     "name": "OneBitLife",
     "slug": "OneBitLife",
     "owner": "syri_cotocs",
-    "version": "1.1.4",
+    "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./src/assets/icons/logo1.png",
     "platforms": [
@@ -18,12 +18,12 @@
     },
     "ios": {
       "bundleIdentifier": "com.internyago.OneBitLife",
-      "buildNumber": "1.1.4",
+      "buildNumber": "1.2.0",
       "supportsTablet": true
     },
     "android": {
       "package": "com.internyago.OneBitLife",
-      "versionCode": 21,
+      "versionCode": 22,
       "allowBackup": false,
       "backgroundColor": "#0A0E17",
       "splash": {

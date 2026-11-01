@@ -1,5 +1,12 @@
 # Changelog
 
+## [v1.2.0] - 2026-11-01
+
+### Alterações nesta versão:
+- feat(mascot): add standby state when user has no active routines (969c2b8)
+
+---
+
 ## [v1.1.4] - 2026-11-01
 
 ### Alterações nesta versão:
