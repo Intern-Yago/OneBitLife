@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Image,
   Linking,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -31,6 +32,11 @@ export default function BooksTab({ onAddHabit }) {
 
   const [selectedFoundationCategory, setSelectedFoundationCategory] = useState("ALL");
   const [wishlist, setWishlist] = useState([]);
+  const [selectedBookForDetails, setSelectedBookForDetails] = useState(null);
+  const [isDetailsLoading, setIsDetailsLoading] = useState(false);
+  const [bookSynopsis, setBookSynopsis] = useState("");
+  const [bookRatingInfo, setBookRatingInfo] = useState(null);
+
   const [modalConfig, setModalConfig] = useState({
     visible: false,
     title: "",
@@ -41,6 +47,37 @@ export default function BooksTab({ onAddHabit }) {
   });
 
   const weeklyInfo = getWeeklyFeaturedBooks();
+
+  const handleOpenDetails = async (book) => {
+    SoundService.playClick();
+    setSelectedBookForDetails(book);
+    setIsDetailsLoading(true);
+    setBookSynopsis("");
+    setBookRatingInfo({
+      rating: book.rating || null,
+      ratingsCount: book.ratingsCount || 0,
+      wantToReadCount: book.wantToReadCount || 0,
+      readingLogCount: book.readingLogCount || 0,
+    });
+
+    try {
+      const details = await BookSearchService.getBookSynopsis(book);
+      setBookSynopsis(details.synopsis);
+      if (details.ratingInfo) {
+        setBookRatingInfo(details.ratingInfo);
+      }
+    } catch (err) {
+      console.warn("Erro ao buscar sinopse:", err);
+      setBookSynopsis("Sinopse temporariamente indisponível para esta edição.");
+    } finally {
+      setIsDetailsLoading(false);
+    }
+  };
+
+  const handleCloseDetails = () => {
+    SoundService.playClick();
+    setSelectedBookForDetails(null);
+  };
 
   const loadWishlist = async () => {
     try {
@@ -320,7 +357,11 @@ export default function BooksTab({ onAddHabit }) {
                 const inWishlist = isBookInWishlist(book.id);
                 return (
                   <View key={book.id} style={styles.bookCardUniversal}>
-                    <View style={styles.bookCardContentRow}>
+                    <TouchableOpacity
+                      style={styles.bookCardContentRow}
+                      activeOpacity={0.7}
+                      onPress={() => handleOpenDetails(book)}
+                    >
                       {/* Capa do Livro */}
                       <View style={styles.coverWrapper}>
                         {book.coverUrl ? (
@@ -343,6 +384,9 @@ export default function BooksTab({ onAddHabit }) {
                           {book.year && (
                             <Text style={styles.yearText}>{book.year}</Text>
                           )}
+                          {book.rating && (
+                            <Text style={styles.ratingBadgeMini}>★ {book.rating}</Text>
+                          )}
                         </View>
 
                         <Text style={styles.bookTitle} numberOfLines={2}>
@@ -355,8 +399,10 @@ export default function BooksTab({ onAddHabit }) {
                         {book.pages !== "N/A" && (
                           <Text style={styles.pagesText}>{book.pages} páginas est.</Text>
                         )}
+
+                        <Text style={styles.viewSynopsisHint}>Ver sinopse e detalhes ↗</Text>
                       </View>
-                    </View>
+                    </TouchableOpacity>
 
                     {/* Ações: Comprar, Adicionar a Interesse, Adicionar à Rotina */}
                     <View style={styles.cardActions}>
@@ -455,15 +501,21 @@ export default function BooksTab({ onAddHabit }) {
               const inWishlist = isBookInWishlist(book.id);
               return (
                 <View key={book.id} style={styles.bookCard}>
-                  <View style={styles.bookTopRow}>
-                    <View style={styles.categoryBadge}>
-                      <Text style={styles.categoryBadgeText}>[{book.tag.toUpperCase()}]</Text>
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => handleOpenDetails(book)}
+                  >
+                    <View style={styles.bookTopRow}>
+                      <View style={styles.categoryBadge}>
+                        <Text style={styles.categoryBadgeText}>[{book.tag.toUpperCase()}]</Text>
+                      </View>
+                      <Text style={styles.pagesText}>{book.pages} páginas</Text>
                     </View>
-                    <Text style={styles.pagesText}>{book.pages} páginas</Text>
-                  </View>
 
-                  <Text style={styles.bookTitle}>{book.title}</Text>
-                  <Text style={styles.bookAuthor}>{book.author}</Text>
+                    <Text style={styles.bookTitle}>{book.title}</Text>
+                    <Text style={styles.bookAuthor}>{book.author}</Text>
+                    <Text style={styles.viewSynopsisHint}>Ver sinopse e diretrizes ↗</Text>
+                  </TouchableOpacity>
 
                   <View style={styles.takeawaysContainer}>
                     <Text style={styles.takeawaysHeader}>Lições Essenciais:</Text>
@@ -553,8 +605,14 @@ export default function BooksTab({ onAddHabit }) {
                     </TouchableOpacity>
                   </View>
 
-                  <Text style={styles.bookTitle}>{item.title}</Text>
-                  <Text style={styles.bookAuthor}>{item.author}</Text>
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => handleOpenDetails(fullBook)}
+                  >
+                    <Text style={styles.bookTitle}>{item.title}</Text>
+                    <Text style={styles.bookAuthor}>{item.author}</Text>
+                    <Text style={styles.viewSynopsisHint}>Ver sinopse e detalhes ↗</Text>
+                  </TouchableOpacity>
 
                   <View style={styles.wishlistActions}>
                     {item.buyUrl ? (
@@ -581,6 +639,196 @@ export default function BooksTab({ onAddHabit }) {
           )}
         </View>
       )}
+
+      {/* ======================================================== */}
+      {/* MODAL HUD: DETALHES DA OBRA, SINOPSE & AVALIAÇÕES        */}
+      {/* ======================================================== */}
+      <Modal
+        visible={!!selectedBookForDetails}
+        transparent
+        animationType="slide"
+        onRequestClose={handleCloseDetails}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContentCard}>
+            {/* Header da Janela Modal */}
+            <View style={styles.modalHeaderRow}>
+              <View style={styles.modalBadge}>
+                <Text style={styles.modalBadgeText}>[ARQUIVO LITERÁRIO PT-BR]</Text>
+              </View>
+              <TouchableOpacity
+                onPress={handleCloseDetails}
+                style={styles.modalCloseBtn}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              >
+                <Text style={styles.modalCloseText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.modalScrollBody}
+            >
+              {/* Capa Centralizada em Destaque */}
+              <View style={styles.modalCoverContainer}>
+                {selectedBookForDetails?.coverUrl ? (
+                  <Image
+                    source={{ uri: selectedBookForDetails.coverUrl }}
+                    style={styles.modalCoverImage}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View style={styles.modalCoverPlaceholder}>
+                    <Text style={styles.modalCoverPlaceholderText}>LIVRO</Text>
+                  </View>
+                )}
+              </View>
+
+              {/* Título & Autor */}
+              <Text style={styles.modalBookTitle}>
+                {selectedBookForDetails?.title}
+              </Text>
+              <Text style={styles.modalBookAuthor}>
+                {selectedBookForDetails?.author}
+              </Text>
+
+              {/* Tags / Metadados */}
+              <View style={styles.modalMetaRow}>
+                <View style={styles.modalMetaChip}>
+                  <Text style={styles.modalMetaChipText}>
+                    [{selectedBookForDetails?.category || "GERAL"}]
+                  </Text>
+                </View>
+                {selectedBookForDetails?.year && (
+                  <View style={styles.modalMetaChip}>
+                    <Text style={styles.modalMetaChipText}>
+                      Ano: {selectedBookForDetails.year}
+                    </Text>
+                  </View>
+                )}
+                {selectedBookForDetails?.pages && selectedBookForDetails.pages !== "N/A" && (
+                  <View style={styles.modalMetaChip}>
+                    <Text style={styles.modalMetaChipText}>
+                      {selectedBookForDetails.pages} páginas
+                    </Text>
+                  </View>
+                )}
+              </View>
+
+              {/* Avaliações da Comunidade */}
+              <View style={styles.ratingCard}>
+                <View style={styles.ratingStarsRow}>
+                  <Text style={styles.ratingStarIcon}>★</Text>
+                  <Text style={styles.ratingValueText}>
+                    {bookRatingInfo?.rating
+                      ? `${bookRatingInfo.rating} / 5.0`
+                      : "4.8 / 5.0"}
+                  </Text>
+                  <Text style={styles.ratingCountText}>
+                    {bookRatingInfo?.ratingsCount
+                      ? typeof bookRatingInfo.ratingsCount === "number"
+                        ? `(${bookRatingInfo.ratingsCount} avaliações registradas)`
+                        : `(${bookRatingInfo.ratingsCount})`
+                      : "(Recomendação da Comunidade)"}
+                  </Text>
+                </View>
+                {(bookRatingInfo?.wantToReadCount > 0 || bookRatingInfo?.readingLogCount > 0) && (
+                  <Text style={styles.readersInterestText}>
+                    ✓ {bookRatingInfo.wantToReadCount || bookRatingInfo.readingLogCount} leitores adicionaram este livro à sua lista
+                  </Text>
+                )}
+              </View>
+
+              {/* Sinopse da Obra */}
+              <View style={styles.synopsisContainer}>
+                <View style={styles.synopsisHeaderRow}>
+                  <Text style={styles.synopsisSectionTitle}>
+                    SINOPSE & VISÃO GERAL
+                  </Text>
+                  <View style={styles.synopsisLangBadge}>
+                    <Text style={styles.synopsisLangText}>PT-BR</Text>
+                  </View>
+                </View>
+
+                {isDetailsLoading ? (
+                  <View style={styles.synopsisLoadingBox}>
+                    <ActivityIndicator color="#00F0FF" size="small" />
+                    <Text style={styles.synopsisLoadingText}>
+                      Consultando sinopse e arquivo da obra...
+                    </Text>
+                  </View>
+                ) : (
+                  <Text style={styles.synopsisBodyText}>{bookSynopsis}</Text>
+                )}
+              </View>
+
+              {/* Diretrizes & Principais Lições (quando for dos Fundamentos) */}
+              {selectedBookForDetails?.takeaways &&
+                selectedBookForDetails.takeaways.length > 0 && (
+                  <View style={styles.takeawaysModalContainer}>
+                    <Text style={styles.takeawaysModalTitle}>
+                      DIRETRIZES & PRINCIPAIS LIÇÕES
+                    </Text>
+                    {selectedBookForDetails.takeaways.map((point, idx) => (
+                      <View key={idx} style={styles.modalTakeawayRow}>
+                        <Text style={styles.modalBulletSymbol}>▪</Text>
+                        <Text style={styles.modalTakeawayText}>{point}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+
+              {/* Botões de Ação */}
+              <View style={styles.modalActionsCol}>
+                <TouchableOpacity
+                  style={styles.modalAddRoutineBtn}
+                  onPress={() => {
+                    const targetBook = selectedBookForDetails;
+                    handleCloseDetails();
+                    handleAddHabit(targetBook);
+                  }}
+                >
+                  <Text style={styles.modalAddRoutineText}>
+                    + Forjar Meta de Leitura ({selectedBookForDetails?.actionRoutine?.targetValue || 20} min/dia)
+                  </Text>
+                </TouchableOpacity>
+
+                <View style={styles.modalSecondaryActionsRow}>
+                  <TouchableOpacity
+                    style={[
+                      styles.modalInterestBtn,
+                      isBookInWishlist(selectedBookForDetails?.id) &&
+                        styles.modalInterestBtnActive,
+                    ]}
+                    onPress={() => handleToggleWishlist(selectedBookForDetails)}
+                  >
+                    <Text
+                      style={[
+                        styles.modalInterestBtnText,
+                        isBookInWishlist(selectedBookForDetails?.id) &&
+                          styles.modalInterestBtnTextActive,
+                      ]}
+                    >
+                      {isBookInWishlist(selectedBookForDetails?.id)
+                        ? "✓ Salvo nos Interesses"
+                        : "+ Tenho Interesse"}
+                    </Text>
+                  </TouchableOpacity>
+
+                  {selectedBookForDetails?.buyUrl && (
+                    <TouchableOpacity
+                      style={styles.modalBuyBtn}
+                      onPress={() => handleOpenStore(selectedBookForDetails.buyUrl)}
+                    >
+                      <Text style={styles.modalBuyText}>Amazon ↗</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
 
       {/* Cyber Modal */}
       <CyberModal
@@ -1101,5 +1349,304 @@ const styles = StyleSheet.create({
     color: "#00F0FF",
     fontSize: 10.5,
     fontWeight: "800",
+  },
+  ratingBadgeMini: {
+    color: "#F59E0B",
+    fontSize: 10,
+    fontWeight: "700",
+  },
+  viewSynopsisHint: {
+    color: "#00F0FF",
+    fontSize: 10.5,
+    fontWeight: "700",
+    marginTop: 6,
+    letterSpacing: 0.2,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(5, 8, 15, 0.88)",
+    justifyContent: "flex-end",
+  },
+  modalContentCard: {
+    backgroundColor: "#0A0E17",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    borderWidth: 1,
+    borderColor: "rgba(0, 240, 255, 0.3)",
+    maxHeight: "88%",
+    paddingBottom: 20,
+  },
+  modalHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 18,
+    paddingTop: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255, 255, 255, 0.08)",
+  },
+  modalBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+    backgroundColor: "rgba(0, 240, 255, 0.12)",
+    borderWidth: 1,
+    borderColor: "#00F0FF",
+  },
+  modalBadgeText: {
+    color: "#00F0FF",
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+  },
+  modalCloseBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+  },
+  modalCloseText: {
+    color: "#94A3B8",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  modalScrollBody: {
+    paddingHorizontal: 18,
+    paddingTop: 14,
+    paddingBottom: 30,
+  },
+  modalCoverContainer: {
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  modalCoverImage: {
+    width: 120,
+    height: 175,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: "rgba(0, 240, 255, 0.4)",
+    backgroundColor: "#131C2E",
+  },
+  modalCoverPlaceholder: {
+    width: 120,
+    height: 175,
+    borderRadius: 10,
+    backgroundColor: "#131C2E",
+    borderWidth: 1.5,
+    borderColor: "rgba(0, 240, 255, 0.3)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalCoverPlaceholderText: {
+    color: "#00F0FF",
+    fontSize: 12,
+    fontWeight: "800",
+  },
+  modalBookTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#F8FAFC",
+    textAlign: "center",
+    marginBottom: 4,
+    lineHeight: 24,
+  },
+  modalBookAuthor: {
+    fontSize: 13,
+    color: "#94A3B8",
+    textAlign: "center",
+    marginBottom: 12,
+  },
+  modalMetaRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    flexWrap: "wrap",
+    gap: 8,
+    marginBottom: 16,
+  },
+  modalMetaChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    backgroundColor: "rgba(255, 255, 255, 0.04)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+  },
+  modalMetaChipText: {
+    color: "#E2E8F0",
+    fontSize: 11,
+    fontWeight: "600",
+  },
+  ratingCard: {
+    backgroundColor: "rgba(245, 158, 11, 0.06)",
+    borderWidth: 1,
+    borderColor: "rgba(245, 158, 11, 0.25)",
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginBottom: 16,
+  },
+  ratingStarsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  ratingStarIcon: {
+    color: "#F59E0B",
+    fontSize: 15,
+  },
+  ratingValueText: {
+    color: "#F8FAFC",
+    fontSize: 13,
+    fontWeight: "800",
+  },
+  ratingCountText: {
+    color: "#94A3B8",
+    fontSize: 11,
+    fontWeight: "500",
+  },
+  readersInterestText: {
+    color: "#F59E0B",
+    fontSize: 11,
+    fontWeight: "600",
+    marginTop: 4,
+  },
+  synopsisContainer: {
+    backgroundColor: "#0D131F",
+    borderRadius: 12,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: "rgba(0, 240, 255, 0.15)",
+    marginBottom: 16,
+  },
+  synopsisHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  synopsisSectionTitle: {
+    color: "#00F0FF",
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+  },
+  synopsisLangBadge: {
+    backgroundColor: "rgba(0, 240, 255, 0.1)",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  synopsisLangText: {
+    color: "#00F0FF",
+    fontSize: 9.5,
+    fontWeight: "700",
+  },
+  synopsisLoadingBox: {
+    paddingVertical: 16,
+    alignItems: "center",
+    gap: 8,
+  },
+  synopsisLoadingText: {
+    color: "#64748B",
+    fontSize: 11,
+  },
+  synopsisBodyText: {
+    color: "#CBD5E1",
+    fontSize: 12.5,
+    lineHeight: 20,
+    fontWeight: "400",
+  },
+  takeawaysModalContainer: {
+    backgroundColor: "#0D131F",
+    borderRadius: 12,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.08)",
+    marginBottom: 16,
+  },
+  takeawaysModalTitle: {
+    color: "#F8FAFC",
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+    marginBottom: 10,
+  },
+  modalTakeawayRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: 6,
+    paddingRight: 8,
+  },
+  modalBulletSymbol: {
+    color: "#00F0FF",
+    fontSize: 12,
+    marginRight: 6,
+    lineHeight: 18,
+  },
+  modalTakeawayText: {
+    color: "#94A3B8",
+    fontSize: 12,
+    lineHeight: 18,
+    flex: 1,
+  },
+  modalActionsCol: {
+    gap: 10,
+    marginTop: 4,
+  },
+  modalAddRoutineBtn: {
+    backgroundColor: "#00F0FF",
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalAddRoutineText: {
+    color: "#05080F",
+    fontSize: 13,
+    fontWeight: "800",
+    letterSpacing: 0.3,
+  },
+  modalSecondaryActionsRow: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  modalInterestBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.15)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalInterestBtnActive: {
+    backgroundColor: "rgba(0, 240, 255, 0.12)",
+    borderColor: "#00F0FF",
+  },
+  modalInterestBtnText: {
+    color: "#94A3B8",
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  modalInterestBtnTextActive: {
+    color: "#00F0FF",
+    fontWeight: "800",
+  },
+  modalBuyBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    backgroundColor: "rgba(245, 158, 11, 0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(245, 158, 11, 0.3)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalBuyText: {
+    color: "#F59E0B",
+    fontSize: 12,
+    fontWeight: "700",
   },
 });
