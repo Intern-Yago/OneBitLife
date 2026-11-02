@@ -24,6 +24,79 @@ import ChangeNavigationService from "../../services/ChangeNavigationService";
 import CheckService from "../../services/CheckService";
 import HabitsService from "../../services/HabitsService";
 import SoundService from "../../services/SoundService";
+import Svg, { Path, Circle, Line } from "react-native-svg";
+
+function TabIcon({ id, color, size = 20 }) {
+  switch (id) {
+    case "hoje":
+      return (
+        <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+          <Path
+            d="M9 11l3 3L22 4"
+            stroke={color}
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"
+            stroke={color}
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+    case "treinos":
+      return (
+        <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+          <Path
+            d="M6 5v14M18 5v14M2 9v6M22 9v6M6 12h12"
+            stroke={color}
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+    case "livros":
+      return (
+        <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+          <Path
+            d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"
+            stroke={color}
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+    case "foco":
+      return (
+        <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+          <Circle cx="12" cy="14" r="8" stroke={color} strokeWidth="2.2" />
+          <Line x1="12" y1="10" x2="12" y2="14" stroke={color} strokeWidth="2.2" strokeLinecap="round" />
+          <Line x1="12" y1="2" x2="12" y2="4" stroke={color} strokeWidth="2.2" strokeLinecap="round" />
+          <Line x1="9" y1="2" x2="15" y2="2" stroke={color} strokeWidth="2.2" strokeLinecap="round" />
+        </Svg>
+      );
+    case "perfil":
+      return (
+        <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+          <Path
+            d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
+            stroke={color}
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Circle cx="12" cy="7" r="4" stroke={color} strokeWidth="2.2" />
+        </Svg>
+      );
+    default:
+      return null;
+  }
+}
 
 export default function Home({ route }) {
   const navigation = useNavigation();
@@ -448,22 +521,21 @@ export default function Home({ route }) {
       {/* BARRA DE NAVEGAÇÃO INFERIOR (BOTTOM TAB BAR) */}
       <View style={[styles.bottomBar, { paddingBottom: Math.max(10, insets.bottom) }]}>
         {[
-          { id: "hoje", code: "[HOJE]", label: "Hoje" },
-          { id: "treinos", code: "[TREINO]", label: "Treinos" },
-          { id: "livros", code: "[LIVROS]", label: "Livros" },
-          { id: "foco", code: "[FOCO]", label: "Foco" },
-          { id: "perfil", code: "[PERFIL]", label: "Perfil" },
+          { id: "hoje", label: "Hoje" },
+          { id: "treinos", label: "Treinos" },
+          { id: "livros", label: "Livros" },
+          { id: "foco", label: "Foco" },
+          { id: "perfil", label: "Perfil" },
         ].map((tab) => {
           const isSel = currentTab === tab.id;
+          const color = isSel ? "#00F0FF" : "#64748B";
           return (
             <TouchableOpacity
               key={tab.id}
               style={[styles.tabBtn, isSel && styles.tabBtnActive]}
               onPress={() => handleTabChange(tab.id)}
             >
-              <Text style={[styles.tabCode, isSel && styles.tabCodeActive]}>
-                {tab.code}
-              </Text>
+              <TabIcon id={tab.id} color={color} size={20} />
               <Text style={[styles.tabLabel, isSel && styles.tabLabelActive]}>
                 {tab.label}
               </Text>
@@ -722,21 +794,13 @@ const styles = StyleSheet.create({
   tabBtn: {
     flex: 1,
     alignItems: "center",
-    paddingVertical: 4,
-    borderRadius: 8,
+    justifyContent: "center",
+    paddingVertical: 6,
+    borderRadius: 10,
+    gap: 4,
   },
   tabBtnActive: {
     backgroundColor: "rgba(0, 240, 255, 0.08)",
-  },
-  tabCode: {
-    fontSize: 10,
-    color: "#64748B",
-    fontWeight: "800",
-    marginBottom: 2,
-    letterSpacing: 0.5,
-  },
-  tabCodeActive: {
-    color: "#00F0FF",
   },
   tabLabel: {
     fontSize: 11,

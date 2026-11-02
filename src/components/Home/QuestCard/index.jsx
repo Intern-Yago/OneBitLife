@@ -9,6 +9,7 @@ import { useNavigation } from "@react-navigation/native";
 import HabitsService from "../../../services/HabitsService";
 import SoundService from "../../../services/SoundService";
 import CheckService from "../../../services/CheckService";
+import ProtocolIcon from "../../Common/ProtocolIcon";
 
 export default function QuestCard({ habit, onRefresh, onStartTimer }) {
   const navigation = useNavigation();
@@ -106,7 +107,9 @@ export default function QuestCard({ habit, onRefresh, onStartTimer }) {
         activeOpacity={0.8}
       >
         <View style={styles.headerRow}>
-          <Text style={styles.icon}>{habit?.icon || "⚡"}</Text>
+          <View style={styles.iconBox}>
+            <ProtocolIcon name={habit?.icon} color={accentColor} size={20} />
+          </View>
           <View style={styles.titleContainer}>
             <Text
               style={[
@@ -134,9 +137,12 @@ export default function QuestCard({ habit, onRefresh, onStartTimer }) {
         {/* Informações de Notificação ou Progresso */}
         <View style={styles.footerRow}>
           {habit?.habitHasNotification === 1 && (
-            <Text style={styles.notifText}>
-              ⏰ {habit?.habitNotificationTime || "12:00"}
-            </Text>
+            <View style={styles.notifBadge}>
+              <ProtocolIcon name="clock" size={11} color="#64748B" />
+              <Text style={styles.notifText}>
+                {" "}{habit?.habitNotificationTime || "12:00"}
+              </Text>
+            </View>
           )}
 
           {isCounter && (
@@ -221,9 +227,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-  icon: {
-    fontSize: 24,
-    marginRight: 10,
+  iconBox: {
+    width: 38,
+    height: 38,
+    borderRadius: 9,
+    backgroundColor: "#0D131F",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.08)",
+    marginRight: 12,
   },
   titleContainer: {
     flex: 1,
@@ -263,6 +276,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 8,
     justifyContent: "space-between",
+  },
+  notifBadge: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   notifText: {
     color: "#AAAAAA",

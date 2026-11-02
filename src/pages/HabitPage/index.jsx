@@ -17,8 +17,7 @@ import HabitsService from "../../services/HabitsService";
 import NotificationService from "../../services/NotificationService";
 import SoundService from "../../services/SoundService";
 import CyberModal from "../../components/Common/CyberModal";
-
-const ICONS = ["⚡", "◆", "▲", "●", "★", "■", "✦", "◈", "◇"];
+import ProtocolIcon, { PROTOCOL_ICONS } from "../../components/Common/ProtocolIcon";
 
 const WEEKDAYS = [
   "Domingo",
@@ -61,28 +60,28 @@ const PRESET_SUGGESTIONS = {
 
 const AUTO_TEMPLATES = [
   // Mente
-  { name: "Leitura Focada de Livro", area: "Mente", type: "timer", target: "20", unit: "min", diff: "Rank A", icon: "⚡", freq: "Diário" },
-  { name: "Estudo de Programação & Lógica", area: "Mente", type: "timer", target: "30", unit: "min", diff: "Rank A", icon: "⚡", freq: "Diário" },
-  { name: "Meditação & Respiração Consciente", area: "Mente", type: "timer", target: "10", unit: "min", diff: "Rank B", icon: "⚡", freq: "Diário" },
-  { name: "Revisão dos Objetivos da Semana", area: "Mente", type: "check", target: "1", unit: "check", diff: "Rank B", icon: "⚡", freq: "Semanal" },
+  { name: "Leitura Focada de Livro", area: "Mente", type: "timer", target: "20", unit: "min", diff: "Rank A", icon: "book", freq: "Diário" },
+  { name: "Estudo de Programação & Lógica", area: "Mente", type: "timer", target: "30", unit: "min", diff: "Rank A", icon: "bolt", freq: "Diário" },
+  { name: "Meditação & Respiração Consciente", area: "Mente", type: "timer", target: "10", unit: "min", diff: "Rank B", icon: "heart", freq: "Diário" },
+  { name: "Revisão dos Objetivos da Semana", area: "Mente", type: "check", target: "1", unit: "check", diff: "Rank B", icon: "target", freq: "Semanal" },
 
   // Financeiro
-  { name: "Registrar Gastos e Entradas", area: "Financeiro", type: "check", target: "1", unit: "check", diff: "Rank B", icon: "⚡", freq: "Diário" },
-  { name: "Economia e Aporte Diário", area: "Financeiro", type: "counter", target: "20", unit: "R$", diff: "Rank B", icon: "⚡", freq: "Diário" },
-  { name: "Estudo de Finanças & Alocação", area: "Financeiro", type: "timer", target: "15", unit: "min", diff: "Rank A", icon: "⚡", freq: "Diário" },
-  { name: "Auditoria Mensal do Patrimônio", area: "Financeiro", type: "check", target: "1", unit: "check", diff: "Rank S", icon: "⚡", freq: "Mensal" },
+  { name: "Registrar Gastos e Entradas", area: "Financeiro", type: "check", target: "1", unit: "check", diff: "Rank B", icon: "wallet", freq: "Diário" },
+  { name: "Economia e Aporte Diário", area: "Financeiro", type: "counter", target: "20", unit: "R$", diff: "Rank B", icon: "wallet", freq: "Diário" },
+  { name: "Estudo de Finanças & Alocação", area: "Financeiro", type: "timer", target: "15", unit: "min", diff: "Rank A", icon: "wallet", freq: "Diário" },
+  { name: "Auditoria Mensal do Patrimônio", area: "Financeiro", type: "check", target: "1", unit: "check", diff: "Rank S", icon: "wallet", freq: "Mensal" },
 
   // Corpo
-  { name: "Treino Físico (Calistenia/Academia)", area: "Corpo", type: "timer", target: "40", unit: "min", diff: "Rank A", icon: "⚡", freq: "Diário" },
-  { name: "Hidratação Essencial (2.5L)", area: "Corpo", type: "counter", target: "2500", unit: "ml", diff: "Rank B", icon: "⚡", freq: "Diário" },
-  { name: "Caminhada Rápida (6.000 Passos)", area: "Corpo", type: "counter", target: "6000", unit: "passos", diff: "Rank B", icon: "⚡", freq: "Diário" },
-  { name: "Alongamento & Mobilidade Matinal", area: "Corpo", type: "timer", target: "15", unit: "min", diff: "Rank B", icon: "⚡", freq: "Diário" },
+  { name: "Treino Físico (Calistenia/Academia)", area: "Corpo", type: "timer", target: "40", unit: "min", diff: "Rank A", icon: "dumbbell", freq: "Diário" },
+  { name: "Hidratação Essencial (2.5L)", area: "Corpo", type: "counter", target: "2500", unit: "ml", diff: "Rank B", icon: "heart", freq: "Diário" },
+  { name: "Caminhada Rápida (6.000 Passos)", area: "Corpo", type: "counter", target: "6000", unit: "passos", diff: "Rank B", icon: "flame", freq: "Diário" },
+  { name: "Alongamento & Mobilidade Matinal", area: "Corpo", type: "timer", target: "15", unit: "min", diff: "Rank B", icon: "shield", freq: "Diário" },
 
   // Humor
-  { name: "Diário Noturno & 3 Gratidões", area: "Humor", type: "check", target: "1", unit: "check", diff: "Rank C", icon: "⚡", freq: "Diário" },
-  { name: "Detox de Telas Pré-Sono", area: "Humor", type: "timer", target: "45", unit: "min", diff: "Rank B", icon: "⚡", freq: "Diário" },
-  { name: "Conversa com Amigo / Família", area: "Humor", type: "check", target: "1", unit: "check", diff: "Rank B", icon: "⚡", freq: "Diário" },
-  { name: "Pausa Criativa sem Distrações", area: "Humor", type: "timer", target: "20", unit: "min", diff: "Rank B", icon: "⚡", freq: "Diário" },
+  { name: "Diário Noturno & 3 Gratidões", area: "Humor", type: "check", target: "1", unit: "check", diff: "Rank C", icon: "star", freq: "Diário" },
+  { name: "Detox de Telas Pré-Sono", area: "Humor", type: "timer", target: "45", unit: "min", diff: "Rank B", icon: "clock", freq: "Diário" },
+  { name: "Conversa com Amigo / Família", area: "Humor", type: "check", target: "1", unit: "check", diff: "Rank B", icon: "heart", freq: "Diário" },
+  { name: "Pausa Criativa sem Distrações", area: "Humor", type: "timer", target: "20", unit: "min", diff: "Rank B", icon: "bolt", freq: "Diário" },
 ];
 
 export default function HabitPage({ route }) {
@@ -103,7 +102,7 @@ export default function HabitPage({ route }) {
   );
   const [unit, setUnit] = useState(habit?.unit || "");
   const [difficulty, setDifficulty] = useState(habit?.difficulty || "Rank B");
-  const [selectedIcon, setSelectedIcon] = useState(habit?.icon || "⚡");
+  const [selectedIcon, setSelectedIcon] = useState(habit?.icon || "bolt");
 
   // Notificações
   const [hasNotification, setHasNotification] = useState(
@@ -456,24 +455,28 @@ export default function HabitPage({ route }) {
         </View>
 
         {/* 3. ÍCONE DO PROTOCOLO */}
-        <Text style={styles.label}>3. Escolha o Glifo do Protocolo:</Text>
+        <Text style={styles.label}>3. Escolha o Ícone do Protocolo:</Text>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.iconScroll}
         >
-          {ICONS.map((icon) => {
-            const isSel = selectedIcon === icon;
+          {PROTOCOL_ICONS.map((item) => {
+            const isSel = selectedIcon === item.id;
             return (
               <TouchableOpacity
-                key={icon}
+                key={item.id}
                 style={[styles.iconPill, isSel && styles.iconPillActive]}
                 onPress={() => {
                   SoundService.playClick();
-                  setSelectedIcon(icon);
+                  setSelectedIcon(item.id);
                 }}
               >
-                <Text style={styles.iconEmoji}>{icon}</Text>
+                <ProtocolIcon
+                  name={item.id}
+                  color={isSel ? "#00F0FF" : "#94A3B8"}
+                  size={20}
+                />
               </TouchableOpacity>
             );
           })}

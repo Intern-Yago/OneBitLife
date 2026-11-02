@@ -162,7 +162,7 @@ export default function BooksTab({ onAddHabit }) {
         </View>
         <Text style={styles.title}>Biblioteca & Conhecimento</Text>
         <Text style={styles.subtitle}>
-          Explore acervos de qualquer disciplina do mundo com capas e links de compra.
+          Explore acervos de qualquer disciplina em Português (PT-BR) com capas e links de compra.
         </Text>
       </View>
 
@@ -229,7 +229,7 @@ export default function BooksTab({ onAddHabit }) {
           <View style={styles.searchBarRow}>
             <TextInput
               style={styles.searchInput}
-              placeholder="Pesquise qualquer área: Biologia, Direito, Arte..."
+              placeholder="Pesquise em PT-BR: Biologia, Direito, Arte..."
               placeholderTextColor="#64748B"
               value={searchQuery}
               onChangeText={setSearchQuery}

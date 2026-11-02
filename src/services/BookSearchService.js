@@ -1,13 +1,14 @@
 // Serviço de Busca Universal de Livros via Open Library API (Internet Archive)
 // 100% Gratuito, Aberto e sem necessidade de API Key
+// Filtragem estrita para o catálogo em Português (PT-BR)
 
 export const POPULAR_DISCIPLINES = [
   { id: "biologia", label: "Biologia", query: "biologia" },
-  { id: "direito", label: "Direito", query: "direito" },
-  { id: "medicina", label: "Medicina", query: "medicina" },
-  { id: "arte", label: "Arte & Design", query: "historia da arte" },
-  { id: "tecnologia", label: "Tecnologia", query: "programacao software" },
-  { id: "psicologia", label: "Psicologia", query: "psicologia" },
+  { id: "direito", label: "Direito", query: "direito brasileiro" },
+  { id: "medicina", label: "Medicina", query: "medicina saude" },
+  { id: "arte", label: "Arte & Design", query: "arte design" },
+  { id: "tecnologia", label: "Tecnologia", query: "programacao tecnologia" },
+  { id: "psicologia", label: "Psicologia", query: "psicologia comportamento" },
   { id: "filosofia", label: "Filosofia", query: "filosofia" },
   { id: "financas", label: "Finanças", query: "financas investimentos" },
 ];
@@ -21,15 +22,16 @@ class BookSearchService {
     const cleanQuery = (query || "").trim();
     if (!cleanQuery) return [];
 
-    const cacheKey = `${cleanQuery.toLowerCase()}_${limit}`;
+    const cacheKey = `${cleanQuery.toLowerCase()}_pt_${limit}`;
     if (this.cache.has(cacheKey)) {
       return this.cache.get(cacheKey);
     }
 
     try {
+      // &language=por restringe a busca da Open Library exclusivamente a edições publicadas em português
       const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(
         cleanQuery
-      )}&limit=${limit}&fields=key,title,author_name,first_publish_year,number_of_pages_median,cover_i,subject`;
+      )}&language=por&limit=${limit * 2}&fields=key,title,author_name,first_publish_year,number_of_pages_median,cover_i,subject,language`;
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 9000); // 9s timeout
@@ -42,7 +44,20 @@ class BookSearchService {
       }
 
       const data = await response.json();
-      const docs = data.docs || [];
+      const rawDocs = data.docs || [];
+
+      // Filtro estrito client-side para assegurar apenas obras em língua portuguesa
+      const docs = rawDocs
+        .filter((doc) => {
+          if (Array.isArray(doc.language) && doc.language.length > 0) {
+            return doc.language.some(
+              (lang) =>
+                lang.toLowerCase() === "por" || lang.toLowerCase() === "pt"
+            );
+          }
+          return true;
+        })
+        .slice(0, limit);
 
       const formatted = docs.map((doc) => {
         const title = doc.title || "Obra Sem Título";
@@ -79,7 +94,7 @@ class BookSearchService {
             targetValue: 20,
             unit: "min",
             difficulty: pages && pages > 400 ? "Rank S" : "Rank A",
-            icon: "⚡",
+            icon: "book",
           },
         };
       });
