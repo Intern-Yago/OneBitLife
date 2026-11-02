@@ -57,13 +57,13 @@ export default function BooksTab({ onAddHabit }) {
     handleDisciplineSelect("biologia");
   }, []);
 
-  const handleDisciplineSelect = async (queryText) => {
+  const handleDisciplineSelect = async (queryText, forceRefresh = false) => {
     SoundService.playClick();
     setCurrentDiscipline(queryText);
     setSearchQuery(queryText);
     setIsSearching(true);
     try {
-      const results = await BookSearchService.searchBooks(queryText, 12);
+      const results = await BookSearchService.searchBooks(queryText, 12, forceRefresh);
       setSearchResults(results);
     } catch (err) {
       console.warn("Erro na busca por disciplina:", err);
@@ -252,6 +252,19 @@ export default function BooksTab({ onAddHabit }) {
               onPress={handleManualSearch}
             >
               <Text style={styles.searchActionText}>Buscar</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Status do Catálogo & Cache Semanal */}
+          <View style={styles.cacheStatusBar}>
+            <Text style={styles.cacheStatusText}>
+              ✓ Catálogo PT-BR • Cache Semanal Offline (7 dias)
+            </Text>
+            <TouchableOpacity
+              onPress={() => handleDisciplineSelect(currentDiscipline, true)}
+              style={styles.refreshCacheBtn}
+            >
+              <Text style={styles.refreshCacheText}>↻ Sincronizar</Text>
             </TouchableOpacity>
           </View>
 
@@ -1058,5 +1071,35 @@ const styles = StyleSheet.create({
     borderColor: "#00F0FF",
     alignItems: "center",
     justifyContent: "center",
+  },
+  cacheStatusBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "rgba(0, 240, 255, 0.05)",
+    borderWidth: 1,
+    borderColor: "rgba(0, 240, 255, 0.15)",
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginBottom: 12,
+  },
+  cacheStatusText: {
+    color: "#00F0FF",
+    fontSize: 10.5,
+    fontWeight: "700",
+  },
+  refreshCacheBtn: {
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+    borderRadius: 4,
+    backgroundColor: "rgba(0, 240, 255, 0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(0, 240, 255, 0.3)",
+  },
+  refreshCacheText: {
+    color: "#00F0FF",
+    fontSize: 10.5,
+    fontWeight: "800",
   },
 });

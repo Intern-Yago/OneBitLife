@@ -1,6 +1,8 @@
 // Serviço de Busca Universal de Livros via Open Library API (Internet Archive)
 // 100% Gratuito, Aberto e sem necessidade de API Key
-// Filtragem estrita para o catálogo em Português (PT-BR)
+// Filtragem estrita para o catálogo em Português (PT-BR) com Cache Persistente Semanal (SQLite)
+
+import db from "../Database";
 
 export const POPULAR_DISCIPLINES = [
   { id: "biologia", label: "Biologia", query: "biologia" },
@@ -13,22 +15,108 @@ export const POPULAR_DISCIPLINES = [
   { id: "financas", label: "Finanças", query: "financas investimentos" },
 ];
 
+// Inicialização da tabela de cache persistente SQLite
+db.transaction((tx) => {
+  tx.executeSql(
+    `CREATE TABLE IF NOT EXISTS book_search_cache (
+      queryKey TEXT PRIMARY KEY,
+      dataJson TEXT,
+      updatedAt INTEGER
+    );`
+  );
+});
+
+// TTL Semanal de 7 dias (604.800.000 ms)
+const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
+function getFromPersistentCache(queryKey) {
+  return new Promise((resolve) => {
+    try {
+      db.transaction((tx) => {
+        tx.executeSql(
+          "SELECT dataJson, updatedAt FROM book_search_cache WHERE queryKey = ?;",
+          [queryKey],
+          (_, { rows }) => {
+            const list = rows?._array || [];
+            if (list.length > 0) {
+              const row = list[0];
+              const age = Date.now() - (Number(row.updatedAt) || 0);
+              const isExpired = age > CACHE_TTL_MS;
+              try {
+                const books = JSON.parse(row.dataJson);
+                resolve({ books, isExpired, age });
+              } catch (_) {
+                resolve(null);
+              }
+            } else {
+              resolve(null);
+            }
+          },
+          (_, err) => {
+            console.warn("[BookSearchService] Erro ao ler cache SQLite:", err);
+            resolve(null);
+          }
+        );
+      });
+    } catch (_) {
+      resolve(null);
+    }
+  });
+}
+
+function saveToPersistentCache(queryKey, books) {
+  return new Promise((resolve) => {
+    try {
+      db.transaction((tx) => {
+        tx.executeSql(
+          "INSERT OR REPLACE INTO book_search_cache (queryKey, dataJson, updatedAt) VALUES (?, ?, ?);",
+          [queryKey, JSON.stringify(books), Date.now()],
+          () => resolve(true),
+          (_, err) => {
+            console.warn("[BookSearchService] Erro ao salvar cache SQLite:", err);
+            resolve(false);
+          }
+        );
+      });
+    } catch (_) {
+      resolve(false);
+    }
+  });
+}
+
 class BookSearchService {
   constructor() {
-    this.cache = new Map();
+    this.memoryCache = new Map();
   }
 
-  async searchBooks(query, limit = 12) {
+  async searchBooks(query, limit = 12, forceRefresh = false) {
     const cleanQuery = (query || "").trim();
     if (!cleanQuery) return [];
 
     const cacheKey = `${cleanQuery.toLowerCase()}_pt_${limit}`;
-    if (this.cache.has(cacheKey)) {
-      return this.cache.get(cacheKey);
+
+    // 1. Verificar cache em memória (resposta imediata em 0ms)
+    if (!forceRefresh && this.memoryCache.has(cacheKey)) {
+      return this.memoryCache.get(cacheKey);
     }
 
+    // 2. Verificar cache persistente SQLite (com validade semanal de 7 dias)
+    let persistentEntry = null;
+    if (!forceRefresh) {
+      persistentEntry = await getFromPersistentCache(cacheKey);
+      if (
+        persistentEntry &&
+        !persistentEntry.isExpired &&
+        Array.isArray(persistentEntry.books) &&
+        persistentEntry.books.length > 0
+      ) {
+        this.memoryCache.set(cacheKey, persistentEntry.books);
+        return persistentEntry.books;
+      }
+    }
+
+    // 3. Se não houver cache válido (ou se for busca específica nova), faz a requisição à Open Library
     try {
-      // &language=por restringe a busca da Open Library exclusivamente a edições publicadas em português
       const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(
         cleanQuery
       )}&language=por&limit=${limit * 2}&fields=key,title,author_name,first_publish_year,number_of_pages_median,cover_i,subject,language`;
@@ -99,12 +187,40 @@ class BookSearchService {
         };
       });
 
-      this.cache.set(cacheKey, formatted);
+      // Salva no cache SQLite semanal e na memória RAM
+      if (formatted.length > 0) {
+        this.memoryCache.set(cacheKey, formatted);
+        await saveToPersistentCache(cacheKey, formatted);
+      }
+
       return formatted;
     } catch (err) {
-      console.warn("[BookSearchService] Erro na busca de livros:", err.message);
+      console.warn("[BookSearchService] Erro na requisição online:", err.message);
+
+      // 4. Fallback Offline: Se a internet estiver indisponível, usa o cache local SQLite mesmo que antigo
+      if (!persistentEntry) {
+        persistentEntry = await getFromPersistentCache(cacheKey);
+      }
+      if (persistentEntry && persistentEntry.books?.length > 0) {
+        this.memoryCache.set(cacheKey, persistentEntry.books);
+        return persistentEntry.books;
+      }
+
       return [];
     }
+  }
+
+  async clearPersistentCache() {
+    this.memoryCache.clear();
+    return new Promise((resolve) => {
+      try {
+        db.transaction((tx) => {
+          tx.executeSql("DELETE FROM book_search_cache;", [], () => resolve(true), () => resolve(false));
+        });
+      } catch (_) {
+        resolve(false);
+      }
+    });
   }
 }
 
