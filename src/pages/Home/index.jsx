@@ -152,6 +152,14 @@ export default function Home({ route }) {
         borderColor: "rgba(255, 51, 102, 0.3)",
       };
     }
+    if (allHabits.length === 0) {
+      return {
+        label: "MODO ESPERA • FORJE UMA META PARA ATIVAR O VÍNCULO VITAL",
+        color: "#00F0FF",
+        bg: "rgba(0, 240, 255, 0.08)",
+        borderColor: "rgba(0, 240, 255, 0.25)",
+      };
+    }
     const minMind = getAreaProgress(mindHabits);
     const minMoney = getAreaProgress(moneyHabits);
     const minBody = getAreaProgress(bodyHabits);
