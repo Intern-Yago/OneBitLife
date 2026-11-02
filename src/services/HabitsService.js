@@ -221,39 +221,84 @@ const deleteByName = (habitArea) => {
 const changeProgress = (obj) => {
   return new Promise((resolve, reject) => {
     db.transaction((tx) => {
-      tx.executeSql(
-        `UPDATE habits SET
-          progressBar = ?,
-          habitChecks = ?,
-          lastCheck = ?,
-          daysWithoutChecks = ?,
-          habitIsChecked = ?,
-          currentValue = ?,
-          streak = ?
-        WHERE habitArea = ?;`,
-        [
-          obj.progressBar,
-          obj.habitChecks,
-          obj.lastCheck,
-          obj.daysWithoutChecks,
-          obj.habitIsChecked ? 1 : 0,
-          obj.currentValue || 0,
-          obj.streak || 0,
-          obj.habitArea,
-        ],
-        (_, { rowsAffected }) => resolve(rowsAffected),
-        (_, error) => reject(error)
-      );
+      if (obj.id) {
+        if (obj.habitChecks !== undefined || obj.lastCheck !== undefined) {
+          tx.executeSql(
+            `UPDATE habits SET
+              progressBar = ?,
+              habitChecks = COALESCE(?, habitChecks),
+              lastCheck = COALESCE(?, lastCheck),
+              daysWithoutChecks = COALESCE(?, daysWithoutChecks),
+              habitIsChecked = ?,
+              currentValue = COALESCE(?, currentValue),
+              streak = COALESCE(?, streak)
+            WHERE id = ?;`,
+            [
+              obj.progressBar,
+              obj.habitChecks,
+              obj.lastCheck,
+              obj.daysWithoutChecks,
+              obj.habitIsChecked ? 1 : 0,
+              obj.currentValue,
+              obj.streak,
+              obj.id,
+            ],
+            (_, { rowsAffected }) => resolve(rowsAffected),
+            (_, error) => reject(error)
+          );
+        } else {
+          tx.executeSql(
+            "UPDATE habits SET progressBar = ? WHERE id = ?;",
+            [obj.progressBar, obj.id],
+            (_, { rowsAffected }) => resolve(rowsAffected),
+            (_, error) => reject(error)
+          );
+        }
+      } else {
+        if (obj.habitChecks !== undefined || obj.lastCheck !== undefined) {
+          tx.executeSql(
+            `UPDATE habits SET
+              progressBar = ?,
+              habitChecks = COALESCE(?, habitChecks),
+              lastCheck = COALESCE(?, lastCheck),
+              daysWithoutChecks = COALESCE(?, daysWithoutChecks),
+              habitIsChecked = ?,
+              currentValue = COALESCE(?, currentValue),
+              streak = COALESCE(?, streak)
+            WHERE habitArea = ?;`,
+            [
+              obj.progressBar,
+              obj.habitChecks,
+              obj.lastCheck,
+              obj.daysWithoutChecks,
+              obj.habitIsChecked ? 1 : 0,
+              obj.currentValue,
+              obj.streak,
+              obj.habitArea,
+            ],
+            (_, { rowsAffected }) => resolve(rowsAffected),
+            (_, error) => reject(error)
+          );
+        } else {
+          tx.executeSql(
+            "UPDATE habits SET progressBar = ? WHERE habitArea = ?;",
+            [obj.progressBar, obj.habitArea],
+            (_, { rowsAffected }) => resolve(rowsAffected),
+            (_, error) => reject(error)
+          );
+        }
+      }
     });
   });
 };
 
 const resetAllProgress = () => {
+  const today = new Date().toISOString().slice(0, 10);
   return new Promise((resolve, reject) => {
     db.transaction((tx) => {
       tx.executeSql(
-        "UPDATE habits SET progressBar = 0, habitChecks = 0, daysWithoutChecks = 0, habitIsChecked = 0, currentValue = 0, streak = 0;",
-        [],
+        "UPDATE habits SET progressBar = 1, daysWithoutChecks = 0, lastCheck = ?, habitIsChecked = 0, currentValue = 0;",
+        [today],
         (_, { rowsAffected }) => {
           tx.executeSql(
             "UPDATE daily_challenges SET completed = 0;",

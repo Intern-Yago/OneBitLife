@@ -1,12 +1,25 @@
+function discretize(val) {
+  if (val === undefined || val === null) return undefined;
+  if (val <= 0) return 0;
+  if (val <= 0.35) return 0.25;
+  if (val <= 0.75) return 0.5;
+  return 1;
+}
+
 function animationStatus(
-  mindHabit,
-  moneyHabit,
-  bodyHabit,
-  funHabit,
+  rawMind,
+  rawMoney,
+  rawBody,
+  rawFun,
   setMind,
   setMoney,
   setRobot
 ) {
+  const mindHabit = discretize(rawMind);
+  const moneyHabit = discretize(rawMoney);
+  const bodyHabit = discretize(rawBody);
+  const funHabit = discretize(rawFun);
+
   if (
     mindHabit === 0 ||
     moneyHabit === 0 ||
@@ -33,11 +46,11 @@ function animationStatus(
       setMoney(require("../assets/money/money-100.json"));
     }
 
-    if (bodyHabit === 0.25 && funHabit === undefined) {
+    if (bodyHabit === 0.25 && (funHabit === undefined || funHabit === 1)) {
       setRobot(require("../assets/robot/robot-100-25.json"));
-    } else if (bodyHabit === 0.5 && funHabit === undefined) {
+    } else if (bodyHabit === 0.5 && (funHabit === undefined || funHabit === 1)) {
       setRobot(require("../assets/robot/robot-100-50.json"));
-    } else if (bodyHabit === 1 && funHabit === undefined) {
+    } else if (bodyHabit === 1 && (funHabit === undefined || funHabit === 1)) {
       setRobot(require("../assets/robot/robot-100-100.json"));
     } else if (bodyHabit === undefined && funHabit === 0.25) {
       setRobot(require("../assets/robot/robot-100-25.json"));
@@ -45,8 +58,6 @@ function animationStatus(
       setRobot(require("../assets/robot/robot-100-50.json"));
     } else if (bodyHabit === undefined && funHabit === 1) {
       setRobot(require("../assets/robot/robot-100-100.json"));
-    } else if (bodyHabit === 0.25 && funHabit === 1) {
-      setRobot(require("../assets/robot/robot-100-25.json"));
     } else if (bodyHabit === 0.5 && funHabit === 0.5) {
       setRobot(require("../assets/robot/robot-50-50.json"));
     } else if (bodyHabit === 0.25 && funHabit === 0.5) {
@@ -59,14 +70,10 @@ function animationStatus(
       setRobot(require("../assets/robot/robot-25-25.json"));
     } else if (bodyHabit === 1 && funHabit === 0.25) {
       setRobot(require("../assets/robot/robot-25-100.json"));
-    } else if (bodyHabit === 0.5 && funHabit === 1) {
-      setRobot(require("../assets/robot/robot-100-50.json"));
-    } else if (bodyHabit === 0.25 && funHabit === 1) {
-      setRobot(require("../assets/robot/robot-100-25.json"));
     } else {
       setRobot(require("../assets/robot/robot-100-100.json"));
     }
   }
 }
 
-export default { animationStatus };
+export default { animationStatus, discretize };

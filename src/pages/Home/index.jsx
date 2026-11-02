@@ -73,6 +73,15 @@ export default function Home({ route }) {
 
   const loadAllHabits = async () => {
     try {
+      const initialList = await HabitsService.getAllHabits();
+
+      // Avalia a rotina e fome de cada hábito se os dias se passaram
+      for (const h of initialList) {
+        await CheckService.removeCheck(h);
+        await CheckService.checkStatus(h);
+      }
+
+      // Lê a lista com o progresso e estado de fome devidamente atualizados
       const list = await HabitsService.getAllHabits();
       setAllHabits(list);
 
@@ -85,11 +94,6 @@ export default function Home({ route }) {
       setMoneyHabits(money);
       setBodyHabits(body);
       setFunHabits(fun);
-
-      list.forEach((h) => {
-        CheckService.removeCheck(h);
-        CheckService.checkStatus(h);
-      });
 
       // Cálculo de XP Unificado (Hábitos + Desafios Diários)
       const stats = await HabitsService.getPlayerStats();
@@ -132,14 +136,53 @@ export default function Home({ route }) {
       .catch((err) => console.log(err));
   }, []);
 
-  const getAvgProgress = (habits) => {
+  const getAreaProgress = (habits) => {
     if (!habits || habits.length === 0) return 1;
-    const sum = habits.reduce(
-      (acc, h) => acc + (h.progressBar !== undefined ? h.progressBar : 1),
-      0
+    return Math.min(
+      ...habits.map((h) => (h.progressBar !== undefined ? h.progressBar : 1))
     );
-    return sum / habits.length;
   };
+
+  const getTamagotchiState = () => {
+    if (gameOver) {
+      return {
+        label: "SISTEMA OFFLINE • ENERGIA ESGOTADA",
+        color: "#FF3366",
+        bg: "rgba(255, 51, 102, 0.12)",
+        borderColor: "rgba(255, 51, 102, 0.3)",
+      };
+    }
+    const minMind = getAreaProgress(mindHabits);
+    const minMoney = getAreaProgress(moneyHabits);
+    const minBody = getAreaProgress(bodyHabits);
+    const minFun = getAreaProgress(funHabits);
+    const overallMin = Math.min(minMind, minMoney, minBody, minFun);
+
+    if (overallMin <= 0.25) {
+      return {
+        label: "ENERGIA CRÍTICA • NUTRIR ROTINAS IMEDIATAMENTE",
+        color: "#FE7F23",
+        bg: "rgba(254, 127, 35, 0.12)",
+        borderColor: "rgba(254, 127, 35, 0.3)",
+      };
+    }
+    if (overallMin <= 0.5) {
+      return {
+        label: "FOME DETECTADA • CONCLUA SUAS METAS DO DIA",
+        color: "#F59E0B",
+        bg: "rgba(245, 158, 11, 0.12)",
+        borderColor: "rgba(245, 158, 11, 0.3)",
+      };
+    }
+    return {
+      label: "CORE ALIMENTADO • 100% OPERACIONAL",
+      color: "#00F0FF",
+      bg: "rgba(0, 240, 255, 0.08)",
+      borderColor: "rgba(0, 240, 255, 0.25)",
+    };
+  };
+
+  const tamagotchiState = getTamagotchiState();
 
   const activeHabits = allHabits.filter((h) => (h.habitIsChecked || 0) === 0);
   const completedHabits = allHabits.filter((h) => (h.habitIsChecked || 0) === 1);
@@ -237,17 +280,43 @@ export default function Home({ route }) {
             {/* ROBÔ DE LOTTIE E BARRAS DE STATUS */}
             <View style={{ alignItems: "center" }}>
               <LifeStatus
-                mindHabit={mindHabits[0]}
-                moneyHabit={moneyHabits[0]}
-                bodyHabit={bodyHabits[0]}
-                funHabit={funHabits[0]}
+                mindHabit={mindHabits}
+                moneyHabit={moneyHabits}
+                bodyHabit={bodyHabits}
+                funHabit={funHabits}
               />
 
+              {/* BADGE DE MONITORAMENTO VITAL DO CORE (TAMAGOTCHI) */}
+              <View
+                style={[
+                  styles.tamagotchiBadge,
+                  {
+                    backgroundColor: tamagotchiState.bg,
+                    borderColor: tamagotchiState.borderColor,
+                  },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.tamagotchiDot,
+                    { backgroundColor: tamagotchiState.color },
+                  ]}
+                />
+                <Text
+                  style={[
+                    styles.tamagotchiText,
+                    { color: tamagotchiState.color },
+                  ]}
+                >
+                  {tamagotchiState.label}
+                </Text>
+              </View>
+
               <StatusBar
-                mindHabit={getAvgProgress(mindHabits)}
-                moneyHabit={getAvgProgress(moneyHabits)}
-                bodyHabit={getAvgProgress(bodyHabits)}
-                funHabit={getAvgProgress(funHabits)}
+                mindHabit={getAreaProgress(mindHabits)}
+                moneyHabit={getAreaProgress(moneyHabits)}
+                bodyHabit={getAreaProgress(bodyHabits)}
+                funHabit={getAreaProgress(funHabits)}
               />
             </View>
 
@@ -521,6 +590,27 @@ const styles = StyleSheet.create({
     color: "#10B981",
     fontSize: 14,
     fontWeight: "900",
+  },
+  tamagotchiBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 20,
+    borderWidth: 1,
+    marginTop: 2,
+    marginBottom: 8,
+  },
+  tamagotchiDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 6,
+  },
+  tamagotchiText: {
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 0.8,
   },
   gameOverBanner: {
     backgroundColor: "rgba(255, 51, 102, 0.12)",

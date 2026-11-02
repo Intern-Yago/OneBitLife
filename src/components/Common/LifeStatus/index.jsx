@@ -19,13 +19,32 @@ export default function LifeStatus({
   const [money, setMoney] = useState(defaultMoney);
   const [robot, setRobot] = useState(defaultRobot);
 
+  // Extrai o nível de progresso seja de um número, objeto ou array de hábitos (Tamagotchi multi-rotina)
+  const resolveProgress = (val) => {
+    if (val === undefined || val === null) return undefined;
+    if (typeof val === "number") return val;
+    if (Array.isArray(val)) {
+      if (val.length === 0) return undefined;
+      // Se qualquer hábito na área estiver sem check / com fome, a área reflete o hábito mais negligenciado
+      return Math.min(
+        ...val.map((h) =>
+          h && typeof h.progressBar === "number" ? h.progressBar : 1
+        )
+      );
+    }
+    if (typeof val === "object" && typeof val.progressBar === "number") {
+      return val.progressBar;
+    }
+    return undefined;
+  };
+
   useEffect(() => {
     try {
       AnimationService.animationStatus(
-        mindHabit?.progressBar,
-        moneyHabit?.progressBar,
-        bodyHabit?.progressBar,
-        funHabit?.progressBar,
+        resolveProgress(mindHabit),
+        resolveProgress(moneyHabit),
+        resolveProgress(bodyHabit),
+        resolveProgress(funHabit),
         setMind,
         setMoney,
         setRobot
@@ -69,20 +88,25 @@ const styles = StyleSheet.create({
   container: {
     width: 300,
     height: 300,
+    alignItems: "center",
+    justifyContent: "center",
   },
   roboAnimacao: {
     width: 190,
+    height: 190,
     marginTop: 30,
     alignSelf: "center",
   },
   educacaoAnimacao: {
     width: 100,
+    height: 100,
     marginTop: 50,
     marginLeft: 5,
     position: "absolute",
   },
   financasAnimacao: {
     width: 100,
+    height: 100,
     position: "absolute",
     marginTop: 50,
     marginLeft: 95,
