@@ -1,14 +1,17 @@
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
   Modal,
   ScrollView,
   StyleSheet,
   Switch,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import { ACHIEVEMENTS_DATA, shareAchievement } from "../../Database/AchievementsData";
+import BackupService from "../../services/BackupService";
 import NotificationService from "../../services/NotificationService";
 import SoundService from "../../services/SoundService";
 import CyberModal from "../Common/CyberModal";
@@ -27,6 +30,10 @@ export default function ProfileTab({
 }) {
   const [selectedBadge, setSelectedBadge] = useState(null);
   const [isSoundMuted, setIsSoundMuted] = useState(SoundService.isMuted());
+  const [restoreModalVisible, setRestoreModalVisible] = useState(false);
+  const [backupInputText, setBackupInputText] = useState("");
+  const [isRestoring, setIsRestoring] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [modalConfig, setModalConfig] = useState({
     visible: false,
     title: "",
@@ -114,6 +121,106 @@ export default function ProfileTab({
       onConfirm: () => {
         setModalConfig((prev) => ({ ...prev, visible: false }));
         if (onResetLife) onResetLife();
+      },
+    });
+  };
+
+  const handleExportBackup = async () => {
+    SoundService.playClick();
+    setIsExporting(true);
+    try {
+      const res = await BackupService.shareBackup();
+      if (res.success) {
+        setModalConfig({
+          visible: true,
+          title: "BACKUP EXPORTADO",
+          message: `Arquivo de backup pronto!\n\n• ${res.stats.habitsCount} Rotinas & Metas\n• ${res.stats.workoutsCount} Testes Físicos\n• ${res.stats.booksCount} Livros na Wishlist\n\nVocê pode salvá-lo no Google Drive, enviar pelo WhatsApp ou guardar em arquivo para restaurar em qualquer celular!`,
+          type: "success",
+          confirmText: "ENTENDIDO",
+          onConfirm: () => setModalConfig((prev) => ({ ...prev, visible: false })),
+        });
+      }
+    } catch (_) {
+      setModalConfig({
+        visible: true,
+        title: "FALHA NO BACKUP",
+        message: "Não foi possível gerar a exportação de dados.",
+        type: "danger",
+        confirmText: "FECHAR",
+        onConfirm: () => setModalConfig((prev) => ({ ...prev, visible: false })),
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleProcessRestore = async () => {
+    SoundService.playClick();
+    if (!backupInputText.trim()) {
+      setModalConfig({
+        visible: true,
+        title: "DADOS AUSENTES",
+        message: "Cole o texto JSON do backup no campo indicado para prosseguir.",
+        type: "warning",
+        confirmText: "OK",
+        onConfirm: () => setModalConfig((prev) => ({ ...prev, visible: false })),
+      });
+      return;
+    }
+
+    const validation = BackupService.validateBackup(backupInputText);
+    if (!validation.valid) {
+      SoundService.playBeep();
+      setModalConfig({
+        visible: true,
+        title: "BACKUP INVÁLIDO",
+        message: validation.error,
+        type: "danger",
+        confirmText: "CORRIGIR",
+        onConfirm: () => setModalConfig((prev) => ({ ...prev, visible: false })),
+      });
+      return;
+    }
+
+    setModalConfig({
+      visible: true,
+      title: "CONFIRMAR RESTAURAÇÃO",
+      message: `Este backup contém:\n\n• ${validation.stats.habitsCount} Rotinas\n• ${validation.stats.workoutsCount} Testes de Condicionamento\n• ${validation.stats.booksCount} Interesses Literários\n\nATENÇÃO: A restauração substituirá os dados atuais deste dispositivo pelos dados do backup. Deseja prosseguir?`,
+      type: "warning",
+      confirmText: "RESTAURAR AGORA",
+      cancelText: "CANCELAR",
+      onCancel: () => setModalConfig((prev) => ({ ...prev, visible: false })),
+      onConfirm: async () => {
+        setModalConfig((prev) => ({ ...prev, visible: false }));
+        setIsRestoring(true);
+        try {
+          await BackupService.restoreBackup(validation.payload);
+          SoundService.playLevelUp();
+          setRestoreModalVisible(false);
+          setBackupInputText("");
+          setModalConfig({
+            visible: true,
+            title: "SISTEMA RESTAURADO COM SUCESSO!",
+            message: `Todas as suas rotinas, testes físicos e livros foram restaurados com sucesso no novo dispositivo!\n\nAs notificações foram reativadas.`,
+            type: "success",
+            confirmText: "CONCLUIR",
+            onConfirm: () => {
+              setModalConfig((prev) => ({ ...prev, visible: false }));
+              if (onResetLife) onResetLife();
+            },
+          });
+        } catch (err) {
+          setModalConfig({
+            visible: true,
+            title: "ERRO NA RESTAURAÇÃO",
+            message: `Falha ao gravar os dados no banco SQLite: ${err.message}`,
+            type: "danger",
+            confirmText: "FECHAR",
+            onConfirm: () => setModalConfig((prev) => ({ ...prev, visible: false })),
+          });
+        } finally {
+          setIsRestoring(false);
+        }
       },
     });
   };
@@ -284,7 +391,111 @@ export default function ProfileTab({
         </TouchableOpacity>
       </View>
 
+      {/* BACKUP & SINCRONIZAÇÃO NUVEM / LOCAL */}
+      <View style={styles.sectionHeaderRow}>
+        <Text style={styles.sectionTitle}>[BACKUP & SINCRONIZAÇÃO DE DADOS]</Text>
+      </View>
+
+      <View style={styles.backupCard}>
+        <Text style={styles.backupCardTitle}>Troca de Celular & Segurança</Text>
+        <Text style={styles.backupCardDesc}>
+          Exporte um arquivo completo com suas rotinas, avaliações físicas, livros salvos e histórico para restaurar em qualquer outro celular.
+        </Text>
+
+        <TouchableOpacity
+          style={styles.exportBackupBtn}
+          onPress={handleExportBackup}
+          disabled={isExporting}
+        >
+          {isExporting ? (
+            <ActivityIndicator color="#05080F" size="small" />
+          ) : (
+            <Text style={styles.exportBackupText}>
+              ↑ Criar & Compartilhar Backup Completo
+            </Text>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.openRestoreBtn}
+          onPress={() => {
+            SoundService.playClick();
+            setRestoreModalVisible(true);
+          }}
+        >
+          <Text style={styles.openRestoreText}>
+            ↓ Restaurar Backup no Novo Celular
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       <View style={{ height: 40 }} />
+
+      {/* MODAL DE RESTAURAÇÃO DE BACKUP */}
+      <Modal
+        visible={restoreModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setRestoreModalVisible(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.restoreModalBox}>
+            <View style={styles.restoreHeaderRow}>
+              <View style={styles.restoreBadge}>
+                <Text style={styles.restoreBadgeText}>[RESTAURAÇÃO CYBER]</Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setRestoreModalVisible(false)}
+                style={styles.modalCloseBtnCompact}
+              >
+                <Text style={styles.modalCloseText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.restoreModalTitle}>
+              Importar Backup do OneBitLife
+            </Text>
+            <Text style={styles.restoreModalDesc}>
+              Cole abaixo o texto JSON exportado do seu celular antigo. Suas rotinas, testes e dados serão restaurados com precisão.
+            </Text>
+
+            <TextInput
+              style={styles.backupTextInput}
+              placeholder="Cole o código do backup aqui..."
+              placeholderTextColor="#64748B"
+              multiline
+              numberOfLines={6}
+              value={backupInputText}
+              onChangeText={setBackupInputText}
+              textAlignVertical="top"
+            />
+
+            <View style={styles.restoreActionsRow}>
+              <TouchableOpacity
+                style={styles.cancelRestoreBtn}
+                onPress={() => {
+                  SoundService.playClick();
+                  setRestoreModalVisible(false);
+                }}
+              >
+                <Text style={styles.cancelRestoreText}>Cancelar</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.confirmRestoreBtn}
+                onPress={handleProcessRestore}
+                disabled={isRestoring}
+              >
+                {isRestoring ? (
+                  <ActivityIndicator color="#05080F" size="small" />
+                ) : (
+                  <Text style={styles.confirmRestoreText}>Restaurar Dados</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* MODAL DETALHE DO EMBLEMA */}
       {selectedBadge && (
@@ -662,5 +873,136 @@ const styles = StyleSheet.create({
     color: "#64748B",
     fontSize: 12,
     fontWeight: "600",
+  },
+  backupCard: {
+    backgroundColor: "#0D131F",
+    borderRadius: 14,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "rgba(0, 240, 255, 0.25)",
+    marginBottom: 16,
+  },
+  backupCardTitle: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#F8FAFC",
+    marginBottom: 4,
+  },
+  backupCardDesc: {
+    fontSize: 11.5,
+    color: "#94A3B8",
+    lineHeight: 17,
+    marginBottom: 14,
+  },
+  exportBackupBtn: {
+    backgroundColor: "#00F0FF",
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 10,
+  },
+  exportBackupText: {
+    color: "#05080F",
+    fontSize: 12.5,
+    fontWeight: "800",
+  },
+  openRestoreBtn: {
+    backgroundColor: "rgba(0, 240, 255, 0.08)",
+    borderWidth: 1,
+    borderColor: "rgba(0, 240, 255, 0.3)",
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  openRestoreText: {
+    color: "#00F0FF",
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  restoreModalBox: {
+    width: "100%",
+    backgroundColor: "#0A0E17",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#00F0FF",
+    padding: 20,
+    alignItems: "stretch",
+  },
+  restoreHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  restoreBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+    backgroundColor: "rgba(0, 240, 255, 0.12)",
+    borderWidth: 1,
+    borderColor: "#00F0FF",
+  },
+  restoreBadgeText: {
+    color: "#00F0FF",
+    fontSize: 10,
+    fontWeight: "800",
+  },
+  modalCloseBtnCompact: {
+    padding: 4,
+  },
+  restoreModalTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#F8FAFC",
+    marginBottom: 6,
+  },
+  restoreModalDesc: {
+    fontSize: 11.5,
+    color: "#94A3B8",
+    lineHeight: 17,
+    marginBottom: 14,
+  },
+  backupTextInput: {
+    backgroundColor: "#05080F",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.12)",
+    color: "#F8FAFC",
+    padding: 12,
+    fontSize: 12,
+    minHeight: 120,
+    marginBottom: 16,
+  },
+  restoreActionsRow: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  cancelRestoreBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cancelRestoreText: {
+    color: "#94A3B8",
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  confirmRestoreBtn: {
+    flex: 2,
+    paddingVertical: 12,
+    borderRadius: 8,
+    backgroundColor: "#00F0FF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  confirmRestoreText: {
+    color: "#05080F",
+    fontSize: 12.5,
+    fontWeight: "800",
   },
 });

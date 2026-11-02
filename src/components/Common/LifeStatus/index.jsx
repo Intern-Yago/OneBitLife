@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import Lottie from "lottie-react-native";
 import AnimationService from "../../../services/AnimationService";
@@ -56,22 +56,7 @@ export default function LifeStatus({
 
   return (
     <View style={styles.container}>
-      {mind ? (
-        <Lottie
-          source={mind}
-          autoPlay
-          loop
-          style={styles.educacaoAnimacao}
-        />
-      ) : null}
-      {money ? (
-        <Lottie
-          source={money}
-          autoPlay
-          loop
-          style={styles.financasAnimacao}
-        />
-      ) : null}
+      {/* 1. Robô Cibernético Central (Camada Base) */}
       {robot ? (
         <Lottie
           source={robot}
@@ -80,35 +65,76 @@ export default function LifeStatus({
           style={styles.roboAnimacao}
         />
       ) : null}
+
+      {/* 2. Animação de Mente / Educação (Flanco Esquerdo Superior em Primeiro Plano) */}
+      {mind ? (
+        <View style={styles.educacaoContainer} pointerEvents="none">
+          <Lottie
+            source={mind}
+            autoPlay
+            loop
+            style={styles.educacaoAnimacao}
+          />
+        </View>
+      ) : null}
+
+      {/* 3. Animação de Riqueza / Finanças (Flanco Direito Superior em Primeiro Plano) */}
+      {money ? (
+        <View style={styles.financasContainer} pointerEvents="none">
+          <Lottie
+            source={money}
+            autoPlay
+            loop
+            style={styles.financasAnimacao}
+          />
+        </View>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    width: 300,
-    height: 300,
+    width: 320,
+    height: 250,
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+  },
+  roboAnimacao: {
+    width: 200,
+    height: 200,
+    alignSelf: "center",
+    zIndex: 1,
+  },
+  educacaoContainer: {
+    position: "absolute",
+    top: 5,
+    left: 4,
+    width: 95,
+    height: 95,
+    zIndex: 10,
+    elevation: 10,
     alignItems: "center",
     justifyContent: "center",
   },
-  roboAnimacao: {
-    width: 190,
-    height: 190,
-    marginTop: 30,
-    alignSelf: "center",
-  },
   educacaoAnimacao: {
-    width: 100,
-    height: 100,
-    marginTop: 50,
-    marginLeft: 5,
+    width: "100%",
+    height: "100%",
+  },
+  financasContainer: {
     position: "absolute",
+    top: 5,
+    right: 4,
+    width: 95,
+    height: 95,
+    zIndex: 10,
+    elevation: 10,
+    alignItems: "center",
+    justifyContent: "center",
   },
   financasAnimacao: {
-    width: 100,
-    height: 100,
-    position: "absolute",
-    marginTop: 50,
-    marginLeft: 95,
+    width: "100%",
+    height: "100%",
   },
 });
